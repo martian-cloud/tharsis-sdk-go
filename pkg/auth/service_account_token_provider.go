@@ -34,12 +34,12 @@ type loginBody struct {
 
 // serviceAccountTokenProvider implements Provider.
 type serviceAccountTokenProvider struct {
-	loginURL string
-	// The permanent/static values from constructor arguments, environment variables, etc.
 	options *options
 	// The temporary/dynamic service account token, with expiration.
 	// For thread safety, the token and its expiration with a mutex are protected by a mutex.
-	token *tokenInfo
+	token    *tokenInfo
+	loginURL string
+	// The permanent/static values from constructor arguments, environment variables, etc.
 }
 
 type options struct {
@@ -49,15 +49,14 @@ type options struct {
 
 type tokenInfo struct {
 	mutex   sync.RWMutex
-	token   string
 	expires *time.Time
+	token   string
 }
 
 // NewServiceAccountTokenProvider returns a new instance of this provider.
 //
 // Constructor arguments for options service account path and token values take
 // priority over the environment variables.  For now,
-//
 func NewServiceAccountTokenProvider(endpointURL, accountPath, token string) (TokenProvider, error) {
 
 	if accountPath == "" {

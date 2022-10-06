@@ -72,7 +72,7 @@ func ExampleApplyRun(workspacePath, directoryPath string) error {
 		}
 	}
 	if updatedConfigurationVersion.Status != "uploaded" {
-		return fmt.Errorf("Upload failed; status is %s", updatedConfigurationVersion.Status)
+		return fmt.Errorf("upload failed; status is %s", updatedConfigurationVersion.Status)
 	}
 
 	// Print:
