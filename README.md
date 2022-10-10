@@ -8,7 +8,7 @@ Please see the `example` directory for ways this SDK can be used.
 
 ## Security
 
-If you've discovered a security vulnerability in the Tharsis SDK, please let us know at brandon.breuil@infor.com.
+If you've discovered a security vulnerability in the Tharsis SDK, please let us know by creating a **confidential** issue in this project.
 
 ## Statement of support
 
