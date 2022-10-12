@@ -44,22 +44,25 @@ func (ggo *GetWorkspacesOutput) GetPageInfo() *PageInfo {
 // Workspace holds information about a Tharsis workspace.
 // It is used as input to and output from some operations.
 //
-// Tharsis API has CurrentRunID and CurrentStateVersionID, but
-// GraphQL has {assigned,available}ManagedIdentities
-//
+// Tharsis API has CurrentRunID and CurrentStateVersionID.
 type Workspace struct {
-	CurrentStateVersion       *StateVersion
-	Metadata                  ResourceMetadata
-	Name                      string
-	FullPath                  string
-	Description               string
-	TerraformVersion          string
-	AssignedManagedIdentities []ManagedIdentity
-	MaxJobDuration            int32
+	CurrentStateVersion *StateVersion
+	Metadata            ResourceMetadata
+	Name                string
+	FullPath            string
+	Description         string
+	TerraformVersion    string
+	MaxJobDuration      int32
 }
 
 // GetWorkspaceInput is the input to specify a single workspace to fetch.
 type GetWorkspaceInput struct {
+	Path string
+}
+
+// GetAssignedManagedIdentitiesInput is the input for retrieving
+// assigned managed identities for a workspace.
+type GetAssignedManagedIdentitiesInput struct {
 	Path string
 }
 

@@ -23,6 +23,8 @@ type ManagedIdentity interface {
 		input *types.AssignManagedIdentityInput) (*types.Workspace, error)
 	UnassignManagedIdentityFromWorkspace(ctx context.Context,
 		input *types.AssignManagedIdentityInput) (*types.Workspace, error)
+	GetManagedIdentityAccessRules(ctx context.Context,
+		input *types.GetManagedIdentityAccessRuleInput) ([]types.ManagedIdentityAccessRule, error)
 }
 
 type managedIdentity struct {
@@ -225,6 +227,30 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 	return created, nil
 }
 
+func (m *managedIdentity) GetManagedIdentityAccessRules(ctx context.Context,
+	input *types.GetManagedIdentityAccessRuleInput) ([]types.ManagedIdentityAccessRule, error) {
+	var target struct {
+		ManagedIdentity *struct {
+			AccessRules []graphQLManagedIdentityAccessRule `graphql:"accessRules"`
+		} `graphql:"managedIdentity(id: $id)"`
+	}
+
+	variables := map[string]interface{}{
+		"id": graphql.String(input.ID),
+	}
+
+	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if target.ManagedIdentity == nil {
+		return nil, nil
+	}
+
+	return accessRulesFromGraphQL(target.ManagedIdentity.AccessRules), nil
+}
+
 // Related types and conversion functions:
 
 // graphQLManagedIdentityAccessRule represents a managed identity
@@ -248,7 +274,6 @@ type GraphQLManagedIdentity struct {
 	Name         graphql.String
 	Description  graphql.String
 	Data         graphql.String
-	AccessRules  []graphQLManagedIdentityAccessRule
 }
 
 // TODO: Some of these functions may not be needed.
@@ -309,7 +334,6 @@ func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
 		Name:         string(g.Name),
 		Description:  string(g.Description),
 		Data:         string(g.Data),
-		AccessRules:  accessRulesFromGraphQL(g.AccessRules),
 	}
 }
 

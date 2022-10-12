@@ -9,6 +9,12 @@ const (
 	ManagedIdentityAWSFederated   ManagedIdentityType = "aws_federated"
 )
 
+// GetManagedIdentityAccessRuleInput is the input for retrieving
+// managed identity access rules.
+type GetManagedIdentityAccessRuleInput struct {
+	ID string `json:"id"`
+}
+
 // ManagedIdentityAccessRuleInput is the input for managed identity access rules.
 type ManagedIdentityAccessRuleInput struct {
 	RunStage               JobType  `json:"runStage"`
