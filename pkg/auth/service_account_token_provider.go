@@ -97,13 +97,6 @@ func (p *serviceAccountTokenProvider) GetToken() (string, error) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-// Internal stuff:
-
-// For debug/testing, have a source shell script that sets environment variables
-// THARSIS_SERVICE_ACCOUNT_PATH to the path (_WITH_ group prefix "cts/") of my test service account and
-// THARSIS_SERVICE_ACCOUNT_TOKEN to the token I get back from "terraform login api..."
-// Then, the login HTTP request will give a token for the GraphQL requests.
-
 // isTokenExpired returns true if a token was set but has expired, true if no token was ever set,
 // and false if a token has been set and has not yet expired.
 func (p *serviceAccountTokenProvider) isTokenExpired() bool {
