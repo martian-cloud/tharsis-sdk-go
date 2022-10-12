@@ -75,8 +75,15 @@ func TestUpdateManagedIdentity(t *testing.T) {
 	// Verify data IAM role matches.
 	assert.Equal(t, d.Role, updateManagedIdentityIAMRole)
 
+	// Get the access rules.
+	accessRules, err := client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityAccessRuleInput{
+		ID: createdIdentity.Metadata.ID,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, len(accessRules), 1)
+
 	// Verify accessRules.
-	for _, accessRule := range createdIdentity.AccessRules {
+	for _, accessRule := range accessRules {
 		assert.Equal(t, accessRule.RunStage, types.JobPlanType)
 		assert.NotNil(t, accessRule.AllowedUsers)
 		assert.NotNil(t, accessRule.AllowedServiceAccounts)

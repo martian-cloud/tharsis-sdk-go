@@ -19,6 +19,7 @@ type Workspaces interface {
 	UpdateWorkspace(ctx context.Context, workspace *types.UpdateWorkspaceInput) (*types.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspace *types.DeleteWorkspaceInput) error
 	SetWorkspaceVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error
+	GetAssignedManagedIdentities(ctx context.Context, input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error)
 }
 
 type workspaces struct {
@@ -214,6 +215,30 @@ func (ws *workspaces) SetWorkspaceVariables(ctx context.Context, input *types.Se
 	return nil
 }
 
+func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,
+	input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error) {
+	var target struct {
+		Workspace *struct {
+			ManagedIdentities []GraphQLManagedIdentity `graphql:"assignedManagedIdentities"`
+		} `graphql:"workspace(fullPath: $fullPath)"`
+	}
+
+	variables := map[string]interface{}{
+		"fullPath": graphql.String(input.Path),
+	}
+
+	err := ws.client.graphqlClient.Query(ctx, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if target.Workspace == nil {
+		return nil, nil
+	}
+
+	return sliceManagedIdentitiesFromGraphQL(target.Workspace.ManagedIdentities), nil
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 // The GetWorkspaces paginator:
@@ -338,15 +363,14 @@ type getWorkspacesQuery struct {
 // graphQLWorkspace represents the insides of the query structure,
 // everything in the workspace object, and with graphql types.
 type graphQLWorkspace struct {
-	CurrentStateVersion       *GraphQLStateVersion
-	Metadata                  internal.GraphQLMetadata
-	ID                        graphql.String
-	Name                      graphql.String
-	Description               graphql.String
-	FullPath                  graphql.String
-	TerraformVersion          graphql.String
-	AssignedManagedIdentities []GraphQLManagedIdentity
-	MaxJobDuration            graphql.Int
+	CurrentStateVersion *GraphQLStateVersion
+	Metadata            internal.GraphQLMetadata
+	ID                  graphql.String
+	Name                graphql.String
+	Description         graphql.String
+	FullPath            graphql.String
+	TerraformVersion    graphql.String
+	MaxJobDuration      graphql.Int
 }
 
 // workspaceFromGraphQL converts a GraphQL Workspace to an external Workspace.
@@ -357,14 +381,13 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 	}
 
 	return &types.Workspace{
-		Metadata:                  internal.MetadataFromGraphQL(g.Metadata, g.ID),
-		Name:                      string(g.Name),
-		FullPath:                  string(g.FullPath),
-		Description:               string(g.Description),
-		AssignedManagedIdentities: sliceManagedIdentitiesFromGraphQL(g.AssignedManagedIdentities),
-		CurrentStateVersion:       currentStateVersion,
-		MaxJobDuration:            int32(g.MaxJobDuration),
-		TerraformVersion:          string(g.TerraformVersion),
+		Metadata:            internal.MetadataFromGraphQL(g.Metadata, g.ID),
+		Name:                string(g.Name),
+		FullPath:            string(g.FullPath),
+		Description:         string(g.Description),
+		CurrentStateVersion: currentStateVersion,
+		MaxJobDuration:      int32(g.MaxJobDuration),
+		TerraformVersion:    string(g.TerraformVersion),
 	}, nil
 }
 
