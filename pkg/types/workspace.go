@@ -53,6 +53,7 @@ type Workspace struct {
 	Description         string
 	TerraformVersion    string
 	MaxJobDuration      int32
+	PreventDestroyPlan  bool
 }
 
 // GetWorkspaceInput is the input to specify a single workspace to fetch.
@@ -68,19 +69,21 @@ type GetAssignedManagedIdentitiesInput struct {
 
 // CreateWorkspaceInput is the input for creating a new workspace.
 type CreateWorkspaceInput struct {
-	MaxJobDuration   *int32  `json:"maxJobDuration"`
-	TerraformVersion *string `json:"terraformVersion"`
-	Name             string  `json:"name"`
-	Description      string  `json:"description"`
-	GroupPath        string  `json:"groupPath"`
+	MaxJobDuration     *int32  `json:"maxJobDuration"`
+	TerraformVersion   *string `json:"terraformVersion"`
+	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
+	Name               string  `json:"name"`
+	Description        string  `json:"description"`
+	GroupPath          string  `json:"groupPath"`
 }
 
 // UpdateWorkspaceInput is the input for updating a workspace.
 type UpdateWorkspaceInput struct {
-	MaxJobDuration   *int32  `json:"maxJobDuration"`
-	TerraformVersion *string `json:"terraformVersion"`
-	WorkspacePath    string  `json:"workspacePath"`
-	Description      string  `json:"description"`
+	MaxJobDuration     *int32  `json:"maxJobDuration"`
+	TerraformVersion   *string `json:"terraformVersion"`
+	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
+	WorkspacePath      string  `json:"workspacePath"`
+	Description        string  `json:"description"`
 }
 
 // DeleteWorkspaceInput is the input for deleting a workspace.

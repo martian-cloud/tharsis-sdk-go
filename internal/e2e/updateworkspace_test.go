@@ -44,16 +44,19 @@ func TestUpdateWorkspace(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, toUpdateWorkspace)
 
-	// Update the workspace's description.
+	// Update the workspace's description and PreventDestroyPlan.
 	newDescription = "This is a test workspace updated at " + time.Now().String()
+	newPreventDestroyPlan := false
 	updatedWorkspace, err := client.Workspaces.UpdateWorkspace(ctx,
 		&types.UpdateWorkspaceInput{
-			WorkspacePath: toUpdateWorkspace.FullPath,
-			Description:   newDescription,
+			WorkspacePath:      toUpdateWorkspace.FullPath,
+			Description:        newDescription,
+			PreventDestroyPlan: &newPreventDestroyPlan,
 		},
 	)
 	assert.Nil(t, err)
 	assert.Equal(t, newDescription, updatedWorkspace.Description)
+	assert.Equal(t, newPreventDestroyPlan, updatedWorkspace.PreventDestroyPlan)
 
 	// Delete the new workspace.
 	err = client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
