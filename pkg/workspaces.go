@@ -371,6 +371,7 @@ type graphQLWorkspace struct {
 	FullPath            graphql.String
 	TerraformVersion    graphql.String
 	MaxJobDuration      graphql.Int
+	PreventDestroyPlan  graphql.Boolean
 }
 
 // workspaceFromGraphQL converts a GraphQL Workspace to an external Workspace.
@@ -388,6 +389,7 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 		CurrentStateVersion: currentStateVersion,
 		MaxJobDuration:      int32(g.MaxJobDuration),
 		TerraformVersion:    string(g.TerraformVersion),
+		PreventDestroyPlan:  bool(g.PreventDestroyPlan),
 	}, nil
 }
 
