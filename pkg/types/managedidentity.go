@@ -9,13 +9,14 @@ const (
 	ManagedIdentityAWSFederated   ManagedIdentityType = "aws_federated"
 )
 
-// GetManagedIdentityAccessRuleInput is the input for retrieving
-// managed identity access rules.
-type GetManagedIdentityAccessRuleInput struct {
+// GetManagedIdentityInput is the input for retrieving
+// a managed identity and/or its access rules.
+type GetManagedIdentityInput struct {
 	ID string `json:"id"`
 }
 
-// ManagedIdentityAccessRuleInput is the input for managed identity access rules.
+// ManagedIdentityAccessRuleInput is the input for managed identity access rules
+// when created at the same time as the managed identity.
 type ManagedIdentityAccessRuleInput struct {
 	RunStage               JobType  `json:"runStage"`
 	AllowedUsers           []string `json:"allowedUsers"`
@@ -68,16 +69,45 @@ type ManagedIdentity struct {
 	Name         string
 	Description  string
 	Data         string
-	AccessRules  []ManagedIdentityAccessRule
+	CreatedBy    string
 }
 
 // ManagedIdentityAccessRule represents an access rule for a managed identity.
 type ManagedIdentityAccessRule struct {
 	Metadata               ResourceMetadata
 	RunStage               JobType
+	ManagedIdentityID      string
 	AllowedUsers           []User
 	AllowedServiceAccounts []ServiceAccount
 	AllowedTeams           []Team
+}
+
+// GetManagedIdentityAccessRuleInput is the input for retrieving a managed identity access rule.
+type GetManagedIdentityAccessRuleInput struct {
+	ID string `json:"id"`
+}
+
+// CreateManagedIdentityAccessRuleInput is the input for creating a managed identity access rule.
+type CreateManagedIdentityAccessRuleInput struct {
+	ManagedIdentityID      string   `json:"managedIdentityId"`
+	RunStage               JobType  `json:"runStage"`
+	AllowedUsers           []string `json:"allowedUsers"`
+	AllowedServiceAccounts []string `json:"allowedServiceAccounts"`
+	AllowedTeams           []string `json:"allowedTeams"`
+}
+
+// UpdateManagedIdentityAccessRuleInput is the input for updating a managed identity access rule.
+type UpdateManagedIdentityAccessRuleInput struct {
+	ID                     string   `json:"id"`
+	RunStage               JobType  `json:"runStage"`
+	AllowedUsers           []string `json:"allowedUsers"`
+	AllowedServiceAccounts []string `json:"allowedServiceAccounts"`
+	AllowedTeams           []string `json:"allowedTeams"`
+}
+
+// DeleteManagedIdentityAccessRuleInput is the input for deleting a managed identity access rule.
+type DeleteManagedIdentityAccessRuleInput struct {
+	ID string `json:"id"`
 }
 
 // The End.
