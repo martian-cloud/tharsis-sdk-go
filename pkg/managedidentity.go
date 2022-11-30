@@ -13,6 +13,8 @@ import (
 type ManagedIdentity interface {
 	CreateManagedIdentity(ctx context.Context,
 		input *types.CreateManagedIdentityInput) (*types.ManagedIdentity, error)
+	GetManagedIdentity(ctx context.Context,
+		input *types.GetManagedIdentityInput) (*types.ManagedIdentity, error)
 	UpdateManagedIdentity(ctx context.Context,
 		input *types.UpdateManagedIdentityInput) (*types.ManagedIdentity, error)
 	DeleteManagedIdentity(ctx context.Context,
@@ -24,7 +26,15 @@ type ManagedIdentity interface {
 	UnassignManagedIdentityFromWorkspace(ctx context.Context,
 		input *types.AssignManagedIdentityInput) (*types.Workspace, error)
 	GetManagedIdentityAccessRules(ctx context.Context,
-		input *types.GetManagedIdentityAccessRuleInput) ([]types.ManagedIdentityAccessRule, error)
+		input *types.GetManagedIdentityInput) ([]types.ManagedIdentityAccessRule, error)
+	CreateManagedIdentityAccessRule(ctx context.Context,
+		input *types.CreateManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error)
+	GetManagedIdentityAccessRule(ctx context.Context,
+		input *types.GetManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error)
+	UpdateManagedIdentityAccessRule(ctx context.Context,
+		input *types.UpdateManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error)
+	DeleteManagedIdentityAccessRule(ctx context.Context,
+		input *types.DeleteManagedIdentityAccessRuleInput) error
 }
 
 type managedIdentity struct {
@@ -69,6 +79,31 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 	}
 
 	identity := identityFromGraphQL(wrappedCreate.CreateManagedIdentity.ManagedIdentity)
+	return &identity, nil
+}
+
+// 	GetManagedIdentity reads a managed identity.
+func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
+	input *types.GetManagedIdentityInput) (*types.ManagedIdentity, error) {
+
+	var target struct {
+		ManagedIdentity *GraphQLManagedIdentity `graphql:"managedIdentity(id: $id)"`
+	}
+
+	variables := map[string]interface{}{
+		"id": graphql.String(input.ID),
+	}
+
+	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if target.ManagedIdentity == nil {
+		return nil, nil
+	}
+
+	identity := identityFromGraphQL(*target.ManagedIdentity)
 	return &identity, nil
 }
 
@@ -227,8 +262,9 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 	return created, nil
 }
 
+// GetManagedIdentityAccessRules returns the access rules that are tied to the specified managed identity.
 func (m *managedIdentity) GetManagedIdentityAccessRules(ctx context.Context,
-	input *types.GetManagedIdentityAccessRuleInput) ([]types.ManagedIdentityAccessRule, error) {
+	input *types.GetManagedIdentityInput) ([]types.ManagedIdentityAccessRule, error) {
 	var target struct {
 		ManagedIdentity *struct {
 			AccessRules []graphQLManagedIdentityAccessRule `graphql:"accessRules"`
@@ -251,6 +287,117 @@ func (m *managedIdentity) GetManagedIdentityAccessRules(ctx context.Context,
 	return accessRulesFromGraphQL(target.ManagedIdentity.AccessRules), nil
 }
 
+func (m *managedIdentity) CreateManagedIdentityAccessRule(ctx context.Context,
+	input *types.CreateManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error) {
+
+	var wrappedCreate struct {
+		CreateManagedIdentityAccessRule struct {
+			AccessRule graphQLManagedIdentityAccessRule
+			Problems   []internal.GraphQLProblem
+		} `graphql:"createManagedIdentityAccessRule(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	err = internal.ProblemsToError(wrappedCreate.CreateManagedIdentityAccessRule.Problems)
+	if err != nil {
+		return nil, fmt.Errorf("problems creating managed identity access rule: %v", err)
+	}
+
+	accessRule := accessRuleFromGraphQL(wrappedCreate.CreateManagedIdentityAccessRule.AccessRule)
+	return &accessRule, nil
+}
+
+// GetManagedIdentityAccessRule returns the managed identity access rule with the specified ID.
+func (m *managedIdentity) GetManagedIdentityAccessRule(ctx context.Context,
+	input *types.GetManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error) {
+
+	var target struct {
+		Node *struct {
+			ID                        graphql.String
+			ManagedIdentityAccessRule graphQLManagedIdentityAccessRule `graphql:"...on ManagedIdentityAccessRule"`
+		} `graphql:"node(id: $id)"`
+	}
+
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+
+	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if target.Node == nil || target.Node.ManagedIdentityAccessRule.ID == "" {
+		return nil, nil
+	}
+
+	accessRule := accessRuleFromGraphQL(target.Node.ManagedIdentityAccessRule)
+	return &accessRule, nil
+}
+
+func (m *managedIdentity) UpdateManagedIdentityAccessRule(ctx context.Context,
+	input *types.UpdateManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error) {
+
+	var wrappedUpdate struct {
+		UpdateManagedIdentityAccessRule struct {
+			AccessRule graphQLManagedIdentityAccessRule
+			Problems   []internal.GraphQLProblem
+		} `graphql:"updateManagedIdentityAccessRule(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	err = internal.ProblemsToError(wrappedUpdate.UpdateManagedIdentityAccessRule.Problems)
+	if err != nil {
+		return nil, fmt.Errorf("problems updating managed identity access rule: %v", err)
+	}
+
+	accessRule := accessRuleFromGraphQL(wrappedUpdate.UpdateManagedIdentityAccessRule.AccessRule)
+	return &accessRule, nil
+}
+
+func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
+	input *types.DeleteManagedIdentityAccessRuleInput) error {
+
+	var wrappedDelete struct {
+		DeleteManagedIdentityAccessRule struct {
+			Problems []internal.GraphQLProblem
+		} `graphql:"deleteManagedIdentityAccessRule(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	if err != nil {
+		return err
+	}
+
+	err = internal.ProblemsToError(wrappedDelete.DeleteManagedIdentityAccessRule.Problems)
+	if err != nil {
+		return fmt.Errorf("problems deleting managed identity access rule: %v", err)
+	}
+
+	return nil
+}
+
 // Related types and conversion functions:
 
 // graphQLManagedIdentityAccessRule represents a managed identity
@@ -262,6 +409,7 @@ type graphQLManagedIdentityAccessRule struct {
 	AllowedUsers           []graphQLUser
 	AllowedServiceAccounts []graphQLServiceAccount
 	AllowedTeams           []graphQLTeam
+	ManagedIdentity        GraphQLManagedIdentity
 }
 
 // GraphQLManagedIdentity represents the insides of the query structure,
@@ -274,6 +422,7 @@ type GraphQLManagedIdentity struct {
 	Name         graphql.String
 	Description  graphql.String
 	Data         graphql.String
+	CreatedBy    graphql.String
 }
 
 // TODO: Some of these functions may not be needed.
@@ -291,37 +440,9 @@ func sliceManagedIdentitiesFromGraphQL(inputs []GraphQLManagedIdentity) []types.
 // accessRulesFromGraphQL converts a managed identity access rule to external access rule.
 func accessRulesFromGraphQL(g []graphQLManagedIdentityAccessRule) []types.ManagedIdentityAccessRule {
 	accessRules := []types.ManagedIdentityAccessRule{}
-
-	// Convert the fields.
 	for _, accessRule := range g {
-		users := []types.User{}
-		serviceAccounts := []types.ServiceAccount{}
-		teams := []types.Team{}
-
-		// Convert users.
-		for _, user := range accessRule.AllowedUsers {
-			users = append(users, userFromGraphQL(user))
-		}
-
-		// Convert service accounts.
-		for _, sa := range accessRule.AllowedServiceAccounts {
-			serviceAccounts = append(serviceAccounts, serviceAccountFromGraphQL(sa))
-		}
-
-		// Convert teams.
-		for _, team := range accessRule.AllowedTeams {
-			teams = append(teams, teamFromGraphQL(team))
-		}
-
-		accessRules = append(accessRules, types.ManagedIdentityAccessRule{
-			Metadata:               internal.MetadataFromGraphQL(accessRule.Metadata, accessRule.ID),
-			RunStage:               types.JobType(accessRule.RunStage),
-			AllowedUsers:           users,
-			AllowedServiceAccounts: serviceAccounts,
-			AllowedTeams:           teams,
-		})
+		accessRules = append(accessRules, accessRuleFromGraphQL(accessRule))
 	}
-
 	return accessRules
 }
 
@@ -334,6 +455,40 @@ func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
 		Name:         string(g.Name),
 		Description:  string(g.Description),
 		Data:         string(g.Data),
+		CreatedBy:    string(g.CreatedBy),
+	}
+}
+
+// accessRuleFromGraphQL converts a GraphQL Managed Identity Access Rule
+// to an external managed identity access rule.
+func accessRuleFromGraphQL(g graphQLManagedIdentityAccessRule) types.ManagedIdentityAccessRule {
+
+	users := []types.User{}
+	serviceAccounts := []types.ServiceAccount{}
+	teams := []types.Team{}
+
+	// Convert users.
+	for _, user := range g.AllowedUsers {
+		users = append(users, userFromGraphQL(user))
+	}
+
+	// Convert service accounts.
+	for _, sa := range g.AllowedServiceAccounts {
+		serviceAccounts = append(serviceAccounts, serviceAccountFromGraphQL(sa))
+	}
+
+	// Convert teams.
+	for _, team := range g.AllowedTeams {
+		teams = append(teams, teamFromGraphQL(team))
+	}
+
+	return types.ManagedIdentityAccessRule{
+		Metadata:               internal.MetadataFromGraphQL(g.Metadata, g.ID),
+		RunStage:               types.JobType(g.RunStage),
+		AllowedUsers:           users,
+		AllowedServiceAccounts: serviceAccounts,
+		AllowedTeams:           teams,
+		ManagedIdentityID:      string(g.ManagedIdentity.ID),
 	}
 }
 
