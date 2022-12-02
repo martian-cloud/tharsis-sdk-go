@@ -41,6 +41,7 @@ type Client struct {
 	Plan                      Plan
 	Apply                     Apply
 	Run                       Run
+	ServiceAccount            ServiceAccount
 	StateVersion              StateVersion
 	Workspaces                Workspaces
 	TerraformProvider         TerraformProvider
@@ -98,6 +99,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.Plan = NewPlan(client)
 	client.Apply = NewApply(client)
 	client.Run = NewRun(client)
+	client.ServiceAccount = NewServiceAccount(client)
 	client.StateVersion = NewStateVersion(client)
 	client.Workspaces = NewWorkspaces(client)
 	client.TerraformProvider = NewTerraformProvider(client)
