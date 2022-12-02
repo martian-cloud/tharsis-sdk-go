@@ -40,7 +40,7 @@ func TestUpdateGroup(t *testing.T) {
 	assert.Equal(t, updateGroupPath, createdGroup.FullPath)
 
 	// Get the newly-created group.
-	toUpdateGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: updateGroupPath})
+	toUpdateGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: &updateGroupPath})
 	assert.Nil(t, err)
 	assert.NotNil(t, toUpdateGroup)
 

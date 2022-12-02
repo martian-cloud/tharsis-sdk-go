@@ -35,21 +35,51 @@ func NewGroup(client *Client) Group {
 // GetGroup returns everything about the group _EXCEPT_ the subgroups/descendentGroups and workspaces.
 // There are separate calls to get each of those.
 func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*types.Group, error) {
-	var target struct {
-		Group *graphQLGroup `graphql:"group(fullPath: $fullPath)"`
-	}
-	variables := map[string]interface{}{"fullPath": graphql.String(input.Path)}
+	switch {
+	case input.Path != nil:
+		// Group query by path.
 
-	err := g.client.graphqlClient.Query(ctx, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-	if target.Group == nil {
+		var target struct {
+			Group *graphQLGroup `graphql:"group(fullPath: $fullPath)"`
+		}
+		variables := map[string]interface{}{"fullPath": graphql.String(*input.Path)}
+
+		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Group == nil {
+			return nil, nil
+		}
+
+		result := groupFromGraphQL(*target.Group)
+		return &result, nil
+	case input.ID != nil:
+		// Node query by ID.
+
+		var target struct {
+			Node *struct {
+				ID    graphql.String
+				Group graphQLGroup `graphql:"...on Group"`
+			} `graphql:"node(id: $id)"`
+		}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Node == nil {
+			return nil, nil
+		}
+
+		result := groupFromGraphQL(target.Node.Group)
+		return &result, nil
+	default:
+
+		// Didn't ask for anything; won't get anything.
 		return nil, nil
 	}
-
-	result := groupFromGraphQL(*target.Group)
-	return &result, nil
 }
 
 // GetGroups returns a list of group objects.

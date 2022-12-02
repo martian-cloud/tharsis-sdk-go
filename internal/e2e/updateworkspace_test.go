@@ -40,7 +40,7 @@ func TestUpdateWorkspace(t *testing.T) {
 
 	// Get the newly-created workspace.
 	toUpdateWorkspace, err := client.Workspaces.GetWorkspace(ctx,
-		&types.GetWorkspaceInput{Path: updateWorkspacePath})
+		&types.GetWorkspaceInput{Path: &updateWorkspacePath})
 	assert.Nil(t, err)
 	assert.NotNil(t, toUpdateWorkspace)
 

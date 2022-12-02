@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 
+	"github.com/aws/smithy-go/ptr"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
@@ -34,7 +35,7 @@ func ExampleGetWorkspace() error {
 
 	ctx := context.Background()
 	workspace, err := client.Workspaces.GetWorkspace(ctx,
-		&types.GetWorkspaceInput{Path: "wild-space/rmr-dummy-2"})
+		&types.GetWorkspaceInput{Path: ptr.String("wild-space/rmr-dummy-2")})
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 
+	"github.com/aws/smithy-go/ptr"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
@@ -34,7 +35,7 @@ func ExampleGetGroup() error {
 
 	ctx := context.Background()
 	theGroup, err := client.Group.GetGroup(ctx,
-		&types.GetGroupInput{Path: "wild-space"})
+		&types.GetGroupInput{Path: ptr.String("wild-space")})
 	if err != nil {
 		return err
 	}

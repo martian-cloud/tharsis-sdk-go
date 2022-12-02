@@ -32,27 +32,58 @@ func NewWorkspaces(client *Client) Workspaces {
 }
 
 func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspaceInput) (*types.Workspace, error) {
-	var target struct {
-		Workspace *graphQLWorkspace `graphql:"workspace(fullPath: $fullPath)"`
-	}
-	variables := map[string]interface{}{
-		"fullPath": graphql.String(input.Path),
-	}
+	switch {
+	case input.Path != nil:
+		// Workspace query by path.
 
-	err := ws.client.graphqlClient.Query(ctx, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-	if target.Workspace == nil {
+		var target struct {
+			Workspace *graphQLWorkspace `graphql:"workspace(fullPath: $fullPath)"`
+		}
+		variables := map[string]interface{}{
+			"fullPath": graphql.String(*input.Path),
+		}
+
+		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Workspace == nil {
+			return nil, nil
+		}
+
+		result, err := workspaceFromGraphQL(*target.Workspace)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	case input.ID != nil:
+		// Node query by ID.
+
+		var target struct {
+			Node *struct {
+				ID        graphql.String
+				Workspace graphQLWorkspace `graphql:"...on Workspace"`
+			} `graphql:"node(id: $id)"`
+		}
+
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		if target.Node == nil || target.Node.Workspace.ID == "" {
+			return nil, nil
+		}
+
+		return workspaceFromGraphQL(target.Node.Workspace)
+	default:
+
+		// Didn't ask for anything; won't get anything.
 		return nil, nil
 	}
-
-	result, err := workspaceFromGraphQL(*target.Workspace)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
 
 // GetWorkspaces returns a list of workspace objects.

@@ -124,7 +124,7 @@ func setupForGetGroupsPaginator(ctx context.Context, client *tharsis.Client,
 
 func ggpCreateOneGroup(ctx context.Context, client *tharsis.Client, info ggpGroupInfo) (*types.Group, error) {
 
-	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: info.path})
+	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: &info.path})
 	if err != nil {
 		return nil, err
 	}

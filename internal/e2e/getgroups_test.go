@@ -110,7 +110,7 @@ func setupForGetGroups(ctx context.Context, client *tharsis.Client, groupsInfo [
 
 func ggCreateOneGroup(ctx context.Context, client *tharsis.Client, info ggGroupInfo) (*types.Group, error) {
 
-	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: info.path})
+	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: &info.path})
 	if err != nil {
 		return nil, err
 	}

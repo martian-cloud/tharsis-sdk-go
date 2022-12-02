@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/smithy-go/ptr"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -78,7 +79,7 @@ func setup(ctx context.Context, client *tharsis.Client) (func(client *tharsis.Cl
 	// See Terraform's internal/cloud/e2e tests.
 
 	// Make sure the top-level group already exists.
-	topGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: topGroupName})
+	topGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: ptr.String(topGroupName)})
 	if err != nil {
 		return nil, err
 	}
