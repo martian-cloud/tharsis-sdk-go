@@ -54,7 +54,8 @@ type Group struct {
 
 // GetGroupInput is the input to specify a single group to fetch.
 type GetGroupInput struct {
-	Path string
+	Path *string
+	ID   *string
 }
 
 // CreateGroupInput is the input for creating a new group.

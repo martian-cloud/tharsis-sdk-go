@@ -58,7 +58,8 @@ type Workspace struct {
 
 // GetWorkspaceInput is the input to specify a single workspace to fetch.
 type GetWorkspaceInput struct {
-	Path string
+	Path *string
+	ID   *string
 }
 
 // GetAssignedManagedIdentitiesInput is the input for retrieving

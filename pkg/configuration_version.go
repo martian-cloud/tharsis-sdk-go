@@ -264,7 +264,7 @@ func (cv *configurationVersion) do(ctx context.Context,
 func (cv *configurationVersion) translateWorkspacePathToID(ctx context.Context,
 	workspacePath string) (string, error) {
 	workspace, err := cv.client.Workspaces.GetWorkspace(ctx,
-		&types.GetWorkspaceInput{Path: workspacePath})
+		&types.GetWorkspaceInput{Path: &workspacePath})
 	if err != nil {
 		return "", err
 	}
