@@ -1,0 +1,90 @@
+// example/configuration_version/main.go contains an example for creating/uploading a configuration version.
+
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+
+	tharsis "oxford.awsdev.infor.com/cts/cicd/martian-cloud/tharsis-sdk-go/pkg"
+	"oxford.awsdev.infor.com/cts/cicd/martian-cloud/tharsis-sdk-go/pkg/config"
+	"oxford.awsdev.infor.com/cts/cicd/martian-cloud/tharsis-sdk-go/pkg/types"
+)
+
+const (
+	// Where to find stuff:
+	workspacePath = "rmr-group-01/rmr-workspace-01"
+	directoryPath = "/home/rrichesjr/projects/remote-nested-test-module-root-local-03"
+)
+
+func main() {
+	if err := ExampleCreateUploadConfigurationVersion(workspacePath, directoryPath); err != nil {
+		log.Println(err)
+	}
+}
+
+// ExampleCreateUploadConfigurationVersion demonstrates CreateConfigurationVersion and UploadConfigurationVersion:
+func ExampleCreateUploadConfigurationVersion(workspacePath, directoryPath string) error {
+
+	cfg, err := config.Load(config.WithEndpoint("http://localhost:8000"))
+	if err != nil {
+		return err
+	}
+
+	client, err := tharsis.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	// First, create the configuration version.
+	ctx := context.Background()
+	isTrue := true
+	created, err := client.ConfigurationVersion.CreateConfigurationVersion(ctx,
+		&types.CreateConfigurationVersionInput{
+			WorkspacePath: workspacePath,
+			Speculative:   &isTrue,
+		})
+	if err != nil {
+		return err
+	}
+
+	// Print:
+	indented, err := json.MarshalIndent(created, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Created configuration version:\n%s\n", indented)
+
+	// Second, upload the configuration version.
+	err = client.ConfigurationVersion.UploadConfigurationVersion(ctx,
+		&types.UploadConfigurationVersionInput{
+			WorkspacePath:          workspacePath,
+			ConfigurationVersionID: created.Metadata.ID,
+			DirectoryPath:          directoryPath,
+		})
+	if err != nil {
+		return err
+	}
+
+	// Wait for the upload to complete:
+	var updatedConfigurationVersion *types.ConfigurationVersion
+	for {
+		updatedConfigurationVersion, err = client.ConfigurationVersion.GetConfigurationVersion(ctx,
+			&types.GetConfigurationVersionInput{ID: created.Metadata.ID})
+		if err != nil {
+			return err
+		}
+		if updatedConfigurationVersion.Status != "pending" {
+			break
+		}
+	}
+	if updatedConfigurationVersion.Status != "uploaded" {
+		return fmt.Errorf("Upload failed; status is %s", updatedConfigurationVersion.Status)
+	}
+
+	return nil
+}
+
+// The End.

@@ -207,7 +207,7 @@ func ExampleUpdateWorkspace(workspacePath string) error {
 	ctx := context.Background()
 	updated, err := client.Workspaces.UpdateWorkspace(ctx,
 		&types.UpdateWorkspaceInput{
-			WorkspacePath: workspacePath,
+			WorkspacePath: &workspacePath,
 			Description:   "This is the updated workspace.",
 		},
 	)
@@ -235,7 +235,7 @@ func ExampleDeleteWorkspace(workspacePath string) error {
 	ctx := context.Background()
 	err = client.Workspaces.DeleteWorkspace(ctx,
 		&types.DeleteWorkspaceInput{
-			WorkspacePath: workspacePath,
+			WorkspacePath: &workspacePath,
 		},
 	)
 	if err != nil {
