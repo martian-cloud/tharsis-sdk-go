@@ -67,13 +67,15 @@ type CreateGroupInput struct {
 
 // UpdateGroupInput is the input for updating a group.
 type UpdateGroupInput struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
+	GroupPath   *string `json:"groupPath"`
+	ID          *string `json:"id"`
+	Description string  `json:"description"`
 }
 
 // DeleteGroupInput is the input for deleting a group.
 type DeleteGroupInput struct {
-	ID string `json:"id"`
+	GroupPath *string `json:"groupPath"`
+	ID        *string `json:"id"`
 }
 
 // SetNamespaceVariablesInput is the input for setting a namespace variable.

@@ -208,7 +208,7 @@ func ExampleUpdateGroup(groupPath string) error {
 	ctx := context.Background()
 	updated, err := client.Group.UpdateGroup(ctx,
 		&types.UpdateGroupInput{
-			GroupPath:   groupPath,
+			GroupPath:   &groupPath,
 			Description: "This is the updated group.",
 		},
 	)
@@ -239,7 +239,7 @@ func ExampleDeleteGroup(groupPath string) error {
 	ctx := context.Background()
 	err = client.Group.DeleteGroup(ctx,
 		&types.DeleteGroupInput{
-			GroupPath: groupPath,
+			GroupPath: &groupPath,
 		},
 	)
 	if err != nil {

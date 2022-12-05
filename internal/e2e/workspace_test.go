@@ -51,7 +51,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 
 	// Delete the workspace.
 	err = client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-		WorkspacePath: gotWorkspace.FullPath,
+		WorkspacePath: &gotWorkspace.FullPath,
 	})
 	assert.Nil(t, err)
 }

@@ -49,7 +49,7 @@ func TestUpdateWorkspace(t *testing.T) {
 	newPreventDestroyPlan := false
 	updatedWorkspace, err := client.Workspaces.UpdateWorkspace(ctx,
 		&types.UpdateWorkspaceInput{
-			WorkspacePath:      toUpdateWorkspace.FullPath,
+			WorkspacePath:      &toUpdateWorkspace.FullPath,
 			Description:        newDescription,
 			PreventDestroyPlan: &newPreventDestroyPlan,
 		},
@@ -60,7 +60,7 @@ func TestUpdateWorkspace(t *testing.T) {
 
 	// Delete the new workspace.
 	err = client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-		WorkspacePath: updatedWorkspace.FullPath,
+		WorkspacePath: &updatedWorkspace.FullPath,
 	})
 	assert.Nil(t, err)
 

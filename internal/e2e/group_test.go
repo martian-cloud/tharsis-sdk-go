@@ -52,7 +52,7 @@ func TestGetGroupByID(t *testing.T) {
 	assert.Equal(t, gotGroup.Description, toCreate.Description)
 
 	err = client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
-		ID: gotGroup.Metadata.ID,
+		ID: &gotGroup.Metadata.ID,
 	})
 	assert.Nil(t, err)
 }

@@ -129,7 +129,7 @@ func ggCreateOneGroup(ctx context.Context, client *tharsis.Client, info ggGroupI
 func teardownFromGetGroups(ctx context.Context, client *tharsis.Client, t *testing.T, paths []string) {
 	for _, path := range paths {
 		err := client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
-			GroupPath: path,
+			GroupPath: &path,
 		})
 		assert.Nil(t, err)
 	}

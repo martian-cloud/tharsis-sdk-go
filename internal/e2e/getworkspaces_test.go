@@ -122,7 +122,7 @@ func gwCreateOneWorkspace(ctx context.Context, client *tharsis.Client,
 func teardownFromGetWorkspaces(ctx context.Context, client *tharsis.Client, t *testing.T, paths []string) {
 	for _, path := range paths {
 		err := client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-			WorkspacePath: path,
+			WorkspacePath: &path,
 		})
 		assert.Nil(t, err)
 	}

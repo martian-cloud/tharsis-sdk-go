@@ -48,7 +48,7 @@ func TestUpdateGroup(t *testing.T) {
 	newDescription = "This is a test group updated at " + time.Now().String()
 	updatedGroup, err := client.Group.UpdateGroup(ctx,
 		&types.UpdateGroupInput{
-			GroupPath:   toUpdateGroup.FullPath,
+			GroupPath:   &toUpdateGroup.FullPath,
 			Description: newDescription,
 		},
 	)
@@ -57,7 +57,7 @@ func TestUpdateGroup(t *testing.T) {
 
 	// Delete the new group.
 	err = client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
-		GroupPath: updatedGroup.FullPath,
+		GroupPath: &updatedGroup.FullPath,
 	})
 	assert.Nil(t, err)
 

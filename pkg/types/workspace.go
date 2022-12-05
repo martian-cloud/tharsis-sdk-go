@@ -83,14 +83,16 @@ type UpdateWorkspaceInput struct {
 	MaxJobDuration     *int32  `json:"maxJobDuration"`
 	TerraformVersion   *string `json:"terraformVersion"`
 	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
-	WorkspacePath      string  `json:"workspacePath"`
+	WorkspacePath      *string `json:"workspacePath"`
+	ID                 *string `json:"id"`
 	Description        string  `json:"description"`
 }
 
 // DeleteWorkspaceInput is the input for deleting a workspace.
 type DeleteWorkspaceInput struct {
-	Force         *bool  `json:"force"`
-	WorkspacePath string `json:"workspacePath"`
+	Force         *bool   `json:"force"`
+	WorkspacePath *string `json:"workspacePath"`
+	ID            *string `json:"id"`
 }
 
 // The End.
