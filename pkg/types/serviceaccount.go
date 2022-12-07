@@ -1,11 +1,18 @@
 package types
 
+// OIDCTrustPolicy models one trust policy under a service account.
+type OIDCTrustPolicy struct {
+	Issuer      string            `json:"issuer"`
+	BoundClaims map[string]string `json:"boundClaims"`
+}
+
 // ServiceAccount provides M2M authentication
 type ServiceAccount struct {
-	Metadata     ResourceMetadata
-	ResourcePath string
-	Name         string
-	Description  string
+	Metadata          ResourceMetadata
+	ResourcePath      string
+	Name              string
+	Description       string
+	OIDCTrustPolicies []OIDCTrustPolicy
 }
 
 // CreateServiceAccountInput is the input for creating a service account.
