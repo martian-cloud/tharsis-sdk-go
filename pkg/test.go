@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 )
@@ -91,7 +91,7 @@ func checkError(t *testing.T, expectedMsg string, actualError error) {
 	} else {
 		// Uses require rather than assert to avoid a nil pointer dereference.
 		require.NotNil(t, actualError)
-		assert.Equal(t, actualError.Error(), expectedMsg)
+		assert.Equal(t, expectedMsg, actualError.Error())
 	}
 }
 

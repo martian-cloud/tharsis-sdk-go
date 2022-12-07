@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 

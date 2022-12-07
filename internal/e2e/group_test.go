@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -36,9 +36,9 @@ func TestGetGroupByID(t *testing.T) {
 	createdGroup, err := client.Group.CreateGroup(ctx, toCreate)
 	assert.Nil(t, err)
 	assert.NotNil(t, createdGroup)
-	assert.Equal(t, createdGroup.Name, getGroupName)
-	assert.Equal(t, createdGroup.FullPath, getGroupFullPath)
-	assert.Equal(t, createdGroup.Description, newDescription)
+	assert.Equal(t, getGroupName, createdGroup.Name)
+	assert.Equal(t, getGroupFullPath, createdGroup.FullPath)
+	assert.Equal(t, newDescription, createdGroup.Description)
 
 	// Get the group.
 	gotGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{
@@ -47,9 +47,9 @@ func TestGetGroupByID(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the returned contents are what they should be.
-	assert.Equal(t, gotGroup.Name, toCreate.Name)
-	assert.Equal(t, gotGroup.FullPath, getGroupFullPath)
-	assert.Equal(t, gotGroup.Description, toCreate.Description)
+	assert.Equal(t, toCreate.Name, gotGroup.Name)
+	assert.Equal(t, getGroupFullPath, gotGroup.FullPath)
+	assert.Equal(t, toCreate.Description, gotGroup.Description)
 
 	err = client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
 		ID: &gotGroup.Metadata.ID,

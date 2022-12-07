@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -54,7 +54,7 @@ func TestCRUDServiceAccount(t *testing.T) {
 		ID: createdServiceAccount.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, readServiceAccount, createdServiceAccount)
+	assert.Equal(t, createdServiceAccount, readServiceAccount)
 
 	// Update the service account.
 	updatedServiceAccount, err := client.ServiceAccount.UpdateServiceAccount(ctx,
@@ -76,14 +76,14 @@ func TestCRUDServiceAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the claimed update.
-	assert.Equal(t, updatedServiceAccount.Description, updatedDescription)
+	assert.Equal(t, updatedDescription, updatedServiceAccount.Description)
 
 	// Retrieve and verify the updated service account to make sure it persisted.
 	read2ServiceAccount, err := client.ServiceAccount.GetServiceAccount(ctx, &types.GetServiceAccountInput{
 		ID: createdServiceAccount.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, read2ServiceAccount, updatedServiceAccount)
+	assert.Equal(t, updatedServiceAccount, read2ServiceAccount)
 
 	// Delete the service account.
 	err = client.ServiceAccount.DeleteServiceAccount(ctx,
@@ -97,7 +97,7 @@ func TestCRUDServiceAccount(t *testing.T) {
 		ID: read2ServiceAccount.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, read3ServiceAccount, (*types.ServiceAccount)(nil))
+	assert.Equal(t, (*types.ServiceAccount)(nil), read3ServiceAccount)
 }
 
 // The End.

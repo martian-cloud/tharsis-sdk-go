@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -42,7 +42,7 @@ func TestGetGroupsPaginator(t *testing.T) {
 	// Create the groups.
 	groupPaths, err := setupForGetGroupsPaginator(ctx, client, groupsInfo)
 	assert.Nil(t, err)
-	assert.Equal(t, len(groupPaths), ggpGroupCount)
+	assert.Equal(t, ggpGroupCount, len(groupPaths))
 
 	// Tear down the groups when the test has finished.
 	defer teardownFromGetGroupsPaginator(ctx, client, t, groupPaths)
@@ -73,7 +73,7 @@ func TestGetGroupsPaginator(t *testing.T) {
 		var expectLength int
 		expectLength, expectLengths = expectLengths[0], expectLengths[1:]
 
-		assert.Equal(t, len(getGroupsOutput.Groups), expectLength)
+		assert.Equal(t, expectLength, len(getGroupsOutput.Groups))
 
 		// Prepare to make sure we eventually get all the groups.
 		for _, group := range getGroupsOutput.Groups {

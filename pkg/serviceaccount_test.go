@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -573,10 +573,10 @@ func TestDeleteGroup(t *testing.T) {
 func checkServiceAccount(t *testing.T, expectGroup, actualGroup *types.Group) {
 	if expectGroup != nil {
 		require.NotNil(t, actualGroup)
-		assert.Equal(t, actualGroup, expectGroup)
+		assert.Equal(t, expectGroup, actualGroup)
 	} else {
 		// Plain assert.Nil reports expected <nil>, but got (*types.Group)(nil)
-		assert.Equal(t, actualGroup, (*types.Group)(nil))
+		assert.Equal(t, (*types.Group)(nil), actualGroup)
 	}
 }
 

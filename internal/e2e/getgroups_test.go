@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -42,7 +42,7 @@ func TestGetGroups(t *testing.T) {
 	// Create the groups.
 	groupPaths, err := setupForGetGroups(ctx, client, groupsInfo)
 	assert.Nil(t, err)
-	assert.Equal(t, len(groupPaths), ggGroupCount)
+	assert.Equal(t, ggGroupCount, len(groupPaths))
 
 	// Tear down the groups when the test has finished.
 	defer teardownFromGetGroups(ctx, client, t, groupPaths)

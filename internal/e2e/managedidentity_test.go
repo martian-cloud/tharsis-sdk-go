@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -65,7 +65,7 @@ func TestGetManagedIdentity(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify data IAM role matches.
-	assert.Equal(t, d.Role, getManagedIdentityIAMRole)
+	assert.Equal(t, getManagedIdentityIAMRole, d.Role)
 
 	// Get the managed identity.
 	gotIdentity, err := client.ManagedIdentity.GetManagedIdentity(ctx, &types.GetManagedIdentityInput{
@@ -74,10 +74,10 @@ func TestGetManagedIdentity(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the returned contents are what they should be.
-	assert.Equal(t, gotIdentity.Name, toCreate.Name)
-	assert.Equal(t, gotIdentity.Type, toCreate.Type)
-	assert.Equal(t, gotIdentity.Description, toCreate.Description)
-	assert.Equal(t, gotIdentity.ResourcePath, toCreate.GroupPath+"/"+toCreate.Name)
+	assert.Equal(t, toCreate.Name, gotIdentity.Name)
+	assert.Equal(t, toCreate.Type, gotIdentity.Type)
+	assert.Equal(t, toCreate.Description, gotIdentity.Description)
+	assert.Equal(t, toCreate.GroupPath+"/"+toCreate.Name, gotIdentity.ResourcePath)
 	// The Data field has a subject added to it, so it's not practical to verify it here.
 
 	// Delete the new managed identity.
@@ -141,18 +141,18 @@ func TestUpdateManagedIdentity(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify data IAM role matches.
-	assert.Equal(t, d.Role, updateManagedIdentityIAMRole)
+	assert.Equal(t, updateManagedIdentityIAMRole, d.Role)
 
 	// Get the access rules.
 	accessRules, err := client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
 		ID: createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, len(accessRules), 1)
+	assert.Equal(t, 1, len(accessRules))
 
 	// Verify accessRules.
 	for _, accessRule := range accessRules {
-		assert.Equal(t, accessRule.RunStage, types.JobPlanType)
+		assert.Equal(t, types.JobPlanType, accessRule.RunStage)
 		assert.NotNil(t, accessRule.AllowedUsers)
 		assert.NotNil(t, accessRule.AllowedServiceAccounts)
 		assert.NotNil(t, accessRule.AllowedTeams)
@@ -225,7 +225,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 	// but it will work for local manual testing.
 	email := createdIdentity.CreatedBy
 	parts := strings.Split(email, "@")
-	assert.Equal(t, len(parts), 2)
+	assert.Equal(t, 2, len(parts))
 	username := parts[0]
 
 	// Create an access rule.
@@ -245,14 +245,14 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 		ID: createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, len(accessRules), 1)
+	assert.Equal(t, 1, len(accessRules))
 	readRule := accessRules[0]
 
 	// Verify accessRule.
-	assert.Equal(t, readRule.RunStage, types.JobPlanType)
+	assert.Equal(t, types.JobPlanType, readRule.RunStage)
 	assert.NotNil(t, readRule.AllowedUsers)
-	assert.Equal(t, len(readRule.AllowedUsers), 1)
-	assert.Equal(t, readRule.AllowedUsers[0].Email, email)
+	assert.Equal(t, 1, len(readRule.AllowedUsers))
+	assert.Equal(t, email, readRule.AllowedUsers[0].Email)
 	assert.NotNil(t, readRule.AllowedServiceAccounts)
 	assert.NotNil(t, readRule.AllowedTeams)
 
@@ -268,18 +268,18 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the claimed update.
-	assert.Equal(t, updatedRule.RunStage, types.JobApplyType)
+	assert.Equal(t, types.JobApplyType, updatedRule.RunStage)
 
 	// Retrieve the updated access rules to make sure they persisted.
 	accessRules, err = client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
 		ID: createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, len(accessRules), 1)
+	assert.Equal(t, 1, len(accessRules))
 	read2Rule := accessRules[0]
 
 	// Verify the retrieved rule.
-	assert.Equal(t, read2Rule.RunStage, types.JobApplyType)
+	assert.Equal(t, types.JobApplyType, read2Rule.RunStage)
 
 	// Delete the access rule.
 	err = client.ManagedIdentity.DeleteManagedIdentityAccessRule(ctx,
@@ -293,7 +293,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 		ID: createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, len(accessRules), 0)
+	assert.Equal(t, 0, len(accessRules))
 
 	// Delete the new managed identity.
 	err = client.ManagedIdentity.DeleteManagedIdentity(ctx, &types.DeleteManagedIdentityInput{

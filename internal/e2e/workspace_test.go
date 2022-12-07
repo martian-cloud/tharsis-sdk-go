@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -34,9 +34,9 @@ func TestGetWorkspaceByID(t *testing.T) {
 	createdWorkspace, err := client.Workspaces.CreateWorkspace(ctx, toCreate)
 	assert.Nil(t, err)
 	assert.NotNil(t, createdWorkspace)
-	assert.Equal(t, createdWorkspace.Name, getWorkspaceName)
-	assert.Equal(t, createdWorkspace.FullPath, getWorkspaceFullPath)
-	assert.Equal(t, createdWorkspace.Description, newDescription)
+	assert.Equal(t, getWorkspaceName, createdWorkspace.Name)
+	assert.Equal(t, getWorkspaceFullPath, createdWorkspace.FullPath)
+	assert.Equal(t, newDescription, createdWorkspace.Description)
 
 	// Get the workspace.
 	gotWorkspace, err := client.Workspaces.GetWorkspace(ctx, &types.GetWorkspaceInput{
@@ -45,9 +45,9 @@ func TestGetWorkspaceByID(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the returned contents are what they should be.
-	assert.Equal(t, gotWorkspace.Name, toCreate.Name)
-	assert.Equal(t, gotWorkspace.FullPath, getWorkspaceFullPath)
-	assert.Equal(t, gotWorkspace.Description, toCreate.Description)
+	assert.Equal(t, toCreate.Name, gotWorkspace.Name)
+	assert.Equal(t, getWorkspaceFullPath, gotWorkspace.FullPath)
+	assert.Equal(t, toCreate.Description, gotWorkspace.Description)
 
 	// Delete the workspace.
 	err = client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{

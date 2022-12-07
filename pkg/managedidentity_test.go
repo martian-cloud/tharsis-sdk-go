@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -677,19 +677,19 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 func checkIdentity(t *testing.T, expectIdentity, actualIdentity *types.ManagedIdentity) {
 	if expectIdentity != nil {
 		require.NotNil(t, actualIdentity)
-		assert.Equal(t, actualIdentity, expectIdentity)
+		assert.Equal(t, expectIdentity, actualIdentity)
 	} else {
 		// Plain assert.Nil reports expected <nil>, but got (*types.ManagedIdentity)(nil)
-		assert.Equal(t, actualIdentity, (*types.ManagedIdentity)(nil))
+		assert.Equal(t, (*types.ManagedIdentity)(nil), actualIdentity)
 	}
 }
 
 func checkAccessRule(t *testing.T, expectRule, actualRule *types.ManagedIdentityAccessRule) {
 	if expectRule != nil {
 		require.NotNil(t, actualRule)
-		assert.Equal(t, actualRule, expectRule)
+		assert.Equal(t, expectRule, actualRule)
 	} else {
-		assert.Equal(t, actualRule, (*types.ManagedIdentityAccessRule)(nil))
+		assert.Equal(t, (*types.ManagedIdentityAccessRule)(nil), actualRule)
 	}
 }
 

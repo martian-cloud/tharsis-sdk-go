@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -133,10 +133,10 @@ func TestGetWorkspaceByID(t *testing.T) {
 func checkWorkspace(t *testing.T, expectWorkspace, actualWorkspace *types.Workspace) {
 	if expectWorkspace != nil {
 		require.NotNil(t, actualWorkspace)
-		assert.Equal(t, actualWorkspace, expectWorkspace)
+		assert.Equal(t, expectWorkspace, actualWorkspace)
 	} else {
 		// Plain assert.Nil reports expected <nil>, but got (*types.Workspace)(nil)
-		assert.Equal(t, actualWorkspace, (*types.Workspace)(nil))
+		assert.Equal(t, (*types.Workspace)(nil), actualWorkspace)
 	}
 }
 
