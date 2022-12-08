@@ -50,4 +50,10 @@ func TestTerraformModuleVersionVersions(t *testing.T) {
 		ID: moduleVersion.Metadata.ID,
 	})
 	require.Nil(t, err)
+
+	// Delete the module.
+	err = client.TerraformModule.DeleteModule(ctx, &types.DeleteTerraformModuleInput{
+		ID: module.Metadata.ID,
+	})
+	require.Nil(t, err)
 }
