@@ -153,22 +153,53 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 
 // Related types and conversion functions:
 
+// graphQLBoundClaim represents a bound claim with GraphQL types.
+// If GraphQL supported maps, it would be simpler to use a map for bound claims.
+type graphQLBoundClaim struct {
+	Name  graphql.String
+	Value graphql.String
+}
+
+// graphQLTrustPolicy represents a trust policy with GraphQL types.
+type graphQLTrustPolicy struct {
+	Issuer      graphql.String
+	BoundClaims []graphQLBoundClaim
+}
+
 // graphQLServiceAccount represents a service account with GraphQL types.
 type graphQLServiceAccount struct {
-	ID           graphql.String
-	Metadata     internal.GraphQLMetadata
-	ResourcePath graphql.String
-	Name         graphql.String
-	Description  graphql.String
+	ID                graphql.String
+	Metadata          internal.GraphQLMetadata
+	ResourcePath      graphql.String
+	Name              graphql.String
+	Description       graphql.String
+	OIDCTrustPolicies []graphQLTrustPolicy
 }
 
 // serviceAccountFromGraphQL converts a GraphQL service account to external service account.
 func serviceAccountFromGraphQL(g graphQLServiceAccount) types.ServiceAccount {
+	trustPolicies := []types.OIDCTrustPolicy{}
+	for _, trustPolicy := range g.OIDCTrustPolicies {
+		trustPolicies = append(trustPolicies, trustPolicyFromGraphQL(trustPolicy))
+	}
 	return types.ServiceAccount{
-		Metadata:     internal.MetadataFromGraphQL(g.Metadata, g.ID),
-		ResourcePath: string(g.ResourcePath),
-		Name:         string(g.Name),
-		Description:  string(g.Description),
+		Metadata:          internal.MetadataFromGraphQL(g.Metadata, g.ID),
+		ResourcePath:      string(g.ResourcePath),
+		Name:              string(g.Name),
+		Description:       string(g.Description),
+		OIDCTrustPolicies: trustPolicies,
+	}
+}
+
+// trustPolicyFromGraphQL converts a GraphQL trust policy to an external trust policy.
+func trustPolicyFromGraphQL(tp graphQLTrustPolicy) types.OIDCTrustPolicy {
+	boundClaims := make(map[string]string)
+	for _, boundClaim := range tp.BoundClaims {
+		boundClaims[string(boundClaim.Name)] = string(boundClaim.Value)
+	}
+	return types.OIDCTrustPolicy{
+		Issuer:      string(tp.Issuer),
+		BoundClaims: boundClaims,
 	}
 }
 

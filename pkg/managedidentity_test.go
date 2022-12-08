@@ -214,8 +214,8 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					{Username: "test-user-2"},
 				},
 				AllowedServiceAccounts: []types.ServiceAccount{
-					{Name: "test-service-account-1"},
-					{Name: "test-service-account-2"},
+					{Name: "test-service-account-1", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
+					{Name: "test-service-account-2", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
 				},
 				AllowedTeams: []types.Team{
 					{Name: "test-team-1"},
@@ -489,8 +489,8 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					{Username: "test-user-4"},
 				},
 				AllowedServiceAccounts: []types.ServiceAccount{
-					{Name: "test-service-account-5"},
-					{Name: "test-service-account-6"},
+					{Name: "test-service-account-5", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
+					{Name: "test-service-account-6", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
 				},
 				AllowedTeams: []types.Team{
 					{Name: "test-team-7"},
