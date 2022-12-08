@@ -28,7 +28,6 @@ func NewTerraformProvider(client *Client) TerraformProvider {
 func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformProviderInput) (*types.TerraformProvider, error) {
 	var target struct {
 		Node *struct {
-			ID       graphql.String
 			Provider graphQLTerraformProvider `graphql:"...on TerraformProvider"`
 		} `graphql:"node(id: $id)"`
 	}

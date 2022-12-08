@@ -54,6 +54,18 @@ func newGraphQLClientForTest(input testClientInput) *graphql.Client {
 	return graphql.NewClient("graphql-client-url", httpClient)
 }
 
+type fakeTokenProvider struct {
+	token string
+}
+
+func (tp *fakeTokenProvider) GetToken() (string, error) {
+	return tp.token, nil
+}
+
+type fakeRESTError struct {
+	Detail string `json:"detail"`
+}
+
 // Types for building response payloads to be returned by the fake http transport.
 type fakeGraphqlResponseErrorExtension struct {
 	Code string `json:"code"`

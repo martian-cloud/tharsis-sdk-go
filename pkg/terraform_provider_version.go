@@ -33,7 +33,6 @@ func NewTerraformProviderVersion(client *Client) TerraformProviderVersion {
 func (p *providerVersion) GetProviderVersion(ctx context.Context, input *types.GetTerraformProviderVersionInput) (*types.TerraformProviderVersion, error) {
 	var target struct {
 		Node *struct {
-			ID                       graphql.String
 			TerraformProviderVersion graphQLTerraformProviderVersion `graphql:"...on TerraformProviderVersion"`
 		} `graphql:"node(id: $id)"`
 	}
