@@ -18,7 +18,7 @@ fmt: ## run "go fmt" on all Go packages
 
 .PHONY: test
 test: ## run unit tests
-	go test -v ./...
+	go test ./...
 
 .PHONY: integration
 integration: ## run integration (and unit) tests

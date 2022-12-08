@@ -12,9 +12,9 @@ import (
 //
 // In the GraphQL structs, the ID field is in the parent rather than in the metadata.
 type GraphQLMetadata struct {
-	CreatedAt *time.Time
-	UpdatedAt *time.Time
-	Version   graphql.String
+	CreatedAt *time.Time     `json:"createdAt"`
+	UpdatedAt *time.Time     `json:"updatedAt"`
+	Version   graphql.String `json:"version"`
 }
 
 // MetadataFromGraphQL converts GraphQL Metadata to an external metadata.

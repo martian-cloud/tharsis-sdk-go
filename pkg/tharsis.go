@@ -45,6 +45,8 @@ type Client struct {
 	Workspaces                Workspaces
 	TerraformProvider         TerraformProvider
 	TerraformProviderVersion  TerraformProviderVersion
+	TerraformModule           TerraformModule
+	TerraformModuleVersion    TerraformModuleVersion
 	TerraformProviderPlatform TerraformProviderPlatform
 	TerraformCLIVersions      TerraformCLIVersion
 }
@@ -103,6 +105,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.TerraformProvider = NewTerraformProvider(client)
 	client.TerraformProviderVersion = NewTerraformProviderVersion(client)
 	client.TerraformProviderPlatform = NewTerraformProviderPlatform(client)
+	client.TerraformModule = NewTerraformModule(client)
+	client.TerraformModuleVersion = NewTerraformModuleVersion(client)
 	client.TerraformCLIVersions = NewTerraformCLIVersion(client)
 
 	client.graphqlSubscriptionClient.OnError(func(_ *graphql.SubscriptionClient, err error) error {
