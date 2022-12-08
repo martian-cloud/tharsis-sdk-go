@@ -49,6 +49,20 @@ func TestCRUDServiceAccount(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, createdServiceAccount)
 
+	// Verify all the fields except metadata.
+	expectTrustPolicies := []types.OIDCTrustPolicy{
+		{
+			Issuer:      trustPolicyIssuer,
+			BoundClaims: map[string]string{boundClaimName: boundClaimValue},
+		},
+	}
+	assert.Equal(t, topGroupName+"/"+serviceAccountName, createdServiceAccount.ResourcePath)
+	assert.Equal(t, serviceAccountName, createdServiceAccount.Name)
+	assert.Equal(t, serviceAccountDescription, createdServiceAccount.Description)
+	assert.Equal(t, expectTrustPolicies, createdServiceAccount.OIDCTrustPolicies)
+	assert.Equal(t, 1, len(createdServiceAccount.OIDCTrustPolicies))
+	assert.Equal(t, 1, len(createdServiceAccount.OIDCTrustPolicies[0].BoundClaims))
+
 	// Get/read and verify the service account.
 	readServiceAccount, err := client.ServiceAccount.GetServiceAccount(ctx, &types.GetServiceAccountInput{
 		ID: createdServiceAccount.Metadata.ID,
