@@ -193,7 +193,7 @@ func (cv *configurationVersion) makeTarfile(dirPath string) (string, error) {
 	}
 	defer tgzFileWriter.Close() // executes last (of the deferred closings)
 
-	_, err = slug.Pack(dirPath, tgzFileWriter, false)
+	_, err = slug.Pack(dirPath, tgzFileWriter, true)
 	if err != nil {
 		return "", err
 	}

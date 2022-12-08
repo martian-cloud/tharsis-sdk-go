@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
-	github.com/hashicorp/go-slug v0.9.1
+	github.com/hashicorp/go-slug v0.10.0
 	github.com/hasura/go-graphql-client v0.7.2
 	github.com/likexian/gokit v0.25.8
 	github.com/qiangxue/go-env v1.0.1

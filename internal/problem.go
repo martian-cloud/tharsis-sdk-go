@@ -16,6 +16,7 @@ type GraphQLProblemType graphql.String
 const (
 	Conflict   GraphQLProblemType = "CONFLICT"
 	BadRequest GraphQLProblemType = "BAD_REQUEST"
+	NotFound   GraphQLProblemType = "NOT_FOUND"
 )
 
 // GraphQLProblem is used to represent a user facing issue

@@ -322,7 +322,6 @@ func (m *managedIdentity) GetManagedIdentityAccessRule(ctx context.Context,
 
 	var target struct {
 		Node *struct {
-			ID                        graphql.String
 			ManagedIdentityAccessRule graphQLManagedIdentityAccessRule `graphql:"...on ManagedIdentityAccessRule"`
 		} `graphql:"node(id: $id)"`
 	}
