@@ -14,122 +14,166 @@ import (
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
-func TestCreateGroup(t *testing.T) {
+func TestCreateServiceAccount(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	parentGroupName := "parent-group-name"
-	groupName := "group-name-1"
-	groupID := "group-id-1"
-	groupVersion := "group-version-1"
-	groupDescription := "group description 1"
-	nestedPath := parentGroupName + "/" + groupName
+	serviceAccountName := "service-account-name-1"
+	serviceAccountID := "service-account-id-1"
+	serviceAccountVersion := "service-account-version-1"
+	serviceAccountDescription := "service account description 1"
+	resourcePath := parentGroupName + "/" + serviceAccountName
+	trustPolicyIssuer1 := "https://trust-policy-issuer-1"
+	boundClaimName1a := "bound-claim-name-1a"
+	boundClaimValue1a := "bound-claim-value-1a"
+	boundClaimName1b := "bound-claim-name-1b"
+	boundClaimValue1b := "bound-claim-value-1b"
+	trustPolicyIssuer2 := "https://trust-policy-issuer-2"
+	boundClaimName2a := "bound-claim-name-2a"
+	boundClaimValue2a := "bound-claim-value-2a"
+	boundClaimName2b := "bound-claim-name-2b"
+	boundClaimValue2b := "bound-claim-value-2b"
 
-	type graphqlCreateGroupMutation struct {
-		Group    graphQLGroup                 `json:"group"`
-		Problems []fakeGraphqlResponseProblem `json:"problems"`
+	type graphqlCreateServiceAccountMutation struct {
+		ServiceAccount graphQLServiceAccount        `json:"serviceAccount"`
+		Problems       []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
-	type graphqlCreateGroupPayload struct {
-		CreateGroup graphqlCreateGroupMutation `json:"createGroup"`
+	type graphqlCreateServiceAccountPayload struct {
+		CreateServiceAccount graphqlCreateServiceAccountMutation `json:"createServiceAccount"`
 	}
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.CreateGroupInput
-		expectGroup        *types.Group
-		name               string
-		expectErrorMessage string
+		responsePayload      interface{}
+		input                *types.CreateServiceAccountInput
+		expectServiceAccount *types.ServiceAccount
+		name                 string
+		expectErrorMessage   string
 	}
 
 	testCases := []testCase{
 
-		// positive, top-level
-		{
-			name: "Successfully created top-level group",
-			input: &types.CreateGroupInput{
-				Name:        groupName,
-				ParentPath:  nil,
-				Description: groupDescription,
-			},
-			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlCreateGroupPayload{
-					CreateGroup: graphqlCreateGroupMutation{
-						Group: graphQLGroup{
-							ID: graphql.String(groupID),
-							Metadata: internal.GraphQLMetadata{
-								CreatedAt: &now,
-								UpdatedAt: &now,
-								Version:   graphql.String(groupVersion),
-							},
-							Name:        graphql.String(groupName),
-							Description: graphql.String(groupDescription),
-							FullPath:    graphql.String(groupName),
-						},
-					},
-				},
-			},
-			expectGroup: &types.Group{
-				Metadata: types.ResourceMetadata{
-					ID:                   groupID,
-					CreationTimestamp:    &now,
-					LastUpdatedTimestamp: &now,
-					Version:              groupVersion,
-				},
-				Name:        groupName,
-				Description: groupDescription,
-				FullPath:    groupName,
-			},
-		},
-
 		// positive, nested
 		{
-			name: "Successfully created nested group",
-			input: &types.CreateGroupInput{
-				Name:        groupName,
-				ParentPath:  &parentGroupName,
-				Description: groupDescription,
-			},
-			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlCreateGroupPayload{
-					CreateGroup: graphqlCreateGroupMutation{
-						Group: graphQLGroup{
-							ID: graphql.String(groupID),
-							Metadata: internal.GraphQLMetadata{
-								CreatedAt: &now,
-								UpdatedAt: &now,
-								Version:   graphql.String(groupVersion),
+			name: "Successfully created service account",
+			input: &types.CreateServiceAccountInput{
+				Name:        serviceAccountName,
+				GroupPath:   parentGroupName,
+				Description: serviceAccountDescription,
+				OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+					{
+						Issuer: trustPolicyIssuer1,
+						BoundClaims: []types.JWTClaimInput{
+							{
+								Name:  boundClaimName1a,
+								Value: boundClaimValue1a,
 							},
-							Name:        graphql.String(groupName),
-							Description: graphql.String(groupDescription),
-							FullPath:    graphql.String(nestedPath),
+							{
+								Name:  boundClaimName1b,
+								Value: boundClaimValue1b,
+							},
+						},
+					},
+					{
+						Issuer: trustPolicyIssuer2,
+						BoundClaims: []types.JWTClaimInput{
+							{
+								Name:  boundClaimName2a,
+								Value: boundClaimValue2a,
+							},
+							{
+								Name:  boundClaimName2b,
+								Value: boundClaimValue2b,
+							},
 						},
 					},
 				},
 			},
-			expectGroup: &types.Group{
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlCreateServiceAccountPayload{
+					CreateServiceAccount: graphqlCreateServiceAccountMutation{
+						ServiceAccount: graphQLServiceAccount{
+							ID: graphql.String(serviceAccountID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+								Version:   graphql.String(serviceAccountVersion),
+							},
+							ResourcePath: graphql.String(resourcePath),
+							Name:         graphql.String(serviceAccountName),
+							Description:  graphql.String(serviceAccountDescription),
+							OIDCTrustPolicies: []graphQLTrustPolicy{
+								{
+									Issuer: graphql.String(trustPolicyIssuer1),
+									BoundClaims: []graphQLBoundClaim{
+										{
+											Name:  graphql.String(boundClaimName1a),
+											Value: graphql.String(boundClaimValue1a),
+										},
+										{
+											Name:  graphql.String(boundClaimName1b),
+											Value: graphql.String(boundClaimValue1b),
+										},
+									},
+								},
+								{
+									Issuer: graphql.String(trustPolicyIssuer2),
+									BoundClaims: []graphQLBoundClaim{
+										{
+											Name:  graphql.String(boundClaimName2a),
+											Value: graphql.String(boundClaimValue2a),
+										},
+										{
+											Name:  graphql.String(boundClaimName2b),
+											Value: graphql.String(boundClaimValue2b),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectServiceAccount: &types.ServiceAccount{
 				Metadata: types.ResourceMetadata{
-					ID:                   groupID,
+					ID:                   serviceAccountID,
 					CreationTimestamp:    &now,
 					LastUpdatedTimestamp: &now,
-					Version:              groupVersion,
+					Version:              serviceAccountVersion,
 				},
-				Name:        groupName,
-				Description: groupDescription,
-				FullPath:    nestedPath,
+				ResourcePath: resourcePath,
+				Name:         serviceAccountName,
+				Description:  serviceAccountDescription,
+				OIDCTrustPolicies: []types.OIDCTrustPolicy{
+					{
+						Issuer: trustPolicyIssuer1,
+						BoundClaims: map[string]string{
+							boundClaimName1a: boundClaimValue1a,
+							boundClaimName1b: boundClaimValue1b,
+						},
+					},
+					{
+						Issuer: trustPolicyIssuer2,
+						BoundClaims: map[string]string{
+							boundClaimName2a: boundClaimValue2a,
+							boundClaimName2b: boundClaimValue2b,
+						},
+					},
+				},
 			},
 		},
 
 		// negative: query returns error
 		{
-			name:  "negative: query to create group returned error",
-			input: &types.CreateGroupInput{},
+			name:  "negative: query to create service account returned error",
+			input: &types.CreateServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlCreateGroupPayload{
-					CreateGroup: graphqlCreateGroupMutation{
+				Data: graphqlCreateServiceAccountPayload{
+					CreateServiceAccount: graphqlCreateServiceAccountMutation{
 						Problems: []fakeGraphqlResponseProblem{
 							{
-								Message: "Group with path non-existent not found",
+								Message: "service account with path non-existent not found",
 								Type:    internal.Conflict,
 								Field:   []string{},
 							},
@@ -137,7 +181,7 @@ func TestCreateGroup(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating group: Group with path non-existent not found",
+			expectErrorMessage: "problems creating service account: service account with path non-existent not found",
 		},
 	}
 
@@ -157,69 +201,123 @@ func TestCreateGroup(t *testing.T) {
 					payloadToReturn: string(payload),
 				}),
 			}
-			client.Group = NewGroup(client)
+			client.ServiceAccount = NewServiceAccount(client)
 
 			// Call the method being tested.
-			actualGroup, actualError := client.Group.CreateGroup(ctx, test.input)
+			actualServiceAccount, actualError := client.ServiceAccount.CreateServiceAccount(ctx, test.input)
 
 			checkError(t, test.expectErrorMessage, actualError)
-			checkGroup(t, test.expectGroup, actualGroup)
+			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
 }
 
-func TestGetGroup(t *testing.T) {
+func TestGetServiceAccount(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	parentGroupName := "parent-group-name"
-	groupName := "group-name-1"
-	groupDescription := "group description 1"
-	nestedPath := parentGroupName + "/" + groupName
-	groupID := "group-id-1"
-	groupVersion := "group-version-1"
+	serviceAccountName := "service-account-name-1"
+	serviceAccountDescription := "service account description 1"
+	resourcePath := parentGroupName + "/" + serviceAccountName
+	serviceAccountID := "service-account-id-1"
+	serviceAccountVersion := "service-account-version-1"
+	trustPolicyIssuer1 := "https://trust-policy-issuer-1"
+	boundClaimName1a := "bound-claim-name-1a"
+	boundClaimValue1a := "bound-claim-value-1a"
+	boundClaimName1b := "bound-claim-name-1b"
+	boundClaimValue1b := "bound-claim-value-1b"
+	trustPolicyIssuer2 := "https://trust-policy-issuer-2"
+	boundClaimName2a := "bound-claim-name-2a"
+	boundClaimValue2a := "bound-claim-value-2a"
+	boundClaimName2b := "bound-claim-name-2b"
+	boundClaimValue2b := "bound-claim-value-2b"
 
-	type graphqlGroupPayload struct {
-		Node *graphQLGroup `json:"node"`
+	type graphqlServiceAccountPayload struct {
+		ServiceAccount *graphQLServiceAccount `json:"serviceAccount"`
 	}
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectGroup        *types.Group
-		name               string
-		expectErrorMessage string
+		responsePayload      interface{}
+		expectServiceAccount *types.ServiceAccount
+		name                 string
+		expectErrorMessage   string
 	}
 
 	testCases := []testCase{
 
 		// positive
 		{
-			name: "Successfully return group by ID",
+			name: "Successfully return service account by ID",
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlGroupPayload{
-					Node: &graphQLGroup{
-						ID: graphql.String(groupID),
+				Data: graphqlServiceAccountPayload{
+					ServiceAccount: &graphQLServiceAccount{
+						ID: graphql.String(serviceAccountID),
 						Metadata: internal.GraphQLMetadata{
 							CreatedAt: &now,
 							UpdatedAt: &now,
-							Version:   graphql.String(groupVersion),
+							Version:   graphql.String(serviceAccountVersion),
 						},
-						Name:        graphql.String(groupName),
-						Description: graphql.String(groupDescription),
-						FullPath:    graphql.String(nestedPath),
+						ResourcePath: graphql.String(resourcePath),
+						Name:         graphql.String(serviceAccountName),
+						Description:  graphql.String(serviceAccountDescription),
+						OIDCTrustPolicies: []graphQLTrustPolicy{
+							{
+								Issuer: graphql.String(trustPolicyIssuer1),
+								BoundClaims: []graphQLBoundClaim{
+									{
+										Name:  graphql.String(boundClaimName1a),
+										Value: graphql.String(boundClaimValue1a),
+									},
+									{
+										Name:  graphql.String(boundClaimName1b),
+										Value: graphql.String(boundClaimValue1b),
+									},
+								},
+							},
+							{
+								Issuer: graphql.String(trustPolicyIssuer2),
+								BoundClaims: []graphQLBoundClaim{
+									{
+										Name:  graphql.String(boundClaimName2a),
+										Value: graphql.String(boundClaimValue2a),
+									},
+									{
+										Name:  graphql.String(boundClaimName2b),
+										Value: graphql.String(boundClaimValue2b),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
-			expectGroup: &types.Group{
+			expectServiceAccount: &types.ServiceAccount{
 				Metadata: types.ResourceMetadata{
-					ID:                   groupID,
+					ID:                   serviceAccountID,
 					CreationTimestamp:    &now,
 					LastUpdatedTimestamp: &now,
-					Version:              groupVersion,
+					Version:              serviceAccountVersion,
 				},
-				Name:        groupName,
-				Description: groupDescription,
-				FullPath:    nestedPath,
+				ResourcePath: resourcePath,
+				Name:         serviceAccountName,
+				Description:  serviceAccountDescription,
+				OIDCTrustPolicies: []types.OIDCTrustPolicy{
+					{
+						Issuer: trustPolicyIssuer1,
+						BoundClaims: map[string]string{
+							boundClaimName1a: boundClaimValue1a,
+							boundClaimName1b: boundClaimValue1b,
+						},
+					},
+					{
+						Issuer: trustPolicyIssuer2,
+						BoundClaims: map[string]string{
+							boundClaimName2a: boundClaimValue2a,
+							boundClaimName2b: boundClaimValue2b,
+						},
+					},
+				},
 			},
 		},
 
@@ -227,7 +325,7 @@ func TestGetGroup(t *testing.T) {
 		{
 			name: "negative: query returns error, invalid ID",
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlGroupPayload{},
+				Data: graphqlServiceAccountPayload{},
 				Errors: []fakeGraphqlResponseError{
 					{
 						Message: "ERROR: invalid input syntax for type uuid: \"6f3106c6-c342-4790-a667-963a850d9�d4\" (SQLSTATE 22P02)",
@@ -247,10 +345,10 @@ func TestGetGroup(t *testing.T) {
 		{
 			name: "negative: query returns error, not found error",
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlGroupPayload{},
+				Data: graphqlServiceAccountPayload{},
 				Errors: []fakeGraphqlResponseError{
 					{
-						Message: "Group with id 6f3106c6-c342-4790-a667-963a850d34d4 not found",
+						Message: "service account with id 6f3106c6-c342-4790-a667-963a850d34d4 not found",
 						Path: []string{
 							"node",
 						},
@@ -260,14 +358,14 @@ func TestGetGroup(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Group with id 6f3106c6-c342-4790-a667-963a850d34d4 not found, Locations: []",
+			expectErrorMessage: "Message: service account with id 6f3106c6-c342-4790-a667-963a850d34d4 not found, Locations: []",
 		},
 
 		// negative: theoretical quiet not found
 		{
 			name: "negative: theoretical quiet not found",
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlGroupPayload{},
+				Data: graphqlServiceAccountPayload{},
 			},
 		},
 	}
@@ -288,116 +386,174 @@ func TestGetGroup(t *testing.T) {
 					payloadToReturn: string(payload),
 				}),
 			}
-			client.Group = NewGroup(client)
+			client.ServiceAccount = NewServiceAccount(client)
 
 			// Call the method being tested.
-			actualGroup, actualError := client.Group.GetGroup(
+			actualServiceAccount, actualError := client.ServiceAccount.GetServiceAccount(
 				ctx,
-				&types.GetGroupInput{ID: &groupID},
+				&types.GetServiceAccountInput{ID: serviceAccountID},
 			)
 
 			checkError(t, test.expectErrorMessage, actualError)
-			checkGroup(t, test.expectGroup, actualGroup)
+			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
 }
 
-/*
-
-func TestUpdateGroup(t *testing.T) {
+func TestUpdateServiceAccount(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
-	groupID := "group-id-1"
-	groupVersion := "group-version-1"
-	managedIdentityID := "managed-identity-id-1"
+	parentGroupName := "parent-group-name"
+	serviceAccountName := "service-account-name-1"
+	serviceAccountDescription := "service account description 1"
+	resourcePath := parentGroupName + "/" + serviceAccountName
+	serviceAccountID := "service-account-id-1"
+	serviceAccountVersion := "service-account-version-1"
 
-	type graphqlUpdateGroupMutation struct {
-		Group    graphQLGroup                 `json:"group"`
-		Problems []fakeGraphqlResponseProblem `json:"problems"`
+	trustPolicyIssuer1 := "https://trust-policy-issuer-1"
+	boundClaimName1a := "bound-claim-name-1a"
+	boundClaimValue1a := "bound-claim-value-1a"
+	boundClaimName1b := "bound-claim-name-1b"
+	boundClaimValue1b := "bound-claim-value-1b"
+	trustPolicyIssuer2 := "https://trust-policy-issuer-2"
+	boundClaimName2a := "bound-claim-name-2a"
+	boundClaimValue2a := "bound-claim-value-2a"
+	boundClaimName2b := "bound-claim-name-2b"
+	boundClaimValue2b := "bound-claim-value-2b"
+
+	type graphqlUpdateServiceAccountMutation struct {
+		ServiceAccount graphQLServiceAccount        `json:"serviceAccount"`
+		Problems       []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
-	type graphqlUpdateGroupPayload struct {
-		UpdateGroup graphqlUpdateGroupMutation `json:"updateGroup"`
+	type graphqlUpdateServiceAccountPayload struct {
+		UpdateServiceAccount graphqlUpdateServiceAccountMutation `json:"updateServiceAccount"`
 	}
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.UpdateGroupInput
-		expectGroup        *types.Group
-		name               string
-		expectErrorMessage string
+		responsePayload      interface{}
+		input                *types.UpdateServiceAccountInput
+		expectServiceAccount *types.ServiceAccount
+		name                 string
+		expectErrorMessage   string
 	}
 
 	testCases := []testCase{
 
 		// positive
 		{
-			name: "Successfully updated group",
-			input: &types.UpdateGroupInput{
-				RunStage:               types.JobApplyType,
-				AllowedUsers:           []string{"test-user-3", "test-user-4"},
-				AllowedServiceAccounts: []string{"test-service-account-5", "test-service-account-6"},
-				AllowedTeams:           []string{"test-team-7", "test team-8"},
-			},
-			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlUpdateGroupPayload{
-					UpdateGroup: graphqlUpdateGroupMutation{
-						Group: graphQLGroup{
-							ID: graphql.String(groupID),
-							Metadata: internal.GraphQLMetadata{
-								CreatedAt: &now,
-								UpdatedAt: &now,
-								Version:   graphql.String(groupVersion),
+			name: "Successfully updated service account",
+			input: &types.UpdateServiceAccountInput{
+				ID:          serviceAccountID,
+				Description: serviceAccountDescription,
+				OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+					{
+						Issuer: trustPolicyIssuer1,
+						BoundClaims: []types.JWTClaimInput{
+							{
+								Name:  boundClaimName1a,
+								Value: boundClaimValue1a,
 							},
-							RunStage: graphql.String(types.JobPlanType),
-							AllowedUsers: []graphQLUser{
-								{Username: "test-user-3"},
-								{Username: "test-user-4"},
+							{
+								Name:  boundClaimName1b,
+								Value: boundClaimValue1b,
 							},
-							AllowedServiceAccounts: []graphQLServiceAccount{
-								{Name: "test-service-account-5"},
-								{Name: "test-service-account-6"},
+						},
+					},
+					{
+						Issuer: trustPolicyIssuer2,
+						BoundClaims: []types.JWTClaimInput{
+							{
+								Name:  boundClaimName2a,
+								Value: boundClaimValue2a,
 							},
-							AllowedTeams: []graphQLTeam{
-								{Name: "test-team-7"},
-								{Name: "test-team-8"},
-							},
-							ManagedIdentity: GraphQLManagedIdentity{
-								ID: graphql.String(managedIdentityID),
+							{
+								Name:  boundClaimName2b,
+								Value: boundClaimValue2b,
 							},
 						},
 					},
 				},
 			},
-			expectGroup: &types.Group{
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlUpdateServiceAccountPayload{
+					UpdateServiceAccount: graphqlUpdateServiceAccountMutation{
+						ServiceAccount: graphQLServiceAccount{
+							ID: graphql.String(serviceAccountID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+								Version:   graphql.String(serviceAccountVersion),
+							},
+							ResourcePath: graphql.String(resourcePath),
+							Name:         graphql.String(serviceAccountName),
+							Description:  graphql.String(serviceAccountDescription),
+							OIDCTrustPolicies: []graphQLTrustPolicy{
+								{
+									Issuer: graphql.String(trustPolicyIssuer1),
+									BoundClaims: []graphQLBoundClaim{
+										{
+											Name:  graphql.String(boundClaimName1a),
+											Value: graphql.String(boundClaimValue1a),
+										},
+										{
+											Name:  graphql.String(boundClaimName1b),
+											Value: graphql.String(boundClaimValue1b),
+										},
+									},
+								},
+								{
+									Issuer: graphql.String(trustPolicyIssuer2),
+									BoundClaims: []graphQLBoundClaim{
+										{
+											Name:  graphql.String(boundClaimName2a),
+											Value: graphql.String(boundClaimValue2a),
+										},
+										{
+											Name:  graphql.String(boundClaimName2b),
+											Value: graphql.String(boundClaimValue2b),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectServiceAccount: &types.ServiceAccount{
 				Metadata: types.ResourceMetadata{
-					ID:                   groupID,
+					ID:                   serviceAccountID,
 					CreationTimestamp:    &now,
 					LastUpdatedTimestamp: &now,
-					Version:              groupVersion,
+					Version:              serviceAccountVersion,
 				},
-				RunStage: types.JobPlanType,
-				AllowedUsers: []types.User{
-					{Username: "test-user-3"},
-					{Username: "test-user-4"},
+				ResourcePath: resourcePath,
+				Name:         serviceAccountName,
+				Description:  serviceAccountDescription,
+				OIDCTrustPolicies: []types.OIDCTrustPolicy{
+					{
+						Issuer: trustPolicyIssuer1,
+						BoundClaims: map[string]string{
+							boundClaimName1a: boundClaimValue1a,
+							boundClaimName1b: boundClaimValue1b,
+						},
+					},
+					{
+						Issuer: trustPolicyIssuer2,
+						BoundClaims: map[string]string{
+							boundClaimName2a: boundClaimValue2a,
+							boundClaimName2b: boundClaimValue2b,
+						},
+					},
 				},
-				AllowedServiceAccounts: []types.ServiceAccount{
-					{Name: "test-service-account-5"},
-					{Name: "test-service-account-6"},
-				},
-				AllowedTeams: []types.Team{
-					{Name: "test-team-7"},
-					{Name: "test-team-8"},
-				},
-				ManagedIdentityID: managedIdentityID,
 			},
 		},
 
-		// negative: group update query returns error
+		// negative: service account update query returns error
 		{
-			name:  "negative: group update query returns error",
-			input: &types.UpdateGroupInput{},
+			name:  "negative: service account update query returns error",
+			input: &types.UpdateServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
 				Errors: []fakeGraphqlResponseError{
 					{
@@ -417,13 +573,13 @@ func TestUpdateGroup(t *testing.T) {
 		// negative: query behaves as if the specified access rule did not exist
 		{
 			name:  "negative: query behaves as if the specified access rule did not exist",
-			input: &types.UpdateGroupInput{},
+			input: &types.UpdateServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlUpdateGroupPayload{
-					UpdateGroup: graphqlUpdateGroupMutation{
+				Data: graphqlUpdateServiceAccountPayload{
+					UpdateServiceAccount: graphqlUpdateServiceAccountMutation{
 						Problems: []fakeGraphqlResponseProblem{
 							{
-								Message: "group with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
+								Message: "service account with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
 								Type:    "NOT_FOUND",
 								Field:   []string{},
 							},
@@ -431,7 +587,7 @@ func TestUpdateGroup(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems updating group: group with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
+			expectErrorMessage: "problems updating service account: service account with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
 		},
 	}
 
@@ -451,34 +607,34 @@ func TestUpdateGroup(t *testing.T) {
 					payloadToReturn: string(payload),
 				}),
 			}
-			client.ManagedIdentity = NewManagedIdentity(client)
+			client.ServiceAccount = NewServiceAccount(client)
 
 			// Call the method being tested.
-			actualGroup, actualError := client.ManagedIdentity.UpdateGroup(ctx, test.input)
+			actualServiceAccount, actualError := client.ServiceAccount.UpdateServiceAccount(ctx, test.input)
 
 			checkError(t, test.expectErrorMessage, actualError)
-			checkGroup(t, test.expectGroup, actualGroup)
+			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
 }
 
-func TestDeleteGroup(t *testing.T) {
-	groupID := "group-id-1"
+func TestDeleteServiceAccount(t *testing.T) {
+	serviceAccountID := "service-account-id-1"
 
-	// In GraphiQL, an 'group' element appeared here.  However, it would not unmarshal when run from a test.
-	type graphqlDeleteGroupMutation struct {
-		// Group graphQLGroup `json:"group"`
+	// In GraphiQL, an 'serviceAccount' element appeared here.  However, it would not unmarshal when run from a test.
+	type graphqlDeleteServiceAccountMutation struct {
+		// ServiceAccount graphQLServiceAccount        `json:"serviceAccount"`
 		Problems []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
-	type graphqlDeleteGroupPayload struct {
-		DeleteGroup graphqlDeleteGroupMutation `json:"deleteGroup"`
+	type graphqlDeleteServiceAccountPayload struct {
+		DeleteServiceAccount graphqlDeleteServiceAccountMutation `json:"deleteServiceAccount"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload    interface{}
-		input              *types.DeleteGroupInput
+		input              *types.DeleteServiceAccountInput
 		name               string
 		expectErrorMessage string
 	}
@@ -487,27 +643,27 @@ func TestDeleteGroup(t *testing.T) {
 
 		// positive
 		{
-			name: "Successfully deleted group",
-			input: &types.DeleteGroupInput{
-				ID: groupID,
+			name: "Successfully deleted service account",
+			input: &types.DeleteServiceAccountInput{
+				ID: serviceAccountID,
 			},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlDeleteGroupPayload{
-					DeleteGroup: graphqlDeleteGroupMutation{},
+				Data: graphqlDeleteServiceAccountPayload{
+					DeleteServiceAccount: graphqlDeleteServiceAccountMutation{},
 				},
 			},
 		},
 
 		// negative: mutation returns error
 		{
-			name:  "negative: group delete mutation returns error",
-			input: &types.DeleteGroupInput{},
+			name:  "negative: service account delete mutation returns error",
+			input: &types.DeleteServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
 				Errors: []fakeGraphqlResponseError{
 					{
 						Message: "ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02)",
 						Path: []string{
-							"deleteGroup",
+							"deleteServiceAccount",
 						},
 						Extensions: fakeGraphqlResponseErrorExtension{
 							Code: "INTERNAL_SERVER_ERROR",
@@ -521,13 +677,13 @@ func TestDeleteGroup(t *testing.T) {
 		// negative: mutation behaves as if the specified access rule did not exist
 		{
 			name:  "negative: mutation behaves as if the specified access rule did not exist",
-			input: &types.DeleteGroupInput{},
+			input: &types.DeleteServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlDeleteGroupPayload{
-					DeleteGroup: graphqlDeleteGroupMutation{
+				Data: graphqlDeleteServiceAccountPayload{
+					DeleteServiceAccount: graphqlDeleteServiceAccountMutation{
 						Problems: []fakeGraphqlResponseProblem{
 							{
-								Message: "group with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+								Message: "service account with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
 								Type:    "NOT_FOUND",
 								Field:   []string{},
 							},
@@ -535,7 +691,7 @@ func TestDeleteGroup(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting group: group with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+			expectErrorMessage: "problems deleting service account: service account with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
 		},
 	}
 
@@ -555,10 +711,10 @@ func TestDeleteGroup(t *testing.T) {
 					payloadToReturn: string(payload),
 				}),
 			}
-			client.ManagedIdentity = NewManagedIdentity(client)
+			client.ServiceAccount = NewServiceAccount(client)
 
 			// Call the method being tested.
-			actualError := client.ManagedIdentity.DeleteGroup(ctx, test.input)
+			actualError := client.ServiceAccount.DeleteServiceAccount(ctx, test.input)
 
 			checkError(t, test.expectErrorMessage, actualError)
 		})
@@ -566,17 +722,15 @@ func TestDeleteGroup(t *testing.T) {
 
 }
 
-*/
-
 // Utility functions:
 
-func checkServiceAccount(t *testing.T, expectGroup, actualGroup *types.Group) {
-	if expectGroup != nil {
-		require.NotNil(t, actualGroup)
-		assert.Equal(t, expectGroup, actualGroup)
+func checkServiceAccount(t *testing.T, expectServiceAccount, actualServiceAccount *types.ServiceAccount) {
+	if expectServiceAccount != nil {
+		require.NotNil(t, actualServiceAccount)
+		assert.Equal(t, expectServiceAccount, actualServiceAccount)
 	} else {
-		// Plain assert.Nil reports expected <nil>, but got (*types.Group)(nil)
-		assert.Equal(t, (*types.Group)(nil), actualGroup)
+		// Plain assert.Nil reports expected <nil>, but got (*types.ServiceAccount)(nil)
+		assert.Equal(t, (*types.ServiceAccount)(nil), actualServiceAccount)
 	}
 }
 
