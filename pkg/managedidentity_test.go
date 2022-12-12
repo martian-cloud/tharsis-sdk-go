@@ -571,9 +571,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 	accessRuleID := "access-rule-id-1"
 
-	// In GraphiQL, an 'accessRule' element appeared here.  However, it would not unmarshal when run from a test.
 	type graphqlDeleteManagedIdentityAccessRuleMutation struct {
-		// AccessRule graphQLManagedIdentityAccessRule `json:"accessRule"`
 		Problems []fakeGraphqlResponseProblem `json:"problems"`
 	}
 

@@ -570,9 +570,9 @@ func TestUpdateServiceAccount(t *testing.T) {
 			expectErrorMessage: "Message: Argument \"input\" has invalid value {id: \"TVJfZmUyZWI1NjQtNjMxMS00MmFlLTkwMWYtOTE5NTEyNWNhOTJh\", runStage: invalid, allowedUsers: [\"robert.richesjr\"], allowedServiceAccounts: [\"provider-test-parent-group/sa1\"], allowedTeams: [\"team1\", \"team2\"]}.\nIn field \"runStage\": Expected type \"JobType\", found invalid., Locations: [{Line:3 Column:12}]",
 		},
 
-		// negative: query behaves as if the specified access rule did not exist
+		// negative: query behaves as if the specified service account did not exist
 		{
-			name:  "negative: query behaves as if the specified access rule did not exist",
+			name:  "negative: query behaves as if the specified service account did not exist",
 			input: &types.UpdateServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
 				Data: graphqlUpdateServiceAccountPayload{
@@ -621,9 +621,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 func TestDeleteServiceAccount(t *testing.T) {
 	serviceAccountID := "service-account-id-1"
 
-	// In GraphiQL, an 'serviceAccount' element appeared here.  However, it would not unmarshal when run from a test.
 	type graphqlDeleteServiceAccountMutation struct {
-		// ServiceAccount graphQLServiceAccount        `json:"serviceAccount"`
 		Problems []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
@@ -674,9 +672,9 @@ func TestDeleteServiceAccount(t *testing.T) {
 			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02), Locations: []",
 		},
 
-		// negative: mutation behaves as if the specified access rule did not exist
+		// negative: mutation behaves as if the specified service account did not exist
 		{
-			name:  "negative: mutation behaves as if the specified access rule did not exist",
+			name:  "negative: mutation behaves as if the specified service account did not exist",
 			input: &types.DeleteServiceAccountInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
 				Data: graphqlDeleteServiceAccountPayload{

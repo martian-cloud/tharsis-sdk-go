@@ -113,7 +113,7 @@ func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]
 	// Convert and repackage the type-specific results.
 	variablesResult := make([]types.RunVariable, len(target.Run.Variables))
 	for ix, varCustom := range target.Run.Variables {
-		variablesResult[ix] = variableFromGraphQL(varCustom)
+		variablesResult[ix] = runVariableFromGraphQL(varCustom)
 	}
 	return variablesResult, nil
 }
@@ -451,8 +451,8 @@ func runFromGraphQL(g graphQLRun) types.Run {
 	return result
 }
 
-// variableFromGraphQL
-func variableFromGraphQL(v graphQLRunVariable) types.RunVariable {
+// runVariableFromGraphQL
+func runVariableFromGraphQL(v graphQLRunVariable) types.RunVariable {
 	result := types.RunVariable{
 		Key:           string(v.Key),
 		Value:         (*string)(v.Value),

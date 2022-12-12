@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )

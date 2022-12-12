@@ -43,6 +43,7 @@ type Client struct {
 	Run                       Run
 	ServiceAccount            ServiceAccount
 	StateVersion              StateVersion
+	Variable                  Variable
 	Workspaces                Workspaces
 	TerraformProvider         TerraformProvider
 	TerraformProviderVersion  TerraformProviderVersion
@@ -103,6 +104,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.Run = NewRun(client)
 	client.ServiceAccount = NewServiceAccount(client)
 	client.StateVersion = NewStateVersion(client)
+	client.Variable = NewVariable(client)
 	client.Workspaces = NewWorkspaces(client)
 	client.TerraformProvider = NewTerraformProvider(client)
 	client.TerraformProviderVersion = NewTerraformProviderVersion(client)
