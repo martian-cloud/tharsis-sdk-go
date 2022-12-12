@@ -66,7 +66,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 	return &serviceAccount, nil
 }
 
-// 	GetServiceAccount reads a service account.
+// GetServiceAccount reads a service account.
 func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 	input *types.GetServiceAccountInput) (*types.ServiceAccount, error) {
 

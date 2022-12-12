@@ -43,7 +43,6 @@ func (ggo *GetGroupsOutput) GetPageInfo() *PageInfo {
 // It is used as input to and output from some operations.
 //
 // See below for structs that handle DescendentGroups and Workspaces.
-//
 type Group struct {
 	// ID resides in the metadata
 	Metadata    ResourceMetadata

@@ -73,7 +73,7 @@ func (m *variable) CreateVariable(ctx context.Context,
 	return variable, nil
 }
 
-// 	GetVariable reads a variable.
+// GetVariable reads a variable.
 func (m *variable) GetVariable(ctx context.Context,
 	input *types.GetNamespaceVariableInput) (*types.NamespaceVariable, error) {
 
