@@ -7,9 +7,7 @@ import "time"
 // RunSortableField represents the fields that a workspace can be sorted by
 type RunSortableField string
 
-// VariableCategory specifies if the variable is a terraform
-// or environment variable
-type VariableCategory string
+// VariableCategory type declaration moved to the variable module.
 
 // RunStatus represents the various states for a Run resource
 type RunStatus string
@@ -20,9 +18,6 @@ const (
 	RunSortableFieldCreatedAtDesc RunSortableField = "CREATED_AT_DESC"
 	RunSortableFieldUpdatedAtAsc  RunSortableField = "UPDATED_AT_ASC"
 	RunSortableFieldUpdatedAtDesc RunSortableField = "UPDATED_AT_DESC"
-
-	TerraformVariableCategory   VariableCategory = "terraform"
-	EnvironmentVariableCategory VariableCategory = "environment"
 
 	// Run Status Types
 	RunApplied            RunStatus = "applied"

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -40,7 +40,7 @@ func TestUpdateGroup(t *testing.T) {
 	assert.Equal(t, updateGroupPath, createdGroup.FullPath)
 
 	// Get the newly-created group.
-	toUpdateGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: updateGroupPath})
+	toUpdateGroup, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: &updateGroupPath})
 	assert.Nil(t, err)
 	assert.NotNil(t, toUpdateGroup)
 
@@ -48,7 +48,7 @@ func TestUpdateGroup(t *testing.T) {
 	newDescription = "This is a test group updated at " + time.Now().String()
 	updatedGroup, err := client.Group.UpdateGroup(ctx,
 		&types.UpdateGroupInput{
-			GroupPath:   toUpdateGroup.FullPath,
+			GroupPath:   &toUpdateGroup.FullPath,
 			Description: newDescription,
 		},
 	)
@@ -57,7 +57,7 @@ func TestUpdateGroup(t *testing.T) {
 
 	// Delete the new group.
 	err = client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
-		GroupPath: updatedGroup.FullPath,
+		GroupPath: &updatedGroup.FullPath,
 	})
 	assert.Nil(t, err)
 

@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -42,7 +42,7 @@ func TestGetGroups(t *testing.T) {
 	// Create the groups.
 	groupPaths, err := setupForGetGroups(ctx, client, groupsInfo)
 	assert.Nil(t, err)
-	assert.Equal(t, len(groupPaths), ggGroupCount)
+	assert.Equal(t, ggGroupCount, len(groupPaths))
 
 	// Tear down the groups when the test has finished.
 	defer teardownFromGetGroups(ctx, client, t, groupPaths)
@@ -110,7 +110,7 @@ func setupForGetGroups(ctx context.Context, client *tharsis.Client, groupsInfo [
 
 func ggCreateOneGroup(ctx context.Context, client *tharsis.Client, info ggGroupInfo) (*types.Group, error) {
 
-	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: info.path})
+	foundIt, err := client.Group.GetGroup(ctx, &types.GetGroupInput{Path: &info.path})
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func ggCreateOneGroup(ctx context.Context, client *tharsis.Client, info ggGroupI
 func teardownFromGetGroups(ctx context.Context, client *tharsis.Client, t *testing.T, paths []string) {
 	for _, path := range paths {
 		err := client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
-			GroupPath: path,
+			GroupPath: &path,
 		})
 		assert.Nil(t, err)
 	}

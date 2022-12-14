@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -40,7 +40,7 @@ func TestUpdateWorkspace(t *testing.T) {
 
 	// Get the newly-created workspace.
 	toUpdateWorkspace, err := client.Workspaces.GetWorkspace(ctx,
-		&types.GetWorkspaceInput{Path: updateWorkspacePath})
+		&types.GetWorkspaceInput{Path: &updateWorkspacePath})
 	assert.Nil(t, err)
 	assert.NotNil(t, toUpdateWorkspace)
 
@@ -49,7 +49,7 @@ func TestUpdateWorkspace(t *testing.T) {
 	newPreventDestroyPlan := false
 	updatedWorkspace, err := client.Workspaces.UpdateWorkspace(ctx,
 		&types.UpdateWorkspaceInput{
-			WorkspacePath:      toUpdateWorkspace.FullPath,
+			WorkspacePath:      &toUpdateWorkspace.FullPath,
 			Description:        newDescription,
 			PreventDestroyPlan: &newPreventDestroyPlan,
 		},
@@ -60,7 +60,7 @@ func TestUpdateWorkspace(t *testing.T) {
 
 	// Delete the new workspace.
 	err = client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-		WorkspacePath: updatedWorkspace.FullPath,
+		WorkspacePath: &updatedWorkspace.FullPath,
 	})
 	assert.Nil(t, err)
 

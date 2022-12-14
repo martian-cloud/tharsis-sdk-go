@@ -18,7 +18,6 @@ type Workspaces interface {
 	CreateWorkspace(ctx context.Context, workspace *types.CreateWorkspaceInput) (*types.Workspace, error)
 	UpdateWorkspace(ctx context.Context, workspace *types.UpdateWorkspaceInput) (*types.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspace *types.DeleteWorkspaceInput) error
-	SetWorkspaceVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error
 	GetAssignedManagedIdentities(ctx context.Context, input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error)
 }
 
@@ -32,27 +31,57 @@ func NewWorkspaces(client *Client) Workspaces {
 }
 
 func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspaceInput) (*types.Workspace, error) {
-	var target struct {
-		Workspace *graphQLWorkspace `graphql:"workspace(fullPath: $fullPath)"`
-	}
-	variables := map[string]interface{}{
-		"fullPath": graphql.String(input.Path),
-	}
+	switch {
+	case input.Path != nil:
+		// Workspace query by path.
 
-	err := ws.client.graphqlClient.Query(ctx, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-	if target.Workspace == nil {
-		return nil, nil
-	}
+		var target struct {
+			Workspace *graphQLWorkspace `graphql:"workspace(fullPath: $fullPath)"`
+		}
+		variables := map[string]interface{}{
+			"fullPath": graphql.String(*input.Path),
+		}
 
-	result, err := workspaceFromGraphQL(*target.Workspace)
-	if err != nil {
-		return nil, err
-	}
+		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Workspace == nil {
+			return nil, nil
+		}
 
-	return result, nil
+		result, err := workspaceFromGraphQL(*target.Workspace)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	case input.ID != nil:
+		// Node query by ID.
+
+		var target struct {
+			Node *struct {
+				Workspace graphQLWorkspace `graphql:"...on Workspace"`
+			} `graphql:"node(id: $id)"`
+		}
+
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		if target.Node == nil || target.Node.Workspace.ID == "" {
+			return nil, nil
+		}
+
+		return workspaceFromGraphQL(target.Node.Workspace)
+	default:
+		// Didn't ask for anything.
+
+		return nil, fmt.Errorf("must specify path or ID when calling GetWorkspace")
+	}
 }
 
 // GetWorkspaces returns a list of workspace objects.
@@ -184,32 +213,6 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 	err = internal.ProblemsToError(wrappedDelete.DeleteWorkspace.Problems)
 	if err != nil {
 		return fmt.Errorf("problems deleting workspace: %v", err)
-	}
-
-	return nil
-}
-
-func (ws *workspaces) SetWorkspaceVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error {
-	var wrappedSet struct {
-		SetNamespaceVariables struct {
-			Problems []internal.GraphQLProblem
-		} `graphql:"setNamespaceVariables(input: $input)"`
-	}
-
-	// Creating a new object requires the wrapped object above
-	// but with all the contents in a struct in the variables.
-	variables := map[string]interface{}{
-		"input": *input,
-	}
-
-	err := ws.client.graphqlClient.Mutate(ctx, &wrappedSet, variables)
-	if err != nil {
-		return err
-	}
-
-	err = internal.ProblemsToError(wrappedSet.SetNamespaceVariables.Problems)
-	if err != nil {
-		return fmt.Errorf("problems setting workspace variables: %v", err)
 	}
 
 	return nil

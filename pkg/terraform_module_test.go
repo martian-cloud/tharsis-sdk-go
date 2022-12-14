@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -113,7 +113,7 @@ func TestGetModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}
@@ -220,7 +220,7 @@ func TestCreateModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}
@@ -327,7 +327,7 @@ func TestUpdateModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}

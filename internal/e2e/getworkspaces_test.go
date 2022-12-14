@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -42,7 +42,7 @@ func TestGetWorkspaces(t *testing.T) {
 	// Create the workspaces.
 	workspacePaths, err := setupForGetWorkspaces(ctx, client, workspacesInfo)
 	assert.Nil(t, err)
-	assert.Equal(t, len(workspacePaths), gwWorkspaceCount)
+	assert.Equal(t, gwWorkspaceCount, len(workspacePaths))
 
 	// Tear down the workspaces when the test has finished.
 	defer teardownFromGetWorkspaces(ctx, client, t, workspacePaths)
@@ -122,7 +122,7 @@ func gwCreateOneWorkspace(ctx context.Context, client *tharsis.Client,
 func teardownFromGetWorkspaces(ctx context.Context, client *tharsis.Client, t *testing.T, paths []string) {
 	for _, path := range paths {
 		err := client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-			WorkspacePath: path,
+			WorkspacePath: &path,
 		})
 		assert.Nil(t, err)
 	}
