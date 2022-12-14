@@ -20,7 +20,6 @@ type Group interface {
 	CreateGroup(ctx context.Context, input *types.CreateGroupInput) (*types.Group, error)
 	UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) (*types.Group, error)
 	DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) error
-	SetGroupVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error
 }
 
 type group struct {
@@ -35,21 +34,50 @@ func NewGroup(client *Client) Group {
 // GetGroup returns everything about the group _EXCEPT_ the subgroups/descendentGroups and workspaces.
 // There are separate calls to get each of those.
 func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*types.Group, error) {
-	var target struct {
-		Group *graphQLGroup `graphql:"group(fullPath: $fullPath)"`
-	}
-	variables := map[string]interface{}{"fullPath": graphql.String(input.Path)}
+	switch {
+	case input.Path != nil:
+		// Group query by path.
 
-	err := g.client.graphqlClient.Query(ctx, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-	if target.Group == nil {
-		return nil, nil
-	}
+		var target struct {
+			Group *graphQLGroup `graphql:"group(fullPath: $fullPath)"`
+		}
+		variables := map[string]interface{}{"fullPath": graphql.String(*input.Path)}
 
-	result := groupFromGraphQL(*target.Group)
-	return &result, nil
+		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Group == nil {
+			return nil, nil
+		}
+
+		result := groupFromGraphQL(*target.Group)
+		return &result, nil
+	case input.ID != nil:
+		// Node query by ID.
+
+		var target struct {
+			Node *struct {
+				Group graphQLGroup `graphql:"...on Group"`
+			} `graphql:"node(id: $id)"`
+		}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Node == nil {
+			return nil, nil
+		}
+
+		result := groupFromGraphQL(target.Node.Group)
+		return &result, nil
+	default:
+		// Didn't ask for anything.
+
+		return nil, fmt.Errorf("must specify path or ID when calling GetGroup")
+	}
 }
 
 // GetGroups returns a list of group objects.
@@ -168,32 +196,6 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 	err = internal.ProblemsToError(wrappedDelete.DeleteGroup.Problems)
 	if err != nil {
 		return fmt.Errorf("problems deleting group: %v", err)
-	}
-
-	return nil
-}
-
-func (g *group) SetGroupVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error {
-	var wrappedSet struct {
-		SetNamespaceVariables struct {
-			Problems []internal.GraphQLProblem
-		} `graphql:"setNamespaceVariables(input: $input)"`
-	}
-
-	// Creating a new object requires the wrapped object above
-	// but with all the contents in a struct in the variables.
-	variables := map[string]interface{}{
-		"input": *input,
-	}
-
-	err := g.client.graphqlClient.Mutate(ctx, &wrappedSet, variables)
-	if err != nil {
-		return err
-	}
-
-	err = internal.ProblemsToError(wrappedSet.SetNamespaceVariables.Problems)
-	if err != nil {
-		return fmt.Errorf("problems setting group variables: %v", err)
 	}
 
 	return nil

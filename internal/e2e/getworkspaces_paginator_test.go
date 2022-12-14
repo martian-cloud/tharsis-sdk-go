@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -42,7 +42,7 @@ func TestGetWorkspacesPaginator(t *testing.T) {
 	// Create the workspaces.
 	workspacePaths, err := setupForGetWorkspacesPaginator(ctx, client, workspacesInfo)
 	assert.Nil(t, err)
-	assert.Equal(t, len(workspacePaths), gwpWorkspaceCount)
+	assert.Equal(t, gwpWorkspaceCount, len(workspacePaths))
 
 	// Tear down the workspaces when the test has finished.
 	defer teardownFromGetWorkspacesPaginator(ctx, client, t, workspacePaths)
@@ -73,7 +73,7 @@ func TestGetWorkspacesPaginator(t *testing.T) {
 		var expectLength int
 		expectLength, expectLengths = expectLengths[0], expectLengths[1:]
 
-		assert.Equal(t, len(getWorkspacesOutput.Workspaces), expectLength)
+		assert.Equal(t, expectLength, len(getWorkspacesOutput.Workspaces))
 
 		// Prepare to make sure we eventually get all the groups.
 		for _, workspace := range getWorkspacesOutput.Workspaces {
@@ -135,7 +135,7 @@ func gwpCreateOneWorkspace(ctx context.Context, client *tharsis.Client,
 func teardownFromGetWorkspacesPaginator(ctx context.Context, client *tharsis.Client, t *testing.T, paths []string) {
 	for _, path := range paths {
 		err := client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-			WorkspacePath: path,
+			WorkspacePath: &path,
 		})
 		assert.Nil(t, err)
 	}

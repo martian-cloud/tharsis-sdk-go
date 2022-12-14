@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -74,7 +74,7 @@ func teardownFromApplyTeardownRun(ctx context.Context, client *tharsis.Client,
 
 	// Delete the new workspace.
 	err := client.Workspaces.DeleteWorkspace(ctx, &types.DeleteWorkspaceInput{
-		WorkspacePath: wsPath,
+		WorkspacePath: &wsPath,
 	})
 	assert.Nil(t, err)
 

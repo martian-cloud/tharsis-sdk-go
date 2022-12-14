@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -48,6 +48,12 @@ func TestTerraformModuleVersionVersions(t *testing.T) {
 	// Delete the moduleVersion
 	err = client.TerraformModuleVersion.DeleteModuleVersion(ctx, &types.DeleteTerraformModuleVersionInput{
 		ID: moduleVersion.Metadata.ID,
+	})
+	require.Nil(t, err)
+
+	// Delete the module.
+	err = client.TerraformModule.DeleteModule(ctx, &types.DeleteTerraformModuleInput{
+		ID: module.Metadata.ID,
 	})
 	require.Nil(t, err)
 }

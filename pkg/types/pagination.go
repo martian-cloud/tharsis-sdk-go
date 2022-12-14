@@ -11,7 +11,6 @@ type PaginationOptions struct {
 //
 // Please note that the internal struct called PageInfo inside the query
 // structure is lacking the totalCount field.
-//
 type PageInfo struct {
 	Cursor      string
 	TotalCount  int

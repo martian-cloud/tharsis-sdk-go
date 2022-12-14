@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hasura/go-graphql-client"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -214,8 +214,8 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					{Username: "test-user-2"},
 				},
 				AllowedServiceAccounts: []types.ServiceAccount{
-					{Name: "test-service-account-1"},
-					{Name: "test-service-account-2"},
+					{Name: "test-service-account-1", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
+					{Name: "test-service-account-2", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
 				},
 				AllowedTeams: []types.Team{
 					{Name: "test-team-1"},
@@ -489,8 +489,8 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					{Username: "test-user-4"},
 				},
 				AllowedServiceAccounts: []types.ServiceAccount{
-					{Name: "test-service-account-5"},
-					{Name: "test-service-account-6"},
+					{Name: "test-service-account-5", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
+					{Name: "test-service-account-6", OIDCTrustPolicies: []types.OIDCTrustPolicy{}},
 				},
 				AllowedTeams: []types.Team{
 					{Name: "test-team-7"},
@@ -571,9 +571,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 	accessRuleID := "access-rule-id-1"
 
-	// In GraphiQL, an 'accessRule' element appeared here.  However, it would not unmarshal when run from a test.
 	type graphqlDeleteManagedIdentityAccessRuleMutation struct {
-		// AccessRule graphQLManagedIdentityAccessRule `json:"accessRule"`
 		Problems []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
@@ -677,19 +675,19 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 func checkIdentity(t *testing.T, expectIdentity, actualIdentity *types.ManagedIdentity) {
 	if expectIdentity != nil {
 		require.NotNil(t, actualIdentity)
-		assert.Equal(t, actualIdentity, expectIdentity)
+		assert.Equal(t, expectIdentity, actualIdentity)
 	} else {
 		// Plain assert.Nil reports expected <nil>, but got (*types.ManagedIdentity)(nil)
-		assert.Equal(t, actualIdentity, (*types.ManagedIdentity)(nil))
+		assert.Equal(t, (*types.ManagedIdentity)(nil), actualIdentity)
 	}
 }
 
 func checkAccessRule(t *testing.T, expectRule, actualRule *types.ManagedIdentityAccessRule) {
 	if expectRule != nil {
 		require.NotNil(t, actualRule)
-		assert.Equal(t, actualRule, expectRule)
+		assert.Equal(t, expectRule, actualRule)
 	} else {
-		assert.Equal(t, actualRule, (*types.ManagedIdentityAccessRule)(nil))
+		assert.Equal(t, (*types.ManagedIdentityAccessRule)(nil), actualRule)
 	}
 }
 

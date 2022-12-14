@@ -43,7 +43,6 @@ func (ggo *GetGroupsOutput) GetPageInfo() *PageInfo {
 // It is used as input to and output from some operations.
 //
 // See below for structs that handle DescendentGroups and Workspaces.
-//
 type Group struct {
 	// ID resides in the metadata
 	Metadata    ResourceMetadata
@@ -54,7 +53,8 @@ type Group struct {
 
 // GetGroupInput is the input to specify a single group to fetch.
 type GetGroupInput struct {
-	Path string
+	Path *string
+	ID   *string
 }
 
 // CreateGroupInput is the input for creating a new group.
@@ -66,20 +66,15 @@ type CreateGroupInput struct {
 
 // UpdateGroupInput is the input for updating a group.
 type UpdateGroupInput struct {
-	GroupPath   string `json:"groupPath"`
-	Description string `json:"description"`
+	GroupPath   *string `json:"groupPath"`
+	ID          *string `json:"id"`
+	Description string  `json:"description"`
 }
 
 // DeleteGroupInput is the input for deleting a group.
 type DeleteGroupInput struct {
-	GroupPath string `json:"groupPath"`
-}
-
-// SetNamespaceVariablesInput is the input for setting a namespace variable.
-type SetNamespaceVariablesInput struct {
-	NamespacePath string           `json:"namespacePath"`
-	Category      VariableCategory `json:"category"`
-	Variables     []RunVariable    `json:"variables"`
+	GroupPath *string `json:"groupPath"`
+	ID        *string `json:"id"`
 }
 
 // The End.

@@ -82,7 +82,7 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 	return &identity, nil
 }
 
-// 	GetManagedIdentity reads a managed identity.
+// GetManagedIdentity reads a managed identity.
 func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 	input *types.GetManagedIdentityInput) (*types.ManagedIdentity, error) {
 

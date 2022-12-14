@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 
+	"github.com/aws/smithy-go/ptr"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
@@ -34,7 +35,7 @@ func ExampleGetGroup() error {
 
 	ctx := context.Background()
 	theGroup, err := client.Group.GetGroup(ctx,
-		&types.GetGroupInput{Path: "wild-space"})
+		&types.GetGroupInput{Path: ptr.String("wild-space")})
 	if err != nil {
 		return err
 	}
@@ -207,7 +208,7 @@ func ExampleUpdateGroup(groupPath string) error {
 	ctx := context.Background()
 	updated, err := client.Group.UpdateGroup(ctx,
 		&types.UpdateGroupInput{
-			GroupPath:   groupPath,
+			GroupPath:   &groupPath,
 			Description: "This is the updated group.",
 		},
 	)
@@ -238,7 +239,7 @@ func ExampleDeleteGroup(groupPath string) error {
 	ctx := context.Background()
 	err = client.Group.DeleteGroup(ctx,
 		&types.DeleteGroupInput{
-			GroupPath: groupPath,
+			GroupPath: &groupPath,
 		},
 	)
 	if err != nil {
