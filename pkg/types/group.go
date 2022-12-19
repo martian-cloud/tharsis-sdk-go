@@ -77,11 +77,4 @@ type DeleteGroupInput struct {
 	ID        *string `json:"id"`
 }
 
-// SetNamespaceVariablesInput is the input for setting a namespace variable.
-type SetNamespaceVariablesInput struct {
-	NamespacePath string                          `json:"namespacePath"`
-	Category      VariableCategory                `json:"category"`
-	Variables     []SetNamespaceVariablesVariable `json:"variables"`
-}
-
 // The End.

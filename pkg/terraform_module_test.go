@@ -113,7 +113,7 @@ func TestGetModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}
@@ -220,7 +220,7 @@ func TestCreateModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}
@@ -327,7 +327,7 @@ func TestUpdateModule(t *testing.T) {
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
-				assert.Equal(t, module, test.expectModule)
+				assert.Equal(t, test.expectModule, module)
 			}
 		})
 	}

@@ -61,31 +61,19 @@ func TestCreateServiceAccount(t *testing.T) {
 				Name:        serviceAccountName,
 				GroupPath:   parentGroupName,
 				Description: serviceAccountDescription,
-				OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+				OIDCTrustPolicies: []types.OIDCTrustPolicy{
 					{
 						Issuer: trustPolicyIssuer1,
-						BoundClaims: []types.JWTClaimInput{
-							{
-								Name:  boundClaimName1a,
-								Value: boundClaimValue1a,
-							},
-							{
-								Name:  boundClaimName1b,
-								Value: boundClaimValue1b,
-							},
+						BoundClaims: map[string]string{
+							boundClaimName1a: boundClaimValue1a,
+							boundClaimName1b: boundClaimValue1b,
 						},
 					},
 					{
 						Issuer: trustPolicyIssuer2,
-						BoundClaims: []types.JWTClaimInput{
-							{
-								Name:  boundClaimName2a,
-								Value: boundClaimValue2a,
-							},
-							{
-								Name:  boundClaimName2b,
-								Value: boundClaimValue2b,
-							},
+						BoundClaims: map[string]string{
+							boundClaimName2a: boundClaimValue2a,
+							boundClaimName2b: boundClaimValue2b,
 						},
 					},
 				},
@@ -447,31 +435,19 @@ func TestUpdateServiceAccount(t *testing.T) {
 			input: &types.UpdateServiceAccountInput{
 				ID:          serviceAccountID,
 				Description: serviceAccountDescription,
-				OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+				OIDCTrustPolicies: []types.OIDCTrustPolicy{
 					{
 						Issuer: trustPolicyIssuer1,
-						BoundClaims: []types.JWTClaimInput{
-							{
-								Name:  boundClaimName1a,
-								Value: boundClaimValue1a,
-							},
-							{
-								Name:  boundClaimName1b,
-								Value: boundClaimValue1b,
-							},
+						BoundClaims: map[string]string{
+							boundClaimName1a: boundClaimValue1a,
+							boundClaimName1b: boundClaimValue1b,
 						},
 					},
 					{
 						Issuer: trustPolicyIssuer2,
-						BoundClaims: []types.JWTClaimInput{
-							{
-								Name:  boundClaimName2a,
-								Value: boundClaimValue2a,
-							},
-							{
-								Name:  boundClaimName2b,
-								Value: boundClaimValue2b,
-							},
+						BoundClaims: map[string]string{
+							boundClaimName2a: boundClaimValue2a,
+							boundClaimName2b: boundClaimValue2b,
 						},
 					},
 				},

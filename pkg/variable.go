@@ -19,6 +19,7 @@ type Variable interface {
 		input *types.UpdateNamespaceVariableInput) (*types.NamespaceVariable, error)
 	DeleteVariable(ctx context.Context,
 		input *types.DeleteNamespaceVariableInput) error
+	SetVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error
 }
 
 type variable struct {
@@ -79,7 +80,6 @@ func (m *variable) GetVariable(ctx context.Context,
 
 	var target struct {
 		Node *struct {
-			ID                graphql.String
 			NamespaceVariable graphQLNamespaceVariable `graphql:"...on NamespaceVariable"`
 		} `graphql:"node(id: $id)"`
 	}
@@ -128,8 +128,7 @@ func (m *variable) UpdateVariable(ctx context.Context,
 	// Find the variable within the namespace object.
 	variable := variableFromGraphQLNamespace(wrappedUpdate.UpdateNamespaceVariable.Namespace, input.Key)
 	if variable == nil {
-		return nil, fmt.Errorf("failed to find variable just updated: %s.%s",
-			wrappedUpdate.UpdateNamespaceVariable.Namespace.FullPath, input.Key)
+		return nil, fmt.Errorf("failed to find variable just updated: %s", input.Key)
 	}
 
 	return variable, nil
@@ -163,23 +162,40 @@ func (m *variable) DeleteVariable(ctx context.Context,
 	return nil
 }
 
+func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error {
+	var wrappedSet struct {
+		SetNamespaceVariables struct {
+			Problems []internal.GraphQLProblem
+		} `graphql:"setNamespaceVariables(input: $input)"`
+	}
+
+	// Creating a new object requires the wrapped object above
+	// but with all the contents in a struct in the variables.
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := m.client.graphqlClient.Mutate(ctx, &wrappedSet, variables)
+	if err != nil {
+		return err
+	}
+
+	err = internal.ProblemsToError(wrappedSet.SetNamespaceVariables.Problems)
+	if err != nil {
+		return fmt.Errorf("problems setting namespace variables: %v", err)
+	}
+
+	return nil
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 // Related types and conversion functions:
 
 // graphQLNamespace represents the namespace in which a newly-created variable resides
-// For this module, we don't care about some of the fields.
+// For this module, we need only the Variables field.
 type graphQLNamespace struct {
-	ID          graphql.String
-	Metadata    internal.GraphQLMetadata
-	Name        graphql.String
-	Description graphql.String
-	FullPath    graphql.String
-	// Memberships
 	Variables []graphQLNamespaceVariable
-	// ServiceAccounts
-	// ManagedIdentities
-	// ActivityEvents
 }
 
 // graphQLNamespaceVariable represents a variable with GraphQL types.

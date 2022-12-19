@@ -19,8 +19,6 @@ const (
 	RunSortableFieldUpdatedAtAsc  RunSortableField = "UPDATED_AT_ASC"
 	RunSortableFieldUpdatedAtDesc RunSortableField = "UPDATED_AT_DESC"
 
-	// VariableCategory value definitions moved to the variable module.
-
 	// Run Status Types
 	RunApplied            RunStatus = "applied"
 	RunApplyQueued        RunStatus = "apply_queued"

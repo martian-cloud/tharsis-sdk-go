@@ -34,14 +34,11 @@ func TestCRUDServiceAccount(t *testing.T) {
 		Name:        serviceAccountName,
 		Description: serviceAccountDescription,
 		GroupPath:   topGroupName,
-		OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+		OIDCTrustPolicies: []types.OIDCTrustPolicy{
 			{
 				Issuer: trustPolicyIssuer,
-				BoundClaims: []types.JWTClaimInput{
-					{
-						Name:  boundClaimName,
-						Value: boundClaimValue,
-					},
+				BoundClaims: map[string]string{
+					boundClaimName: boundClaimValue,
 				},
 			},
 		},
@@ -75,14 +72,11 @@ func TestCRUDServiceAccount(t *testing.T) {
 		&types.UpdateServiceAccountInput{
 			ID:          readServiceAccount.Metadata.ID,
 			Description: updatedDescription,
-			OIDCTrustPolicies: []types.OIDCTrustPolicyInput{
+			OIDCTrustPolicies: []types.OIDCTrustPolicy{
 				{
 					Issuer: updatedTrustPolicyIssuer,
-					BoundClaims: []types.JWTClaimInput{
-						{
-							Name:  updatedBoundClaimName,
-							Value: updatedBoundClaimValue,
-						},
+					BoundClaims: map[string]string{
+						updatedBoundClaimName: updatedBoundClaimValue,
 					},
 				},
 			},

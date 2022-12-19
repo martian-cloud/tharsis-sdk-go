@@ -18,7 +18,6 @@ type Workspaces interface {
 	CreateWorkspace(ctx context.Context, workspace *types.CreateWorkspaceInput) (*types.Workspace, error)
 	UpdateWorkspace(ctx context.Context, workspace *types.UpdateWorkspaceInput) (*types.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspace *types.DeleteWorkspaceInput) error
-	SetWorkspaceVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error
 	GetAssignedManagedIdentities(ctx context.Context, input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error)
 }
 
@@ -62,7 +61,6 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 
 		var target struct {
 			Node *struct {
-				ID        graphql.String
 				Workspace graphQLWorkspace `graphql:"...on Workspace"`
 			} `graphql:"node(id: $id)"`
 		}
@@ -80,9 +78,9 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 
 		return workspaceFromGraphQL(target.Node.Workspace)
 	default:
+		// Didn't ask for anything.
 
-		// Didn't ask for anything; won't get anything.
-		return nil, nil
+		return nil, fmt.Errorf("must specify path or ID when calling GetWorkspace")
 	}
 }
 
@@ -215,32 +213,6 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 	err = internal.ProblemsToError(wrappedDelete.DeleteWorkspace.Problems)
 	if err != nil {
 		return fmt.Errorf("problems deleting workspace: %v", err)
-	}
-
-	return nil
-}
-
-func (ws *workspaces) SetWorkspaceVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error {
-	var wrappedSet struct {
-		SetNamespaceVariables struct {
-			Problems []internal.GraphQLProblem
-		} `graphql:"setNamespaceVariables(input: $input)"`
-	}
-
-	// Creating a new object requires the wrapped object above
-	// but with all the contents in a struct in the variables.
-	variables := map[string]interface{}{
-		"input": *input,
-	}
-
-	err := ws.client.graphqlClient.Mutate(ctx, &wrappedSet, variables)
-	if err != nil {
-		return err
-	}
-
-	err = internal.ProblemsToError(wrappedSet.SetNamespaceVariables.Problems)
-	if err != nil {
-		return fmt.Errorf("problems setting workspace variables: %v", err)
 	}
 
 	return nil

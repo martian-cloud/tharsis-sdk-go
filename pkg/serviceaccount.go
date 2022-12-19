@@ -40,6 +40,14 @@ func NewServiceAccount(client *Client) ServiceAccount {
 func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 	input *types.CreateServiceAccountInput) (*types.ServiceAccount, error) {
 
+	// Must change bound claims from map[string]string to []JWTClaimInput
+	modifiedInput := internal.CreateServiceAccountInput{
+		Name:              input.Name,
+		Description:       input.Description,
+		GroupPath:         input.GroupPath,
+		OIDCTrustPolicies: modifyTrustPolicies(input.OIDCTrustPolicies),
+	}
+
 	var wrappedCreate struct {
 		CreateServiceAccount struct {
 			ServiceAccount graphQLServiceAccount
@@ -48,7 +56,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 	}
 
 	variables := map[string]interface{}{
-		"input": *input,
+		"input": modifiedInput,
 	}
 
 	// Execute mutation request.
@@ -95,6 +103,15 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 	input *types.UpdateServiceAccountInput) (*types.ServiceAccount, error) {
 
+	// Must change bound claims from map[string]string to []JWTClaimInput
+	// ID is used to find the service account.
+	// Description and trust policies are modified.
+	modifiedInput := internal.UpdateServiceAccountInput{
+		ID:                input.ID,
+		Description:       input.Description,
+		OIDCTrustPolicies: modifyTrustPolicies(input.OIDCTrustPolicies),
+	}
+
 	var wrappedUpdate struct {
 		UpdateServiceAccount struct {
 			ServiceAccount graphQLServiceAccount
@@ -103,7 +120,7 @@ func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 	}
 
 	variables := map[string]interface{}{
-		"input": *input,
+		"input": modifiedInput,
 	}
 
 	// Execute mutation request.
@@ -201,6 +218,29 @@ func trustPolicyFromGraphQL(tp graphQLTrustPolicy) types.OIDCTrustPolicy {
 		Issuer:      string(tp.Issuer),
 		BoundClaims: boundClaims,
 	}
+}
+
+// modifyTrustPolicies converts a slice of external trust policies (with map[string]string for BoundClaims)
+// to a slice of internal trust policies (with []JWTClaimInput for BoundClaims)
+func modifyTrustPolicies(input []types.OIDCTrustPolicy) []internal.ServiceAccountOIDCTrustPolicyInput {
+	result := []internal.ServiceAccountOIDCTrustPolicyInput{}
+
+	for _, inputPolicy := range input {
+		modifiedPolicy := internal.ServiceAccountOIDCTrustPolicyInput{
+			Issuer: inputPolicy.Issuer,
+		}
+
+		for name, value := range inputPolicy.BoundClaims {
+			modifiedPolicy.BoundClaims = append(modifiedPolicy.BoundClaims, internal.JWTClaimInput{
+				Name:  name,
+				Value: value,
+			})
+		}
+
+		result = append(result, modifiedPolicy)
+	}
+
+	return result
 }
 
 // The End.
