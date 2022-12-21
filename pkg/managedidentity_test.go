@@ -33,7 +33,7 @@ func TestGetManagedIdentity(t *testing.T) {
 		responsePayload       interface{}
 		expectManagedIdentity *types.ManagedIdentity
 		name                  string
-		expectErrorMessage    string
+		expectErrorCode       ErrorCode
 	}
 
 	testCases := []testCase{
@@ -92,7 +92,7 @@ func TestGetManagedIdentity(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// query returns nil managed identity, as if the specified managed identity does not exist.
@@ -101,6 +101,7 @@ func TestGetManagedIdentity(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlManagedIdentityPayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -115,7 +116,7 @@ func TestGetManagedIdentity(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -128,7 +129,7 @@ func TestGetManagedIdentity(t *testing.T) {
 				&types.GetManagedIdentityInput{ID: managedIdentityID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkIdentity(t, test.expectManagedIdentity, actualIdentity)
 		})
 	}
@@ -152,11 +153,11 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.CreateManagedIdentityAccessRuleInput
-		expectAccessRule   *types.ManagedIdentityAccessRule
-		name               string
-		expectErrorMessage string
+		responsePayload  interface{}
+		input            *types.CreateManagedIdentityAccessRuleInput
+		expectAccessRule *types.ManagedIdentityAccessRule
+		name             string
+		expectErrorCode  ErrorCode
 	}
 
 	testCases := []testCase{
@@ -242,7 +243,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating managed identity access rule: Rule for run stage apply already exists",
+			expectErrorCode: ErrConflict,
 		},
 	}
 
@@ -257,7 +258,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -267,7 +268,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 			// Call the method being tested.
 			actualAccessRule, actualError := client.ManagedIdentity.CreateManagedIdentityAccessRule(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkAccessRule(t, test.expectAccessRule, actualAccessRule)
 		})
 	}
@@ -286,10 +287,10 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectAccessRule   *types.ManagedIdentityAccessRule
-		name               string
-		expectErrorMessage string
+		responsePayload  interface{}
+		expectAccessRule *types.ManagedIdentityAccessRule
+		name             string
+		expectErrorCode  ErrorCode
 	}
 
 	testCases := []testCase{
@@ -348,7 +349,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Invalid ID, Locations: []",
+			expectErrorCode: ErrBadRequest,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -368,7 +369,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Managed identity access rule with ID 6f9666fb-1a4e-5755-b4a5-d8dfe15aa187 not found, Locations: []",
+			expectErrorCode: ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -377,6 +378,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlManagedIdentityAccessRulePayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -391,7 +393,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -404,7 +406,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 				&types.GetManagedIdentityAccessRuleInput{ID: accessRuleID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkAccessRule(t, test.expectAccessRule, actualAccessRule)
 		})
 	}
@@ -428,11 +430,11 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.UpdateManagedIdentityAccessRuleInput
-		expectAccessRule   *types.ManagedIdentityAccessRule
-		name               string
-		expectErrorMessage string
+		responsePayload  interface{}
+		input            *types.UpdateManagedIdentityAccessRuleInput
+		expectAccessRule *types.ManagedIdentityAccessRule
+		name             string
+		expectErrorCode  ErrorCode
 	}
 
 	testCases := []testCase{
@@ -517,7 +519,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Argument \"input\" has invalid value {id: \"TVJfZmUyZWI1NjQtNjMxMS00MmFlLTkwMWYtOTE5NTEyNWNhOTJh\", runStage: invalid, allowedUsers: [\"robert.richesjr\"], allowedServiceAccounts: [\"provider-test-parent-group/sa1\"], allowedTeams: [\"team1\", \"team2\"]}.\nIn field \"runStage\": Expected type \"JobType\", found invalid., Locations: [{Line:3 Column:12}]",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: query behaves as if the specified access rule did not exist
@@ -537,7 +539,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems updating managed identity access rule: Managed identity access rule with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -552,7 +554,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -562,7 +564,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 			// Call the method being tested.
 			actualAccessRule, actualError := client.ManagedIdentity.UpdateManagedIdentityAccessRule(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkAccessRule(t, test.expectAccessRule, actualAccessRule)
 		})
 	}
@@ -581,10 +583,10 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.DeleteManagedIdentityAccessRuleInput
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		input           *types.DeleteManagedIdentityAccessRuleInput
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -619,7 +621,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified access rule did not exist
@@ -639,7 +641,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting managed identity access rule: Managed identity access rule with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -654,7 +656,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -664,7 +666,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 			// Call the method being tested.
 			actualError := client.ManagedIdentity.DeleteManagedIdentityAccessRule(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 		})
 	}
 

@@ -42,8 +42,8 @@ func (p *providerVersion) GetProviderVersion(ctx context.Context, input *types.G
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil || target.Node.TerraformProviderVersion.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "terraform provider version with id %s not found", input.ID)
 	}
 
 	result := providerVersionFromGraphQL(target.Node.TerraformProviderVersion)
@@ -70,9 +70,8 @@ func (p *providerVersion) CreateProviderVersion(ctx context.Context, input *type
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateTerraformProviderVersion.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating provider version: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderVersion.Problems); err != nil {
+		return nil, err
 	}
 
 	created := providerVersionFromGraphQL(wrappedCreate.CreateTerraformProviderVersion.ProviderVersion)
@@ -115,11 +114,7 @@ func (p *providerVersion) uploadProviderFile(ctx context.Context, providerVersio
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("PUT request recieved http status code %d: %s", resp.StatusCode, string(bodyBytes))
+		return errorFromHTTPResponse(resp)
 	}
 
 	return nil

@@ -49,7 +49,7 @@ func TestCreateServiceAccount(t *testing.T) {
 		input                *types.CreateServiceAccountInput
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorMessage   string
+		expectErrorCode      ErrorCode
 	}
 
 	testCases := []testCase{
@@ -169,7 +169,7 @@ func TestCreateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating service account: service account with path non-existent not found",
+			expectErrorCode: ErrConflict,
 		},
 	}
 
@@ -184,7 +184,7 @@ func TestCreateServiceAccount(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -194,7 +194,7 @@ func TestCreateServiceAccount(t *testing.T) {
 			// Call the method being tested.
 			actualServiceAccount, actualError := client.ServiceAccount.CreateServiceAccount(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
@@ -229,7 +229,7 @@ func TestGetServiceAccount(t *testing.T) {
 		responsePayload      interface{}
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorMessage   string
+		expectErrorCode      ErrorCode
 	}
 
 	testCases := []testCase{
@@ -326,7 +326,7 @@ func TestGetServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"6f3106c6-c342-4790-a667-963a850d9�d4\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -346,7 +346,7 @@ func TestGetServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: service account with id 6f3106c6-c342-4790-a667-963a850d34d4 not found, Locations: []",
+			expectErrorCode: ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -355,6 +355,7 @@ func TestGetServiceAccount(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlServiceAccountPayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -369,7 +370,7 @@ func TestGetServiceAccount(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -382,7 +383,7 @@ func TestGetServiceAccount(t *testing.T) {
 				&types.GetServiceAccountInput{ID: serviceAccountID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
@@ -424,7 +425,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 		input                *types.UpdateServiceAccountInput
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorMessage   string
+		expectErrorCode      ErrorCode
 	}
 
 	testCases := []testCase{
@@ -543,7 +544,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Argument \"input\" has invalid value {id: \"TVJfZmUyZWI1NjQtNjMxMS00MmFlLTkwMWYtOTE5NTEyNWNhOTJh\", runStage: invalid, allowedUsers: [\"robert.richesjr\"], allowedServiceAccounts: [\"provider-test-parent-group/sa1\"], allowedTeams: [\"team1\", \"team2\"]}.\nIn field \"runStage\": Expected type \"JobType\", found invalid., Locations: [{Line:3 Column:12}]",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: query behaves as if the specified service account did not exist
@@ -563,7 +564,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems updating service account: service account with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -578,7 +579,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -588,7 +589,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 			// Call the method being tested.
 			actualServiceAccount, actualError := client.ServiceAccount.UpdateServiceAccount(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkServiceAccount(t, test.expectServiceAccount, actualServiceAccount)
 		})
 	}
@@ -607,10 +608,10 @@ func TestDeleteServiceAccount(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.DeleteServiceAccountInput
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		input           *types.DeleteServiceAccountInput
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -645,7 +646,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified service account did not exist
@@ -665,7 +666,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting service account: service account with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -680,7 +681,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -690,7 +691,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 			// Call the method being tested.
 			actualError := client.ServiceAccount.DeleteServiceAccount(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 		})
 	}
 

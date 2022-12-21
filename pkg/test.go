@@ -2,6 +2,7 @@ package tharsis
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -39,7 +40,7 @@ type testClientInput struct {
 
 // newGraphQLClientForTest returns a fake Tharsis client
 // with the HTTP client replaced by a fake one.
-func newGraphQLClientForTest(input testClientInput) *graphql.Client {
+func newGraphQLClientForTest(input testClientInput) graphqlClient {
 
 	httpClient := newTestClient(func(req *http.Request) *http.Response {
 		defer req.Body.Close()
@@ -51,7 +52,7 @@ func newGraphQLClientForTest(input testClientInput) *graphql.Client {
 		}
 	})
 
-	return graphql.NewClient("graphql-client-url", httpClient)
+	return &graphqlClientWrapper{client: graphql.NewClient("graphql-client-url", httpClient)}
 }
 
 type fakeTokenProvider struct {
@@ -97,13 +98,18 @@ type fakeGraphqlResponseProblem struct {
 
 // Utility function(s):
 
-func checkError(t *testing.T, expectedMsg string, actualError error) {
-	if expectedMsg == "" {
+func checkError(t *testing.T, expectCode ErrorCode, actualError error) {
+	if expectCode == "" {
 		assert.Nil(t, actualError)
 	} else {
 		// Uses require rather than assert to avoid a nil pointer dereference.
 		require.NotNil(t, actualError)
-		assert.Equal(t, expectedMsg, actualError.Error())
+		var tErr *Error
+		if errors.As(actualError, &tErr) {
+			assert.Equal(t, expectCode, tErr.Code)
+		} else {
+			t.Fatalf("expected tharsis error with code %s but received error: %v", expectCode, actualError)
+		}
 	}
 }
 

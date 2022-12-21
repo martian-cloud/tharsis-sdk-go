@@ -23,13 +23,38 @@ const (
 	websocketWriteTimeout = 30 * time.Minute
 )
 
+type graphqlClient interface {
+	Query(ctx context.Context, q interface{}, variables map[string]interface{}, options ...graphql.Option) error
+	Mutate(ctx context.Context, m interface{}, variables map[string]interface{}, options ...graphql.Option) error
+}
+
+type graphqlClientWrapper struct {
+	client *graphql.Client
+}
+
+func (g *graphqlClientWrapper) Query(ctx context.Context, q interface{}, variables map[string]interface{}, options ...graphql.Option) error {
+	err := g.client.Query(ctx, q, variables, options...)
+	if err != nil {
+		return errorFromGraphqlError(err)
+	}
+	return nil
+}
+
+func (g *graphqlClientWrapper) Mutate(ctx context.Context, m interface{}, variables map[string]interface{}, options ...graphql.Option) error {
+	err := g.client.Mutate(ctx, m, variables, options...)
+	if err != nil {
+		return errorFromGraphqlError(err)
+	}
+	return nil
+}
+
 // Client provides access for the client/user to access the SDK functions.
 // Note: When adding a new field here, make sure to assign the field near the end of the NewClient function.
 type Client struct {
 	cfg           *config.Config // not currently essential but could become so
 	logger        *log.Logger
 	httpClient    *http.Client
-	graphqlClient graphql.Client
+	graphqlClient graphqlClient
 
 	// TODO: Update subscription client to be a lazy connection which only
 	// starts up when first subscription is created.
@@ -80,15 +105,20 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		}
 	}
 	retryClient.Logger = nil
-	client := &Client{
-		cfg:        cfg,
-		logger:     cfg.Logger,
-		httpClient: retryClient.StandardClient(),
-		graphqlClient: *graphql.NewClient(graphQLEndpoint.String(), retryClient.StandardClient()).
+
+	wrappedGraphqlClient := graphqlClientWrapper{
+		client: graphql.NewClient(graphQLEndpoint.String(), retryClient.StandardClient()).
 			WithRequestModifier(graphql.RequestModifier(
 				func(req *http.Request) {
 					req.Header.Set("Authorization", "Bearer "+authToken)
 				})),
+	}
+
+	client := &Client{
+		cfg:           cfg,
+		logger:        cfg.Logger,
+		httpClient:    retryClient.StandardClient(),
+		graphqlClient: &wrappedGraphqlClient,
 		graphqlSubscriptionClient: graphql.NewSubscriptionClient(graphQLEndpoint.String()).
 			WithConnectionParams(connectParams).
 			WithTimeout(websocketWriteTimeout).
