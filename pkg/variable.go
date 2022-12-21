@@ -60,9 +60,8 @@ func (m *variable) CreateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateNamespaceVariable.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating namespace variable: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateNamespaceVariable.Problems); err != nil {
+		return nil, err
 	}
 
 	// Find the variable within the namespace object.
@@ -90,7 +89,7 @@ func (m *variable) GetVariable(ctx context.Context,
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, nil
+		return nil, newError(ErrNotFound, "variable with id %s not found", input.ID)
 	}
 
 	result := variableFromGraphQL(target.Node.NamespaceVariable)
@@ -120,9 +119,8 @@ func (m *variable) UpdateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdateNamespaceVariable.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating namespace variable: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateNamespaceVariable.Problems); err != nil {
+		return nil, err
 	}
 
 	// Find the variable within the namespace object.
@@ -154,9 +152,8 @@ func (m *variable) DeleteVariable(ctx context.Context,
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteNamespaceVariable.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting namespace variable: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteNamespaceVariable.Problems); err != nil {
+		return err
 	}
 
 	return nil
@@ -180,9 +177,8 @@ func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVa
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedSet.SetNamespaceVariables.Problems)
-	if err != nil {
-		return fmt.Errorf("problems setting namespace variables: %v", err)
+	if err = errorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems); err != nil {
+		return err
 	}
 
 	return nil

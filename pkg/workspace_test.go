@@ -30,10 +30,10 @@ func TestGetWorkspaceByID(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectWorkspace    *types.Workspace
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		expectWorkspace *types.Workspace
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -86,7 +86,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// query returns nil workspace, as if the specified workspace does not exist.
@@ -95,6 +95,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlNodeWorkspacePayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -109,7 +110,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -122,7 +123,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 				&types.GetWorkspaceInput{ID: &workspaceID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkWorkspace(t, test.expectWorkspace, actualWorkspace)
 		})
 	}

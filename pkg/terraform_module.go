@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -39,8 +38,8 @@ func (p *module) GetModule(ctx context.Context, input *types.GetTerraformModuleI
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil || target.Node.Module.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "module with id %s not found", input.ID)
 	}
 
 	result := moduleFromGraphQL(target.Node.Module)
@@ -64,9 +63,8 @@ func (p *module) CreateModule(ctx context.Context, input *types.CreateTerraformM
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateTerraformModule.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating module: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformModule.Problems); err != nil {
+		return nil, err
 	}
 
 	created := moduleFromGraphQL(wrappedCreate.CreateTerraformModule.Module)
@@ -90,9 +88,8 @@ func (p *module) UpdateModule(ctx context.Context, input *types.UpdateTerraformM
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdateTerraformModule.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating module: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateTerraformModule.Problems); err != nil {
+		return nil, err
 	}
 
 	module := moduleFromGraphQL(wrappedUpdate.UpdateTerraformModule.Module)
@@ -116,9 +113,8 @@ func (p *module) DeleteModule(ctx context.Context, input *types.DeleteTerraformM
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteTerraformModule.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting module: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformModule.Problems); err != nil {
+		return err
 	}
 
 	return nil

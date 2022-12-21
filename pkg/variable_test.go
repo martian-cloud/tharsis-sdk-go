@@ -44,7 +44,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 		input                   *types.CreateNamespaceVariableInput
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorMessage      string
+		expectErrorCode         ErrorCode
 	}
 
 	testCases := []testCase{
@@ -162,7 +162,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating namespace variable: namespace variable with path non-existent not found",
+			expectErrorCode: ErrConflict,
 		},
 	}
 
@@ -177,7 +177,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -187,7 +187,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 			// Call the method being tested.
 			actualNamespaceVariable, actualError := client.Variable.CreateVariable(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkNamespaceVariable(t, test.expectNamespaceVariable, actualNamespaceVariable)
 		})
 	}
@@ -212,7 +212,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 		responsePayload         interface{}
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorMessage      string
+		expectErrorCode         ErrorCode
 	}
 
 	testCases := []testCase{
@@ -269,7 +269,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"6f3106c6-c342-4790-a667-963a850d9�d4\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -289,7 +289,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: namespace variable with id 6f3106c6-c342-4790-a667-963a850d34d4 not found, Locations: []",
+			expectErrorCode: ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -298,6 +298,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlNodeNamespaceVariablePayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -312,7 +313,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -325,7 +326,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 				&types.GetNamespaceVariableInput{ID: namespaceVariableID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkNamespaceVariable(t, test.expectNamespaceVariable, actualNamespaceVariable)
 		})
 	}
@@ -359,7 +360,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 		input                   *types.UpdateNamespaceVariableInput
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorMessage      string
+		expectErrorCode         ErrorCode
 	}
 
 	testCases := []testCase{
@@ -428,7 +429,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: Argument \"input\" has invalid value {id: \"TVJfZmUyZWI1NjQtNjMxMS00MmFlLTkwMWYtOTE5NTEyNWNhOTJh\", runStage: invalid, allowedUsers: [\"robert.richesjr\"], allowedNamespaceVariables: [\"provider-test-parent-group/sa1\"], allowedTeams: [\"team1\", \"team2\"]}.\nIn field \"runStage\": Expected type \"JobType\", found invalid., Locations: [{Line:3 Column:12}]",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: query behaves as if the specified namespace variable did not exist
@@ -448,7 +449,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems updating namespace variable: namespace variable with ID fe2eb564-6311-52ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -463,7 +464,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -473,7 +474,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 			// Call the method being tested.
 			actualNamespaceVariable, actualError := client.Variable.UpdateVariable(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkNamespaceVariable(t, test.expectNamespaceVariable, actualNamespaceVariable)
 		})
 	}
@@ -492,10 +493,10 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		input              *types.DeleteNamespaceVariableInput
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		input           *types.DeleteNamespaceVariableInput
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -530,7 +531,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified namespace variable did not exist
@@ -550,7 +551,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting namespace variable: namespace variable with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -565,7 +566,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -575,7 +576,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 			// Call the method being tested.
 			actualError := client.Variable.DeleteVariable(ctx, test.input)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 		})
 	}
 

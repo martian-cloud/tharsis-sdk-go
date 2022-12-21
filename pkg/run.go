@@ -3,7 +3,6 @@ package tharsis
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/hasura/go-graphql-client"
@@ -52,7 +51,7 @@ func (r *run) GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run,
 		return nil, err
 	}
 	if target.Run == nil {
-		return nil, nil
+		return nil, newError(ErrNotFound, "run with id %s not found", input.ID)
 	}
 
 	result := runFromGraphQL(*target.Run)
@@ -146,9 +145,8 @@ func (r *run) CreateRun(ctx context.Context, input *types.CreateRunInput) (*type
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateRun.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating run: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateRun.Problems); err != nil {
+		return nil, err
 	}
 
 	created := runFromGraphQL(wrappedCreate.CreateRun.Run)
@@ -176,9 +174,8 @@ func (r *run) ApplyRun(ctx context.Context, input *types.ApplyRunInput) (*types.
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedApply.ApplyRun.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems applying run: %v", err)
+	if err = errorFromGraphqlProblems(wrappedApply.ApplyRun.Problems); err != nil {
+		return nil, err
 	}
 
 	applied := runFromGraphQL(wrappedApply.ApplyRun.Run)
@@ -203,9 +200,9 @@ func (r *run) CancelRun(ctx context.Context, input *types.CancelRunInput) (*type
 	if err != nil {
 		return nil, err
 	}
-	err = internal.ProblemsToError(wrappedCancel.CancelRun.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems deleting run: %v", err)
+
+	if err = errorFromGraphqlProblems(wrappedCancel.CancelRun.Problems); err != nil {
+		return nil, err
 	}
 
 	canceled := runFromGraphQL(wrappedCancel.CancelRun.Run)
@@ -225,7 +222,7 @@ func (r *run) SubscribeToWorkspaceRunEvents(ctx context.Context, input *types.Ru
 	}
 
 	// The embedded run event callback function.
-	runEventCallback := func(message *json.RawMessage, err error) error {
+	runEventCallback := func(message []byte, err error) error {
 		// Detect any incoming error.
 		if err != nil {
 			return err
@@ -238,7 +235,7 @@ func (r *run) SubscribeToWorkspaceRunEvents(ctx context.Context, input *types.Ru
 		}
 
 		if message != nil {
-			err = json.Unmarshal(*message, &event)
+			err = json.Unmarshal(message, &event)
 			if err != nil {
 				return err
 			}
@@ -310,7 +307,7 @@ func (rp *RunPaginator) Next(ctx context.Context) (*types.GetRunsOutput, error) 
 //////////////////////////////////////////////////////////////////////////////
 
 // getRuns executes the query and returns the results.
-func getRuns(ctx context.Context, client graphql.Client,
+func getRuns(ctx context.Context, client graphqlClient,
 	input *types.GetRunsInput, after *string) (*getRunsQuery, error) {
 
 	// Must generate a new query structure for each page to

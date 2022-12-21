@@ -39,8 +39,8 @@ func (p *providerPlatform) GetProviderPlatform(ctx context.Context, input *types
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil || target.Node.TerraformProviderPlatform.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "terraform provider platform with id %s not found", input.ID)
 	}
 
 	result := providerPlatformFromGraphQL(target.Node.TerraformProviderPlatform)
@@ -67,9 +67,8 @@ func (p *providerPlatform) CreateProviderPlatform(ctx context.Context, input *ty
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateTerraformProviderPlatform.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating provider platform: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderPlatform.Problems); err != nil {
+		return nil, err
 	}
 
 	created := providerPlatformFromGraphQL(wrappedCreate.CreateTerraformProviderPlatform.ProviderPlatform)
@@ -97,8 +96,13 @@ func (p *providerPlatform) UploadProviderPlatformBinary(ctx context.Context, pro
 	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	// Make the request.
-	if _, err := p.client.httpClient.Do(req); err != nil {
+	resp, err := p.client.httpClient.Do(req)
+	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return errorFromHTTPResponse(resp)
 	}
 
 	return nil

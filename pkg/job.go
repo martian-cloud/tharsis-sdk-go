@@ -3,7 +3,6 @@ package tharsis
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/hasura/go-graphql-client"
@@ -42,7 +41,7 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 		return nil, err
 	}
 	if target.Job == nil {
-		return nil, nil
+		return nil, newError(ErrNotFound, "job with id %s not found", input.ID)
 	}
 
 	result := jobFromGraphQL(*target.Job)
@@ -62,7 +61,7 @@ func (j *job) SubscribeToJobCancellationEvent(ctx context.Context, input *types.
 	}
 
 	// The embedded cancellation event callback function.
-	cancellationEventCallback := func(message *json.RawMessage, err error) error {
+	cancellationEventCallback := func(message []byte, err error) error {
 		// Detect any incoming error.
 		if err != nil {
 			return err
@@ -73,7 +72,7 @@ func (j *job) SubscribeToJobCancellationEvent(ctx context.Context, input *types.
 		}
 
 		if message != nil {
-			err = json.Unmarshal(*message, &event)
+			err = json.Unmarshal(message, &event)
 			if err != nil {
 				return err
 			}
@@ -111,10 +110,10 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedSave.SaveLogs.Problems)
-	if err != nil {
-		return fmt.Errorf("problems saving logs: %v", err)
+	if err = errorFromGraphqlProblems(wrappedSave.SaveLogs.Problems); err != nil {
+		return err
 	}
+
 	return nil
 }
 

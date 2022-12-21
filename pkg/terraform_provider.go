@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -37,8 +36,8 @@ func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformPro
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil || target.Node.Provider.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "terraform provider with id %s not found", input.ID)
 	}
 
 	result := providerFromGraphQL(target.Node.Provider)
@@ -65,9 +64,8 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateTerraformProvider.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating provider: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
+		return nil, err
 	}
 
 	created := providerFromGraphQL(wrappedCreate.CreateTerraformProvider.Provider)

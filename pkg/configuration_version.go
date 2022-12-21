@@ -53,7 +53,7 @@ func (cv *configurationVersion) GetConfigurationVersion(ctx context.Context,
 		return nil, err
 	}
 	if target.ConfigurationVersion == nil {
-		return nil, nil
+		return nil, newError(ErrNotFound, "configuration version with id %s not found", input.ID)
 	}
 
 	result := configurationVersionFromGraphQL(*target.ConfigurationVersion)
@@ -84,9 +84,8 @@ func (cv *configurationVersion) CreateConfigurationVersion(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateConfigurationVersion.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating configuration version: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateConfigurationVersion.Problems); err != nil {
+		return nil, err
 	}
 
 	created := configurationVersionFromGraphQL(wrappedCreate.CreateConfigurationVersion.ConfigurationVersion)
@@ -129,10 +128,6 @@ func (cv configurationVersion) DownloadConfigurationVersion(ctx context.Context,
 	resp, err := cv.do(ctx, http.MethodGet, url, nil, 0)
 	if err != nil {
 		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download configuration version response code: %d", resp.StatusCode)
 	}
 
 	return copyFromResponseBody(resp, writer)
@@ -256,6 +251,11 @@ func (cv *configurationVersion) do(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorFromHTTPResponse(resp)
+	}
+
 	return resp, nil
 }
 
