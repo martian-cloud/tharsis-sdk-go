@@ -32,7 +32,7 @@ func TestGetModuleVersion(t *testing.T) {
 		responsePayload     interface{}
 		expectModuleVersion *types.TerraformModuleVersion
 		name                string
-		expectErrorMessage  string
+		expectErrorCode     ErrorCode
 	}
 
 	testCases := []testCase{
@@ -88,13 +88,14 @@ func TestGetModuleVersion(t *testing.T) {
 					},
 				}},
 			},
-			expectErrorMessage: "Message: an error occurred, Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 		{
 			name: "returns nil because module version does not exist",
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlModuleVersionPayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -109,7 +110,7 @@ func TestGetModuleVersion(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -121,7 +122,7 @@ func TestGetModuleVersion(t *testing.T) {
 				&types.GetTerraformModuleVersionInput{ID: moduleVersionID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 
 			if test.expectModuleVersion != nil {
 				require.NotNil(t, moduleVersion)
@@ -150,7 +151,7 @@ func TestCreateModuleVersion(t *testing.T) {
 		responsePayload     interface{}
 		expectModuleVersion *types.TerraformModuleVersion
 		name                string
-		expectErrorMessage  string
+		expectErrorCode     ErrorCode
 	}
 
 	testCases := []testCase{
@@ -210,7 +211,7 @@ func TestCreateModuleVersion(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating module version: module version already exists",
+			expectErrorCode: ErrConflict,
 		},
 	}
 
@@ -225,7 +226,7 @@ func TestCreateModuleVersion(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -234,7 +235,7 @@ func TestCreateModuleVersion(t *testing.T) {
 			// Call the method being tested.
 			moduleVersion, actualError := client.TerraformModuleVersion.CreateModuleVersion(ctx, &types.CreateTerraformModuleVersionInput{})
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 
 			if test.expectModuleVersion != nil {
 				require.NotNil(t, moduleVersion)
@@ -256,9 +257,9 @@ func TestDeleteModuleVersion(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -285,7 +286,7 @@ func TestDeleteModuleVersion(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting module version: module version not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -300,7 +301,7 @@ func TestDeleteModuleVersion(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -309,7 +310,7 @@ func TestDeleteModuleVersion(t *testing.T) {
 			// Call the method being tested.
 			err = client.TerraformModuleVersion.DeleteModuleVersion(ctx, &types.DeleteTerraformModuleVersionInput{})
 
-			checkError(t, test.expectErrorMessage, err)
+			checkError(t, test.expectErrorCode, err)
 		})
 	}
 }
@@ -317,10 +318,10 @@ func TestDeleteModuleVersion(t *testing.T) {
 func TestUploadModuleVersion(t *testing.T) {
 	// test cases
 	type testCase struct {
-		name               string
-		expectErrorMessage string
-		payloadToReturn    interface{}
-		statusToReturn     int
+		name            string
+		expectErrorCode ErrorCode
+		payloadToReturn interface{}
+		statusToReturn  int
 	}
 
 	testCases := []testCase{
@@ -329,10 +330,10 @@ func TestUploadModuleVersion(t *testing.T) {
 			statusToReturn: http.StatusOK,
 		},
 		{
-			name:               "failed module version upload",
-			payloadToReturn:    fakeRESTError{Detail: "internal server error"},
-			statusToReturn:     http.StatusInternalServerError,
-			expectErrorMessage: "PUT request recieved http status code 500: {\"detail\":\"internal server error\"}",
+			name:            "failed module version upload",
+			payloadToReturn: fakeRESTError{Detail: "internal server error"},
+			statusToReturn:  http.StatusInternalServerError,
+			expectErrorCode: ErrInternal,
 		},
 	}
 
@@ -362,7 +363,7 @@ func TestUploadModuleVersion(t *testing.T) {
 			// Call the method being tested.
 			err = client.TerraformModuleVersion.UploadModuleVersion(ctx, "module-1", strings.NewReader("test data"))
 
-			checkError(t, test.expectErrorMessage, err)
+			checkError(t, test.expectErrorCode, err)
 		})
 	}
 }

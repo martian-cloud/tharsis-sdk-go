@@ -30,10 +30,10 @@ func TestGetGroupByID(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectGroup        *types.Group
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		expectGroup     *types.Group
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -86,7 +86,7 @@ func TestGetGroupByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "Message: ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02), Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 
 		// query returns nil group, as if the specified group does not exist.
@@ -95,6 +95,7 @@ func TestGetGroupByID(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlNodeGroupPayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -109,7 +110,7 @@ func TestGetGroupByID(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				}),
@@ -122,7 +123,7 @@ func TestGetGroupByID(t *testing.T) {
 				&types.GetGroupInput{ID: &groupID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 			checkGroup(t, test.expectGroup, actualGroup)
 		})
 	}

@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -46,9 +45,8 @@ func (p *plan) UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*t
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdatePlan.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating plan: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdatePlan.Problems); err != nil {
+		return nil, err
 	}
 
 	updated := planFromGraphQL(wrappedUpdate.UpdatePlan.Plan)
@@ -65,24 +63,17 @@ func (p *plan) DownloadPlanCache(ctx context.Context, id string, writer io.Write
 		return err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download plan cache response code: %d", resp.StatusCode)
-	}
-
 	return copyFromResponseBody(resp, writer)
 }
 
 // UploadPlanCache uploads a plan cache and returns any errors.
 func (p *plan) UploadPlanCache(ctx context.Context, id string, body io.Reader) error {
 	url := strings.Join([]string{p.client.cfg.Endpoint, "v1", "plans", id, "content"}, "/")
-	resp, err := p.do(ctx, http.MethodPut, url, body)
+	_, err := p.do(ctx, http.MethodPut, url, body)
 	if err != nil {
 		return err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("upload plan cache response code: %d", resp.StatusCode)
-	}
 	return nil
 }
 
@@ -113,6 +104,11 @@ func (p *plan) do(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorFromHTTPResponse(resp)
+	}
+
 	return resp, nil
 }
 

@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -41,9 +40,8 @@ func (a *apply) UpdateApply(ctx context.Context, input *types.UpdateApplyInput) 
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdateApply.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating apply: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateApply.Problems); err != nil {
+		return nil, err
 	}
 
 	updated := applyFromGraphQL(&wrappedUpdate.UpdateApply.Apply)

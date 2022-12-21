@@ -13,8 +13,6 @@ import (
 // Group implements functions related to Tharsis groups.
 type Group interface {
 	GetGroup(ctx context.Context, input *types.GetGroupInput) (*types.Group, error)
-	// GetSubgroups(...) with pagination.
-	// GetWorkspaces(...) with pagination.
 	GetGroups(ctx context.Context, input *types.GetGroupsInput) (*types.GetGroupsOutput, error)
 	GetGroupPaginator(ctx context.Context, input *types.GetGroupsInput) (*GroupPaginator, error)
 	CreateGroup(ctx context.Context, input *types.CreateGroupInput) (*types.Group, error)
@@ -48,7 +46,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 			return nil, err
 		}
 		if target.Group == nil {
-			return nil, nil
+			return nil, newError(ErrNotFound, "group with path %s not found", *input.Path)
 		}
 
 		result := groupFromGraphQL(*target.Group)
@@ -68,7 +66,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 			return nil, err
 		}
 		if target.Node == nil {
-			return nil, nil
+			return nil, newError(ErrNotFound, "group with id %s not found", *input.ID)
 		}
 
 		result := groupFromGraphQL(target.Node.Group)
@@ -139,9 +137,8 @@ func (g *group) CreateGroup(ctx context.Context, input *types.CreateGroupInput) 
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateGroup.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating group: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateGroup.Problems); err != nil {
+		return nil, err
 	}
 
 	created := groupFromGraphQL(wrappedCreate.CreateGroup.Group)
@@ -166,9 +163,9 @@ func (g *group) UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) 
 	if err != nil {
 		return nil, err
 	}
-	err = internal.ProblemsToError(wrappedUpdate.UpdateGroup.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating group: %v", err)
+
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateGroup.Problems); err != nil {
+		return nil, err
 	}
 
 	updated := groupFromGraphQL(wrappedUpdate.UpdateGroup.Group)
@@ -179,8 +176,6 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 
 	var wrappedDelete struct {
 		DeleteGroup struct {
-			// It appears it's not possible to return the deleted object.
-			// Group internal.GraphQLGroup
 			Problems []internal.GraphQLProblem
 		} `graphql:"deleteGroup(input: $input)"`
 	}
@@ -193,9 +188,9 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 	if err != nil {
 		return err
 	}
-	err = internal.ProblemsToError(wrappedDelete.DeleteGroup.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting group: %v", err)
+
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems); err != nil {
+		return err
 	}
 
 	return nil
@@ -252,7 +247,7 @@ func (gp *GroupPaginator) Next(ctx context.Context) (*types.GetGroupsOutput, err
 //////////////////////////////////////////////////////////////////////////////
 
 // getGroups runs the query and returns the results.
-func getGroups(ctx context.Context, client graphql.Client,
+func getGroups(ctx context.Context, client graphqlClient,
 	input *types.GetGroupsInput, after *string) (*getGroupsQuery, error) {
 
 	// Must generate a new query structure for each page to

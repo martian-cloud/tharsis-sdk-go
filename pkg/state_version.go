@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -48,9 +47,8 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateStateVersion.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating state version: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
+		return nil, err
 	}
 
 	created, err := stateVersionFromGraphQL(&wrappedCreate.CreateStateVersion.StateVersion)
@@ -88,7 +86,7 @@ func (s *stateVersion) DownloadStateVersion(ctx context.Context,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download state version response code: %d", resp.StatusCode)
+		return errorFromHTTPResponse(resp)
 	}
 
 	return copyFromResponseBody(resp, writer)

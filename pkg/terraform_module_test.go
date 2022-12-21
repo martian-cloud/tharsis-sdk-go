@@ -25,10 +25,10 @@ func TestGetModule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectModule       *types.TerraformModule
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		expectModule    *types.TerraformModule
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -76,13 +76,14 @@ func TestGetModule(t *testing.T) {
 					},
 				}},
 			},
-			expectErrorMessage: "Message: an error occurred, Locations: []",
+			expectErrorCode: ErrInternal,
 		},
 		{
 			name: "returns nil because module does not exist",
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlModulePayload{},
 			},
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -97,7 +98,7 @@ func TestGetModule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -109,7 +110,7 @@ func TestGetModule(t *testing.T) {
 				&types.GetTerraformModuleInput{ID: moduleID},
 			)
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
@@ -135,10 +136,10 @@ func TestCreateModule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectModule       *types.TerraformModule
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		expectModule    *types.TerraformModule
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -192,7 +193,7 @@ func TestCreateModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems creating module: module already exists",
+			expectErrorCode: ErrConflict,
 		},
 	}
 
@@ -207,7 +208,7 @@ func TestCreateModule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -216,7 +217,7 @@ func TestCreateModule(t *testing.T) {
 			// Call the method being tested.
 			module, actualError := client.TerraformModule.CreateModule(ctx, &types.CreateTerraformModuleInput{})
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
@@ -242,10 +243,10 @@ func TestUpdateModule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		expectModule       *types.TerraformModule
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		expectModule    *types.TerraformModule
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -299,7 +300,7 @@ func TestUpdateModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems updating module: module not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -314,7 +315,7 @@ func TestUpdateModule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -323,7 +324,7 @@ func TestUpdateModule(t *testing.T) {
 			// Call the method being tested.
 			module, actualError := client.TerraformModule.UpdateModule(ctx, &types.UpdateTerraformModuleInput{})
 
-			checkError(t, test.expectErrorMessage, actualError)
+			checkError(t, test.expectErrorCode, actualError)
 
 			if test.expectModule != nil {
 				require.NotNil(t, module)
@@ -345,9 +346,9 @@ func TestDeleteModule(t *testing.T) {
 
 	// test cases
 	type testCase struct {
-		responsePayload    interface{}
-		name               string
-		expectErrorMessage string
+		responsePayload interface{}
+		name            string
+		expectErrorCode ErrorCode
 	}
 
 	testCases := []testCase{
@@ -374,7 +375,7 @@ func TestDeleteModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorMessage: "problems deleting module: module not found",
+			expectErrorCode: ErrNotFound,
 		},
 	}
 
@@ -389,7 +390,7 @@ func TestDeleteModule(t *testing.T) {
 
 			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
 			client := &Client{
-				graphqlClient: *newGraphQLClientForTest(testClientInput{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
 					statusToReturn:  http.StatusOK,
 					payloadToReturn: string(payload),
 				})}
@@ -398,7 +399,7 @@ func TestDeleteModule(t *testing.T) {
 			// Call the method being tested.
 			err = client.TerraformModule.DeleteModule(ctx, &types.DeleteTerraformModuleInput{})
 
-			checkError(t, test.expectErrorMessage, err)
+			checkError(t, test.expectErrorCode, err)
 		})
 	}
 }

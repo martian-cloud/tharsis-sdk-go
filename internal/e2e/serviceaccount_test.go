@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -101,11 +102,10 @@ func TestCRUDServiceAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the service account is gone.
-	read3ServiceAccount, err := client.ServiceAccount.GetServiceAccount(ctx, &types.GetServiceAccountInput{
+	_, err = client.ServiceAccount.GetServiceAccount(ctx, &types.GetServiceAccountInput{
 		ID: read2ServiceAccount.Metadata.ID,
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, (*types.ServiceAccount)(nil), read3ServiceAccount)
+	assert.True(t, tharsis.NotFoundError(err))
 }
 
 // The End.

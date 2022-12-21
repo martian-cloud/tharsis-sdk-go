@@ -47,7 +47,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			return nil, err
 		}
 		if target.Workspace == nil {
-			return nil, nil
+			return nil, newError(ErrNotFound, "workspace with path %s not found", *input.Path)
 		}
 
 		result, err := workspaceFromGraphQL(*target.Workspace)
@@ -72,8 +72,8 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			return nil, err
 		}
 
-		if target.Node == nil || target.Node.Workspace.ID == "" {
-			return nil, nil
+		if target.Node == nil {
+			return nil, newError(ErrNotFound, "workspace with id %s not found", *input.ID)
 		}
 
 		return workspaceFromGraphQL(target.Node.Workspace)
@@ -146,9 +146,8 @@ func (ws *workspaces) CreateWorkspace(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateWorkspace.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating workspace: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateWorkspace.Problems); err != nil {
+		return nil, err
 	}
 
 	created, err := workspaceFromGraphQL(wrappedCreate.CreateWorkspace.Workspace)
@@ -177,9 +176,9 @@ func (ws *workspaces) UpdateWorkspace(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	err = internal.ProblemsToError(wrappedUpdate.UpdateWorkspace.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating workspace: %v", err)
+
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateWorkspace.Problems); err != nil {
+		return nil, err
 	}
 
 	updated, err := workspaceFromGraphQL(wrappedUpdate.UpdateWorkspace.Workspace)
@@ -210,9 +209,8 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteWorkspace.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting workspace: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems); err != nil {
+		return err
 	}
 
 	return nil
@@ -293,7 +291,7 @@ func (wp *GetWorkspacesPaginator) Next(ctx context.Context) (*types.GetWorkspace
 //////////////////////////////////////////////////////////////////////////////
 
 // getWorkspaces runs the query and returns the results.
-func getWorkspaces(ctx context.Context, client graphql.Client,
+func getWorkspaces(ctx context.Context, client graphqlClient,
 	input *types.GetWorkspacesInput, after *string) (*getWorkspacesQuery, error) {
 
 	// Must generate a new query structure for each page to

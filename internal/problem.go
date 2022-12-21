@@ -1,9 +1,6 @@
 package internal
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/hasura/go-graphql-client"
 )
 
@@ -17,6 +14,7 @@ const (
 	Conflict   GraphQLProblemType = "CONFLICT"
 	BadRequest GraphQLProblemType = "BAD_REQUEST"
 	NotFound   GraphQLProblemType = "NOT_FOUND"
+	Forbidden  GraphQLProblemType = "FORBIDDEN"
 )
 
 // GraphQLProblem is used to represent a user facing issue
@@ -25,17 +23,3 @@ type GraphQLProblem struct {
 	Type    GraphQLProblemType
 	Field   []graphql.String
 }
-
-// ProblemsToError returns an error or nil.
-func ProblemsToError(problems []GraphQLProblem) error {
-	if len(problems) == 0 {
-		return nil
-	}
-	var s []string
-	for _, p := range problems {
-		s = append(s, string(p.Message))
-	}
-	return fmt.Errorf(strings.Join(s, "; "))
-}
-
-// The End.

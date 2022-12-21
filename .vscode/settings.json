@@ -22,6 +22,7 @@
     "go.toolsManagement.autoUpdate": true,
     "go.useLanguageServer": true,
     "go.buildTags": "integration",
+    "go.testEnvFile": "${workspaceFolder}/.env",
     "gopls": {
         "ui.completion.usePlaceholders": true, // add parameter placeholders when completing a function
         "ui.diagnostic.staticcheck": true,

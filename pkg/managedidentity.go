@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -73,9 +72,8 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateManagedIdentity.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating managed identity: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentity.Problems); err != nil {
+		return nil, err
 	}
 
 	identity := identityFromGraphQL(wrappedCreate.CreateManagedIdentity.ManagedIdentity)
@@ -100,7 +98,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 	}
 
 	if target.ManagedIdentity == nil {
-		return nil, nil
+		return nil, newError(ErrNotFound, "managed identity with id %s not found", input.ID)
 	}
 
 	identity := identityFromGraphQL(*target.ManagedIdentity)
@@ -128,9 +126,8 @@ func (m *managedIdentity) UpdateManagedIdentity(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdateManagedIdentity.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating managed identity: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentity.Problems); err != nil {
+		return nil, err
 	}
 
 	identity := identityFromGraphQL(wrappedUpdate.UpdateManagedIdentity.ManagedIdentity)
@@ -157,9 +154,8 @@ func (m *managedIdentity) DeleteManagedIdentity(ctx context.Context,
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteManagedIdentity.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting managed identity: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentity.Problems); err != nil {
+		return err
 	}
 
 	return nil
@@ -188,9 +184,8 @@ func (m *managedIdentity) CreateManagedIdentityCredentials(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateManagedIdentityCredentials.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating managed identity credentials: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityCredentials.Problems); err != nil {
+		return nil, err
 	}
 
 	return []byte(wrappedCreate.CreateManagedIdentityCredentials.ManagedIdentityCredentials.Data), nil
@@ -216,9 +211,8 @@ func (m *managedIdentity) AssignManagedIdentityToWorkspace(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedAssign.AssignManagedIdentity.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems assigning managed identity to workspace: %v", err)
+	if err = errorFromGraphqlProblems(wrappedAssign.AssignManagedIdentity.Problems); err != nil {
+		return nil, err
 	}
 
 	created, err := workspaceFromGraphQL(wrappedAssign.AssignManagedIdentity.Workspace)
@@ -249,9 +243,8 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUnassign.UnAssignManagedIdentity.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems assigning managed identity to workspace: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUnassign.UnAssignManagedIdentity.Problems); err != nil {
+		return nil, err
 	}
 
 	created, err := workspaceFromGraphQL(wrappedUnassign.UnAssignManagedIdentity.Workspace)
@@ -307,9 +300,8 @@ func (m *managedIdentity) CreateManagedIdentityAccessRule(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateManagedIdentityAccessRule.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating managed identity access rule: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAccessRule.Problems); err != nil {
+		return nil, err
 	}
 
 	accessRule := accessRuleFromGraphQL(wrappedCreate.CreateManagedIdentityAccessRule.AccessRule)
@@ -333,8 +325,8 @@ func (m *managedIdentity) GetManagedIdentityAccessRule(ctx context.Context,
 		return nil, err
 	}
 
-	if target.Node == nil || target.Node.ManagedIdentityAccessRule.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "managed identity access rule with id %s not found", input.ID)
 	}
 
 	accessRule := accessRuleFromGraphQL(target.Node.ManagedIdentityAccessRule)
@@ -361,9 +353,8 @@ func (m *managedIdentity) UpdateManagedIdentityAccessRule(ctx context.Context,
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedUpdate.UpdateManagedIdentityAccessRule.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems updating managed identity access rule: %v", err)
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentityAccessRule.Problems); err != nil {
+		return nil, err
 	}
 
 	accessRule := accessRuleFromGraphQL(wrappedUpdate.UpdateManagedIdentityAccessRule.AccessRule)
@@ -389,9 +380,8 @@ func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteManagedIdentityAccessRule.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting managed identity access rule: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAccessRule.Problems); err != nil {
+		return err
 	}
 
 	return nil

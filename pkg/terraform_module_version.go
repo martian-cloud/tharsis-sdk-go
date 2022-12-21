@@ -41,8 +41,8 @@ func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTe
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil || target.Node.TerraformModuleVersion.ID == "" {
-		return nil, nil
+	if target.Node == nil {
+		return nil, newError(ErrNotFound, "module version with id %s not found", input.ID)
 	}
 
 	result := moduleVersionFromGraphQL(target.Node.TerraformModuleVersion)
@@ -66,9 +66,8 @@ func (p *moduleVersion) CreateModuleVersion(ctx context.Context, input *types.Cr
 		return nil, err
 	}
 
-	err = internal.ProblemsToError(wrappedCreate.CreateTerraformModuleVersion.Problems)
-	if err != nil {
-		return nil, fmt.Errorf("problems creating module version: %v", err)
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformModuleVersion.Problems); err != nil {
+		return nil, err
 	}
 
 	created := moduleVersionFromGraphQL(wrappedCreate.CreateTerraformModuleVersion.ModuleVersion)
@@ -92,9 +91,8 @@ func (p *moduleVersion) DeleteModuleVersion(ctx context.Context, input *types.De
 		return err
 	}
 
-	err = internal.ProblemsToError(wrappedDelete.DeleteTerraformModuleVersion.Problems)
-	if err != nil {
-		return fmt.Errorf("problems deleting module version: %v", err)
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleVersion.Problems); err != nil {
+		return err
 	}
 
 	return nil
@@ -122,11 +120,7 @@ func (p *moduleVersion) UploadModuleVersion(ctx context.Context, moduleVersionID
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("PUT request recieved http status code %d: %s", resp.StatusCode, string(bodyBytes))
+		return errorFromHTTPResponse(resp)
 	}
 
 	return nil
