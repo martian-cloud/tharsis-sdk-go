@@ -225,6 +225,8 @@ func (r *run) SubscribeToWorkspaceRunEvents(ctx context.Context, input *types.Ru
 	runEventCallback := func(message []byte, err error) error {
 		// Detect any incoming error.
 		if err != nil {
+			// Close channel
+			close(eventChannel)
 			return err
 		}
 
@@ -454,7 +456,7 @@ func runVariableFromGraphQL(v graphQLRunVariable) types.RunVariable {
 		Key:           string(v.Key),
 		Value:         (*string)(v.Value),
 		Category:      types.VariableCategory(v.Category),
-		Hcl:           bool(v.Hcl),
+		HCL:           bool(v.Hcl),
 		NamespacePath: (*string)(v.NamespacePath),
 	}
 	return result
