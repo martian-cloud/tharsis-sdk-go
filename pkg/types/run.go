@@ -88,7 +88,7 @@ type RunVariable struct {
 	NamespacePath *string          `json:"namespacePath"`
 	Key           string           `json:"key"`
 	Category      VariableCategory `json:"category"`
-	Hcl           bool             `json:"hcl"`
+	HCL           bool             `json:"hcl"`
 }
 
 // GetRunInput is the input to specify a single run to fetch.

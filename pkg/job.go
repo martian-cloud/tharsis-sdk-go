@@ -64,6 +64,8 @@ func (j *job) SubscribeToJobCancellationEvent(ctx context.Context, input *types.
 	cancellationEventCallback := func(message []byte, err error) error {
 		// Detect any incoming error.
 		if err != nil {
+			// close channel
+			close(eventChannel)
 			return err
 		}
 

@@ -31,11 +31,9 @@ type CreateNamespaceVariableInput struct {
 
 // SetNamespaceVariablesVariable is the input for setting ALL variables in a namespace.
 type SetNamespaceVariablesVariable struct {
-	NamespacePath string           `json:"namespacePath"`
-	Category      VariableCategory `json:"category"`
-	HCL           bool             `json:"hcl"`
-	Key           string           `json:"key"`
-	Value         string           `json:"value"`
+	HCL   bool   `json:"hcl"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // UpdateNamespaceVariableInput is the input for updating a namespace variable.
