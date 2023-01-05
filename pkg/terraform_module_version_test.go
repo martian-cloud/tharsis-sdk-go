@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -318,9 +318,9 @@ func TestDeleteModuleVersion(t *testing.T) {
 func TestUploadModuleVersion(t *testing.T) {
 	// test cases
 	type testCase struct {
+		payloadToReturn interface{}
 		name            string
 		expectErrorCode ErrorCode
-		payloadToReturn interface{}
 		statusToReturn  int
 	}
 
@@ -349,7 +349,7 @@ func TestUploadModuleVersion(t *testing.T) {
 
 				return &http.Response{
 					StatusCode: test.statusToReturn,
-					Body:       ioutil.NopCloser(bytes.NewReader(payloadBuf)),
+					Body:       io.NopCloser(bytes.NewReader(payloadBuf)),
 					Header:     make(http.Header),
 				}
 			})

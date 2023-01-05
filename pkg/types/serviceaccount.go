@@ -2,8 +2,8 @@ package types
 
 // OIDCTrustPolicy models one trust policy under a service account.
 type OIDCTrustPolicy struct {
-	Issuer      string            `json:"issuer"`
 	BoundClaims map[string]string `json:"boundClaims"`
+	Issuer      string            `json:"issuer"`
 }
 
 // ServiceAccount provides M2M authentication
