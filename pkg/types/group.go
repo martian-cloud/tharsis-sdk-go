@@ -73,6 +73,7 @@ type UpdateGroupInput struct {
 
 // DeleteGroupInput is the input for deleting a group.
 type DeleteGroupInput struct {
+	Force     *bool   `json:"force"`
 	GroupPath *string `json:"groupPath"`
 	ID        *string `json:"id"`
 }

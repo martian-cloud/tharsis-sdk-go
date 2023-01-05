@@ -392,13 +392,13 @@ func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
 // graphQLManagedIdentityAccessRule represents a managed identity
 // access rule with graphQL types.
 type graphQLManagedIdentityAccessRule struct {
-	ID                     graphql.String
+	ManagedIdentity        GraphQLManagedIdentity
 	Metadata               internal.GraphQLMetadata
+	ID                     graphql.String
 	RunStage               graphql.String
 	AllowedUsers           []graphQLUser
 	AllowedServiceAccounts []graphQLServiceAccount
 	AllowedTeams           []graphQLTeam
-	ManagedIdentity        GraphQLManagedIdentity
 }
 
 // GraphQLManagedIdentity represents the insides of the query structure,

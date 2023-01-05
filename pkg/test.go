@@ -3,7 +3,7 @@ package tharsis
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -30,8 +30,8 @@ func newTestClient(fn roundTripFunc) *http.Client {
 
 // testClientInput
 type testClientInput struct {
-	statusToReturn  int
 	payloadToReturn string
+	statusToReturn  int
 }
 
 // When developing tests that will use this fake Tharsis client, first run a successful query using GraphiQL.
@@ -47,7 +47,7 @@ func newGraphQLClientForTest(input testClientInput) graphqlClient {
 
 		return &http.Response{
 			StatusCode: input.statusToReturn,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(input.payloadToReturn)),
+			Body:       io.NopCloser(bytes.NewBufferString(input.payloadToReturn)),
 			Header:     make(http.Header),
 		}
 	})
@@ -80,9 +80,9 @@ type fakeGraphqlResponseLocation struct {
 // Actual responses seen in GraphiQL have path and locations elements in the error response.
 type fakeGraphqlResponseError struct {
 	Message    string                            `json:"message"`
+	Extensions fakeGraphqlResponseErrorExtension `json:"extensions"`
 	Path       []string                          `json:"path"`
 	Locations  []fakeGraphqlResponseLocation     `json:"locations"`
-	Extensions fakeGraphqlResponseErrorExtension `json:"extensions"`
 }
 
 type fakeGraphqlResponsePayload struct {
@@ -92,8 +92,8 @@ type fakeGraphqlResponsePayload struct {
 
 type fakeGraphqlResponseProblem struct {
 	Message string
-	Field   []string
 	Type    internal.GraphQLProblemType
+	Field   []string
 }
 
 // Utility function(s):
