@@ -697,6 +697,125 @@ func TestDeleteServiceAccount(t *testing.T) {
 
 }
 
+func TestServiceAccountLogin(t *testing.T) {
+	serviceAccountPath := "service/account/path"
+	inputToken := "some-input-token"
+	outputToken := "some-output-token"
+	testExpiresIn := 25 * time.Second
+	testExpiresInSeconds := int(testExpiresIn / time.Second)
+
+	type graphqlServiceAccountLoginMutation struct {
+		Token     string                       `json:"token"`
+		ExpiresIn int                          `json:"expiresIn"` // in seconds to match API
+		Problems  []fakeGraphqlResponseProblem `json:"problems"`
+	}
+
+	type graphqlServiceAccountLoginPayload struct {
+		ServiceAccountLogin graphqlServiceAccountLoginMutation `json:"serviceAccountLogin"`
+	}
+
+	// test cases
+	type testCase struct {
+		responsePayload interface{}
+		input           *types.ServiceAccountLoginInput
+		name            string
+		expectToken     string
+		expectExpiresIn time.Duration
+		expectErrorCode ErrorCode
+	}
+
+	testCases := []testCase{
+
+		// positive
+		{
+			name: "Successfully logged in to service account",
+			input: &types.ServiceAccountLoginInput{
+				ServiceAccountPath: serviceAccountPath,
+				Token:              inputToken,
+			},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlServiceAccountLoginPayload{
+					ServiceAccountLogin: graphqlServiceAccountLoginMutation{
+						Token:     outputToken,
+						ExpiresIn: testExpiresInSeconds,
+					},
+				},
+			},
+			expectToken:     outputToken,
+			expectExpiresIn: testExpiresIn,
+		},
+
+		// negative: mutation returns error
+		{
+			name:  "negative: service account login mutation returns error",
+			input: &types.ServiceAccountLoginInput{},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "ERROR: JWT is missing issuer claim",
+						Path: []string{
+							"serviceAccountLogin",
+						},
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "UNAUTHENTICATED", // could also use UNAUTHORIZED
+						},
+					},
+				},
+			},
+			expectErrorCode: ErrUnauthorized,
+		},
+
+		// negative: mutation behaves as if the specified service account did not exist
+		{
+			name:  "negative: mutation behaves as if the specified service account did not exist",
+			input: &types.ServiceAccountLoginInput{},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlServiceAccountLoginPayload{
+					ServiceAccountLogin: graphqlServiceAccountLoginMutation{
+						Problems: []fakeGraphqlResponseProblem{
+							{
+								Message: "service account with path does/not/exist not found",
+								Type:    "NOT_FOUND",
+								Field:   []string{},
+							},
+						},
+					},
+				},
+			},
+			expectErrorCode: ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.ServiceAccount = NewServiceAccount(client)
+
+			// Call the method being tested.
+			actualResponse, actualError := client.ServiceAccount.Login(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			if test.expectToken != "" {
+				assert.Equal(t, test.expectToken, actualResponse.Token)
+				assert.Equal(t, test.expectExpiresIn, actualResponse.ExpiresIn)
+			}
+		})
+	}
+}
+
 // Utility functions:
 
 func checkServiceAccount(t *testing.T, expectServiceAccount, actualServiceAccount *types.ServiceAccount) {

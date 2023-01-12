@@ -2,6 +2,7 @@ package tharsis
 
 import (
 	"context"
+	"time"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -18,6 +19,8 @@ type ServiceAccount interface {
 		input *types.UpdateServiceAccountInput) (*types.ServiceAccount, error)
 	DeleteServiceAccount(ctx context.Context,
 		input *types.DeleteServiceAccountInput) error
+	Login(ctx context.Context,
+		input *types.ServiceAccountLoginInput) (*types.ServiceAccountLoginResponse, error)
 }
 
 type serviceAccount struct {
@@ -160,6 +163,40 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 	}
 
 	return nil
+}
+
+// Login logs in to a service account.
+func (m *serviceAccount) Login(ctx context.Context,
+	input *types.ServiceAccountLoginInput) (*types.ServiceAccountLoginResponse, error) {
+
+	var wrappedLogin struct {
+		ServiceAccountLogin struct {
+			Token     graphql.String
+			ExpiresIn graphql.Int
+			Problems  []internal.GraphQLProblem
+		} `graphql:"serviceAccountLogin(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute the mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, &wrappedLogin, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errorFromGraphqlProblems(wrappedLogin.ServiceAccountLogin.Problems); err != nil {
+		return nil, err
+	}
+
+	// The API returns the duration to expiration in seconds.  This method returns a time.Duration.
+	// The conversion of the int to time.Duration is required by the compiler.
+	return &types.ServiceAccountLoginResponse{
+		Token:     string(wrappedLogin.ServiceAccountLogin.Token),
+		ExpiresIn: time.Duration(int(wrappedLogin.ServiceAccountLogin.ExpiresIn)) * time.Second,
+	}, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////
