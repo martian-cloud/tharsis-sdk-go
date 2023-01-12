@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 // OIDCTrustPolicy models one trust policy under a service account.
 type OIDCTrustPolicy struct {
 	BoundClaims map[string]string `json:"boundClaims"`
@@ -39,6 +41,18 @@ type UpdateServiceAccountInput struct {
 // DeleteServiceAccountInput is the input for deleting a service account.
 type DeleteServiceAccountInput struct {
 	ID string `json:"id"`
+}
+
+// ServiceAccountLoginInput is the input for logging in to a service account.
+type ServiceAccountLoginInput struct {
+	ServiceAccountPath string `json:"serviceAccountPath"`
+	Token              string `json:"token"`
+}
+
+// ServiceAccountLoginResponse is the output from logging in to a service account.
+type ServiceAccountLoginResponse struct {
+	Token     string        `json:"token"`
+	ExpiresIn time.Duration `json:"expiresIn"`
 }
 
 // The End.

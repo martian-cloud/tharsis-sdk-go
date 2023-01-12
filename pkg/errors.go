@@ -39,6 +39,7 @@ var graphqlErrorCodeToSDKErrorCode = map[string]ErrorCode{
 	"FORBIDDEN":             ErrForbidden,
 	"RATE_LIMIT_EXCEEDED":   ErrTooManyRequests,
 	"UNAUTHENTICATED":       ErrUnauthorized,
+	"UNAUTHORIZED":          ErrUnauthorized,
 }
 
 var graphqlProblemTypeToSDKErrorCode = map[internal.GraphQLProblemType]ErrorCode{
@@ -91,6 +92,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("<%s>", e.Code)
 }
 
+// Unwrap unwraps an error.
 func (e *Error) Unwrap() error {
 	return e.Err
 }

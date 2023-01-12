@@ -6,30 +6,44 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 // Provides tokens suitable for use by a service account, including automatic renewal.
 
 const (
-	loginPath = "v1/serviceaccounts/login"
-	loginType = "service-account-token"
-	loginJSON = "application/json"
+	graphQLSuffix = "graphql"
 
 	expirationGuardband = 30 * time.Second // seconds of guardband for expiration time
 )
 
-// Nested structures to use to log in:
-// More proper to make each layer its own named type--according to StackOverflow.
+// loginBody is returned by the raw GraphQL mutation.
+// When the token is expired (and likely other ways), Errors is populated and Data is null.
 type loginBody struct {
 	Data struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			ServiceAccountPath string `json:"service-account-path"`
-			Token              string `json:"token"`
-		} `json:"attributes"`
+		ServiceAccountLogin struct {
+			Token     *string `json:"token"`
+			ExpiresIn *int    `json:"expiresIn"`
+			Problems  []struct {
+				Message string   `json:"message"`
+				Type    string   `json:"type"`
+				Field   []string `json:"field"`
+			} `json:"problems"`
+		} `json:"serviceAccountLogin"`
 	} `json:"data"`
+	Errors []struct {
+		Message    string   `json:"message"`
+		Path       []string `json:"path"`
+		Extensions struct {
+			Code string `json:"code"`
+		} `json:"extensions"`
+	} `json:"errors"`
 }
 
 // serviceAccountTokenProvider implements Provider.
@@ -37,8 +51,8 @@ type serviceAccountTokenProvider struct {
 	options *options
 	// The temporary/dynamic service account token, with expiration.
 	// For thread safety, the token and its expiration with a mutex are protected by a mutex.
-	token    *tokenInfo
-	loginURL string
+	token       *tokenInfo
+	endpointURL string
 	// The permanent/static values from constructor arguments, environment variables, etc.
 }
 
@@ -69,7 +83,7 @@ func NewServiceAccountTokenProvider(endpointURL, accountPath, token string) (Tok
 
 	serviceAccountProvider := serviceAccountTokenProvider{
 		// For the login URL, do not use path.Join to combine the URL and the path.  It corrupts "//" to "/".
-		loginURL: endpointURL + "/" + loginPath,
+		endpointURL: endpointURL,
 		options: &options{
 			serviceAccountPath: accountPath,
 			firstTokenValue:    token,
@@ -108,30 +122,45 @@ func (p *serviceAccountTokenProvider) isTokenExpired() bool {
 
 func (p *serviceAccountTokenProvider) renewToken() error {
 
-	reqBody, err := json.Marshal(
-		loginBody{
-			Data: struct {
-				Type       string `json:"type"`
-				Attributes struct {
-					ServiceAccountPath string `json:"service-account-path"`
-					Token              string `json:"token"`
-				} `json:"attributes"`
-			}{
-				Type: loginType,
-				Attributes: struct {
-					ServiceAccountPath string `json:"service-account-path"`
-					Token              string `json:"token"`
-				}{
-					ServiceAccountPath: p.options.serviceAccountPath,
-					Token:              p.options.firstTokenValue,
-				},
-			},
-		})
+	// The request here is sent via an ordinary HTTP client rather than the GraphQL client used elsewhere,
+	// because this module is created by config.Load, which does not have the GraphQL client available.
+	// The normal GraphQL client is created in tharsis.NewClient.
+
+	graphQLEndpoint, err := url.Parse(p.endpointURL)
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Post(p.loginURL, loginJSON, bytes.NewReader(reqBody))
+	graphQLEndpoint.Path = path.Join(graphQLEndpoint.Path, graphQLSuffix)
+
+	mutationCore := fmt.Sprintf(
+		`mutation {
+			serviceAccountLogin(
+				input:{
+					serviceAccountPath: "%s"
+					token:              "%s"
+				}
+			) {
+				token
+				expiresIn
+				problems{
+					message
+					type
+				}
+			}
+		}`,
+		p.options.serviceAccountPath, p.options.firstTokenValue)
+
+	type reqType struct {
+		Query string `json:"query"`
+	}
+
+	reqBody, err := json.Marshal(reqType{Query: mutationCore})
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(graphQLEndpoint.String(), "", bytes.NewReader(reqBody))
 	if err != nil {
 		return err
 	}
@@ -153,18 +182,95 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 		return err
 	}
 
-	// FIXME: For now, assume the service account token expires in 300 second.
-	// The expiration time will be added to the response structure later on.
-	bogusExpire := time.Now().Add(300 * time.Second)
+	// Check for GraphQL errors in the response (even if the status code is 'ok').
+	if len(gotRespBody.Errors) > 0 {
+		return fmt.Errorf("service account token renewal failed: errors in response body: %#v", gotRespBody.Errors)
+	}
+
+	// Must check for GraphQL problems in the response.
+	// All cases of user input should have been mapped by the API into GraphQL Problems.
+	if len(gotRespBody.Data.ServiceAccountLogin.Problems) > 0 {
+
+		// For now, parse the incoming problem into an error without the aid of the
+		// errorFromGraphqlProblems from the errors module, while trying to mimic its function.
+		// See below for a map, a type, and its methods copied from the errors module.
+
+		var result error
+		for _, problem := range gotRespBody.Data.ServiceAccountLogin.Problems {
+
+			code, ok := graphqlErrorCodeToSDKErrorCode[problem.Type]
+			if !ok {
+				code = "internal error"
+			}
+
+			result = multierror.Append(result, &localError{
+				Code: code,
+				Msg:  problem.Message,
+			})
+		}
+
+		return result
+	}
+
+	// If the API server is not working properly (no KMS access, for example), the pointer
+	//  fields in the response structure can be nil.  Check for that to avoid a panic.
+	if gotRespBody.Data.ServiceAccountLogin.Token == nil {
+		return fmt.Errorf("service account token renewal failed: nil token field in response")
+	}
+	if gotRespBody.Data.ServiceAccountLogin.ExpiresIn == nil {
+		return fmt.Errorf("service account token renewal failed: nil expiration field in response")
+	}
 
 	// Store the (temporary) token and expiration time.
 	p.token.mutex.Lock()
-	p.token.token = gotRespBody.Data.Attributes.Token
-	// FIXME: Fix this:
-	p.token.expires = &bogusExpire
+	p.token.token = *gotRespBody.Data.ServiceAccountLogin.Token
+	expiresWhen := time.Now().Add(time.Duration(*gotRespBody.Data.ServiceAccountLogin.ExpiresIn) * time.Second)
+	p.token.expires = &expiresWhen
 	p.token.mutex.Unlock()
 
 	return nil
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+// This map, type, and its methods are (for now) copied from the errors module.
+
+var graphqlErrorCodeToSDKErrorCode = map[string]string{
+	"INTERNAL_SERVER_ERROR": "internal error",
+	"BAD_REQUEST":           "bad request",
+	"NOT_IMPLEMENTED":       "not implemented",
+	"CONFLICT":              "conflict",
+	"OPTIMISTIC_LOCK":       "optimistic lock",
+	"NOT_FOUND":             "not found",
+	"FORBIDDEN":             "forbidden",
+	"RATE_LIMIT_EXCEEDED":   "too many requests",
+	"UNAUTHENTICATED":       "unauthorized",
+	"UNAUTHORIZED":          "unauthorized",
+}
+
+// localError represents an error returned by the Tharsis API
+type localError struct {
+	Err  error
+	Code string
+	Msg  string
+}
+
+func (e *localError) Error() string {
+	if e.Msg != "" && e.Err != nil {
+		var b strings.Builder
+		b.WriteString(e.Msg)
+		b.WriteString(": ")
+		b.WriteString(e.Err.Error())
+		return b.String()
+	} else if e.Msg != "" {
+		return e.Msg
+	} else if e.Err != nil {
+		return e.Err.Error()
+	}
+	return fmt.Sprintf("<%s>", e.Code)
+}
+func (e *localError) Unwrap() error {
+	return e.Err
 }
 
 // The End.
