@@ -1,18 +1,22 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 )
 
 func TestConfigLoad(t *testing.T) {
 
 	clearEnvVars()
+
+	testLogger := log.Default()
+	testNoopProvider := auth.NewNoopTokenProvider()
+	testEndpoint := "http://some/test/endpoint"
 
 	tests := []struct {
 		expectedErr error
@@ -21,19 +25,20 @@ func TestConfigLoad(t *testing.T) {
 		testName    string
 	}{
 		{
-			testName:    "empty",
-			input:       Config{Logger: log.Default()},
-			expectedCfg: nil,
-			expectedErr: fmt.Errorf("unable to create a token provider:" +
-				" to use a service account token, set environment variables" +
-				" THARSIS_SERVICE_ACCOUNT_PATH and THARSIS_SERVICE_ACCOUNT_TOKEN;" +
-				" to use a static token, set environment variable THARSIS_STATIC_TOKEN"),
+			testName: "empty",
+			input:    Config{Logger: testLogger},
+			expectedCfg: &Config{
+				Logger:        log.Default(),
+				TokenProvider: testNoopProvider,
+				Endpoint:      testEndpoint,
+			},
+			expectedErr: nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.testName, func(t *testing.T) {
-			actual, err := Load(WithLogger(log.Default()))
+			actual, err := Load(WithLogger(testLogger), WithEndpoint(testEndpoint))
 			assert.Equal(t, test.expectedErr, err)
 			assert.True(t, reflect.DeepEqual(test.expectedCfg, actual))
 		})

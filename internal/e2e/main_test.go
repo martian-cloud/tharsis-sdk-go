@@ -71,7 +71,6 @@ func createClient() (*tharsis.Client, error) {
 // It returns a function that can tear down things afterward.
 //
 // Experiments showed that trying to handle flags here does not work.
-//
 func setup(ctx context.Context, client *tharsis.Client) (func(client *tharsis.Client) error, error) {
 	log.Println("Setting up Tharsis SDK integration tests...")
 

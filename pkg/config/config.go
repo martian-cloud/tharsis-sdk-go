@@ -82,11 +82,9 @@ func Load(optFns ...func(*LoadOptions) error) (*Config, error) {
 		}
 	}
 
-	// If still no token provider, return an error.
+	// If still no token provider, install a noop token provider that will return an error if GetToken is called.
 	if c.TokenProvider == nil {
-		return nil, fmt.Errorf("unable to create a token provider: %s; %s",
-			"to use a service account token, set environment variables THARSIS_SERVICE_ACCOUNT_PATH and THARSIS_SERVICE_ACCOUNT_TOKEN",
-			"to use a static token, set environment variable THARSIS_STATIC_TOKEN")
+		c.TokenProvider = auth.NewNoopTokenProvider()
 	}
 
 	// Validate the config.
