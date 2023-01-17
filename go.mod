@@ -1,6 +1,6 @@
 module gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go
 
-go 1.17
+go 1.18
 
 require (
 	github.com/aws/smithy-go v1.13.5
@@ -24,7 +24,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/klauspost/compress v1.15.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
