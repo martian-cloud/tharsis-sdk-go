@@ -67,7 +67,7 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 		"id": graphql.String(input.ID),
 	}
 
-	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (m *managedIdentity) UpdateManagedIdentity(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (m *managedIdentity) DeleteManagedIdentity(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func (m *managedIdentity) CreateManagedIdentityCredentials(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (m *managedIdentity) AssignManagedIdentityToWorkspace(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedAssign, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedAssign, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedUnassign, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedUnassign, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (m *managedIdentity) GetManagedIdentityAccessRules(ctx context.Context,
 		"id": graphql.String(input.ID),
 	}
 
-	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (m *managedIdentity) CreateManagedIdentityAccessRule(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func (m *managedIdentity) GetManagedIdentityAccessRule(ctx context.Context,
 
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +348,7 @@ func (m *managedIdentity) UpdateManagedIdentityAccessRule(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +375,7 @@ func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}

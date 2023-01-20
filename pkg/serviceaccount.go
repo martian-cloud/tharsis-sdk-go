@@ -19,8 +19,8 @@ type ServiceAccount interface {
 		input *types.UpdateServiceAccountInput) (*types.ServiceAccount, error)
 	DeleteServiceAccount(ctx context.Context,
 		input *types.DeleteServiceAccountInput) error
-	Login(ctx context.Context,
-		input *types.ServiceAccountLoginInput) (*types.ServiceAccountLoginResponse, error)
+	CreateToken(ctx context.Context,
+		input *types.ServiceAccountCreateTokenInput) (*types.ServiceAccountCreateTokenResponse, error)
 }
 
 type serviceAccount struct {
@@ -62,7 +62,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 		"id": graphql.String(input.ID),
 	}
 
-	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}
@@ -165,37 +165,37 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 	return nil
 }
 
-// Login logs in to a service account.
-func (m *serviceAccount) Login(ctx context.Context,
-	input *types.ServiceAccountLoginInput) (*types.ServiceAccountLoginResponse, error) {
+// CreateToken  logs in to a service account.
+func (m *serviceAccount) CreateToken(ctx context.Context,
+	input *types.ServiceAccountCreateTokenInput) (*types.ServiceAccountCreateTokenResponse, error) {
 
-	var wrappedLogin struct {
-		ServiceAccountLogin struct {
+	var wrappedCreateToken struct {
+		ServiceAccountCreateToken struct {
 			Token     graphql.String
 			ExpiresIn graphql.Int
 			Problems  []internal.GraphQLProblem
-		} `graphql:"serviceAccountLogin(input: $input)"`
+		} `graphql:"serviceAccountCreateToken(input: $input)"`
 	}
 
 	variables := map[string]interface{}{
 		"input": *input,
 	}
 
-	// Execute the mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedLogin, variables)
+	// Execute the mutation request, with_OUT_ auth.
+	err := m.client.graphqlClient.Mutate(ctx, false, &wrappedCreateToken, variables)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedLogin.ServiceAccountLogin.Problems); err != nil {
+	if err = errorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
 		return nil, err
 	}
 
 	// The API returns the duration to expiration in seconds.  This method returns a time.Duration.
 	// The conversion of the int to time.Duration is required by the compiler.
-	return &types.ServiceAccountLoginResponse{
-		Token:     string(wrappedLogin.ServiceAccountLogin.Token),
-		ExpiresIn: time.Duration(int(wrappedLogin.ServiceAccountLogin.ExpiresIn)) * time.Second,
+	return &types.ServiceAccountCreateTokenResponse{
+		Token:     string(wrappedCreateToken.ServiceAccountCreateToken.Token),
+		ExpiresIn: time.Duration(int(wrappedCreateToken.ServiceAccountCreateToken.ExpiresIn)) * time.Second,
 	}, nil
 }
 

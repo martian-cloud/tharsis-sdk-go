@@ -41,7 +41,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 		}
 		variables := map[string]interface{}{"fullPath": graphql.String(*input.Path)}
 
-		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		err := g.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 		}
 		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
 
-		err := g.client.graphqlClient.Query(ctx, &target, variables)
+		err := g.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +132,7 @@ func (g *group) CreateGroup(ctx context.Context, input *types.CreateGroupInput) 
 		"input": *input,
 	}
 
-	err := g.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := g.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (g *group) UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) 
 		"input": *input,
 	}
 
-	err := g.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := g.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 		"input": *input,
 	}
 
-	err := g.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := g.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}
@@ -288,7 +288,7 @@ func getGroups(ctx context.Context, client graphqlClient,
 	variables["sort"] = GroupSort(*input.Sort)
 
 	// Now, do the query.
-	err := client.Query(ctx, queryStructP, variables)
+	err := client.Query(ctx, true, queryStructP, variables)
 	if err != nil {
 		return nil, err
 	}

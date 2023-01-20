@@ -2,7 +2,6 @@
 package tharsis
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,38 +9,12 @@ import (
 	"path"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 )
 
 const (
 	graphQLSuffix = "graphql"
 )
-
-type graphqlClient interface {
-	Query(ctx context.Context, q interface{}, variables map[string]interface{}, options ...graphql.Option) error
-	Mutate(ctx context.Context, m interface{}, variables map[string]interface{}, options ...graphql.Option) error
-}
-
-type graphqlClientWrapper struct {
-	client *graphql.Client
-}
-
-func (g *graphqlClientWrapper) Query(ctx context.Context, q interface{}, variables map[string]interface{}, options ...graphql.Option) error {
-	err := g.client.Query(ctx, q, variables, options...)
-	if err != nil {
-		return errorFromGraphqlError(err)
-	}
-	return nil
-}
-
-func (g *graphqlClientWrapper) Mutate(ctx context.Context, m interface{}, variables map[string]interface{}, options ...graphql.Option) error {
-	err := g.client.Mutate(ctx, m, variables, options...)
-	if err != nil {
-		return errorFromGraphqlError(err)
-	}
-	return nil
-}
 
 // Client provides access for the client/user to access the SDK functions.
 // Note: When adding a new field here, make sure to assign the field near the end of the NewClient function.
@@ -91,18 +64,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 
 	httpClient := retryClient.StandardClient()
 
-	wrappedGraphqlClient := graphqlClientWrapper{
-		client: graphql.NewClient(graphQLEndpoint.String(), httpClient).
-			WithRequestModifier(graphql.RequestModifier(
-				func(req *http.Request) {
-					authToken, gtErr := cfg.TokenProvider.GetToken()
-					if gtErr != nil {
-						cfg.Logger.Printf("failed to get authentication token %v", gtErr)
-						return
-					}
-					req.Header.Set("Authorization", "Bearer "+authToken)
-				})),
-	}
+	wrappedGraphqlClient := newGraphqlClientWrapper(graphQLEndpoint.String(), httpClient, cfg.TokenProvider, cfg.Logger)
 
 	subscriptionClient, err := newLazySubscriptionClient(cfg, httpClient, graphQLEndpoint.String())
 	if err != nil {
@@ -113,7 +75,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		cfg:                       cfg,
 		logger:                    cfg.Logger,
 		httpClient:                httpClient,
-		graphqlClient:             &wrappedGraphqlClient,
+		graphqlClient:             wrappedGraphqlClient,
 		graphqlSubscriptionClient: subscriptionClient,
 	}
 

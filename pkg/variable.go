@@ -55,7 +55,7 @@ func (m *variable) CreateVariable(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (m *variable) GetVariable(ctx context.Context,
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := m.client.graphqlClient.Query(ctx, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (m *variable) UpdateVariable(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (m *variable) DeleteVariable(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVa
 		"input": *input,
 	}
 
-	err := m.client.graphqlClient.Mutate(ctx, &wrappedSet, variables)
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedSet, variables)
 	if err != nil {
 		return err
 	}

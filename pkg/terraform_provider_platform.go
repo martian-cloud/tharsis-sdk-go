@@ -35,7 +35,7 @@ func (p *providerPlatform) GetProviderPlatform(ctx context.Context, input *types
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := p.client.graphqlClient.Query(ctx, &target, variables)
+	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (p *providerPlatform) CreateProviderPlatform(ctx context.Context, input *ty
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}

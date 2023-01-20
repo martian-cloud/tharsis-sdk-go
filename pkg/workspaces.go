@@ -42,7 +42,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			"fullPath": graphql.String(*input.Path),
 		}
 
-		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 
 		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
 
-		err := ws.client.graphqlClient.Query(ctx, &target, variables)
+		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func (ws *workspaces) CreateWorkspace(ctx context.Context,
 		"input": *input,
 	}
 
-	err := ws.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := ws.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (ws *workspaces) UpdateWorkspace(ctx context.Context,
 		"input": *input,
 	}
 
-	err := ws.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := ws.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 		"input": *input,
 	}
 
-	err := ws.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := ws.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,
 		"fullPath": graphql.String(input.Path),
 	}
 
-	err := ws.client.graphqlClient.Query(ctx, &target, variables)
+	err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +332,7 @@ func getWorkspaces(ctx context.Context, client graphqlClient,
 	variables["sort"] = WorkspaceSort(*input.Sort)
 
 	// Now, do the query.
-	err := client.Query(ctx, queryStructP, variables)
+	err := client.Query(ctx, true, queryStructP, variables)
 	if err != nil {
 		return nil, err
 	}

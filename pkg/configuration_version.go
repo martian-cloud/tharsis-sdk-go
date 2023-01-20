@@ -48,7 +48,7 @@ func (cv *configurationVersion) GetConfigurationVersion(ctx context.Context,
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := cv.client.graphqlClient.Query(ctx, &target, variables)
+	err := cv.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (cv *configurationVersion) CreateConfigurationVersion(ctx context.Context,
 		"input": *input,
 	}
 
-	err := cv.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := cv.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
