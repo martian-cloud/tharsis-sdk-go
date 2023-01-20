@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"testing"
 
-	"github.com/hasura/go-graphql-client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 )
 
 // See http://hassansin.github.io/Unit-Testing-http-client-in-Go#2-by-replacing-httptransport
@@ -27,6 +28,18 @@ func newTestClient(fn roundTripFunc) *http.Client {
 		Transport: roundTripFunc(fn),
 	}
 }
+
+// Dummy token provider for this test.
+type dummyTokenProvider struct {
+}
+
+func (d dummyTokenProvider) GetToken() (string, error) {
+	return "", nil
+}
+
+var (
+	_ auth.TokenProvider = dummyTokenProvider{}
+)
 
 // testClientInput
 type testClientInput struct {
@@ -52,7 +65,7 @@ func newGraphQLClientForTest(input testClientInput) graphqlClient {
 		}
 	})
 
-	return &graphqlClientWrapper{client: graphql.NewClient("graphql-client-url", httpClient)}
+	return newGraphqlClientWrapper("graphql-client-url", httpClient, dummyTokenProvider{}, log.Default())
 }
 
 type fakeTokenProvider struct {

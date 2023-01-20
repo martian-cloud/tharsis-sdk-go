@@ -32,7 +32,7 @@ func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformPro
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := p.client.graphqlClient.Query(ctx, &target, variables)
+	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}

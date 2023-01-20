@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 )
 
 func TestConfigLoad(t *testing.T) {
@@ -15,7 +14,6 @@ func TestConfigLoad(t *testing.T) {
 	clearEnvVars()
 
 	testLogger := log.Default()
-	testNoopProvider := auth.NewNoopTokenProvider()
 	testEndpoint := "http://some/test/endpoint"
 
 	tests := []struct {
@@ -28,9 +26,8 @@ func TestConfigLoad(t *testing.T) {
 			testName: "empty",
 			input:    Config{Logger: testLogger},
 			expectedCfg: &Config{
-				Logger:        log.Default(),
-				TokenProvider: testNoopProvider,
-				Endpoint:      testEndpoint,
+				Logger:   log.Default(),
+				Endpoint: testEndpoint,
 			},
 			expectedErr: nil,
 		},

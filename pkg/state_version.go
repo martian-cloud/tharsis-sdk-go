@@ -42,7 +42,7 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 		"input": *input,
 	}
 
-	err := s.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := s.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}

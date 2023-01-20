@@ -37,7 +37,7 @@ func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTe
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := p.client.graphqlClient.Query(ctx, &target, variables)
+	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (p *moduleVersion) CreateModuleVersion(ctx context.Context, input *types.Cr
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (p *moduleVersion) DeleteModuleVersion(ctx context.Context, input *types.De
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}

@@ -35,7 +35,7 @@ func (a *apply) UpdateApply(ctx context.Context, input *types.UpdateApplyInput) 
 		"input": *input,
 	}
 
-	err := a.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := a.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}

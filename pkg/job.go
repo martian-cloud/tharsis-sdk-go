@@ -36,7 +36,7 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 		"id": graphql.String(input.ID),
 	}
 
-	err := j.client.graphqlClient.Query(ctx, &target, variables)
+	err := j.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 		"input": *input,
 	}
 
-	err := j.client.graphqlClient.Mutate(ctx, &wrappedSave, variables)
+	err := j.client.graphqlClient.Mutate(ctx, true, &wrappedSave, variables)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (j *job) GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (cha
 				} `graphql:"job(id: $id)"`
 			}
 
-			err := j.client.graphqlClient.Query(ctx, &target, variables)
+			err := j.client.graphqlClient.Query(ctx, true, &target, variables)
 			if err != nil {
 				j.client.cfg.Logger.Printf("error: failed to query job: %s", err)
 				return

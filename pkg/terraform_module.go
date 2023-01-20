@@ -34,7 +34,7 @@ func (p *module) GetModule(ctx context.Context, input *types.GetTerraformModuleI
 	}
 	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err := p.client.graphqlClient.Query(ctx, &target, variables)
+	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (p *module) CreateModule(ctx context.Context, input *types.CreateTerraformM
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (p *module) UpdateModule(ctx context.Context, input *types.UpdateTerraformM
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (p *module) DeleteModule(ctx context.Context, input *types.DeleteTerraformM
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedDelete, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
 	if err != nil {
 		return err
 	}

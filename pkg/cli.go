@@ -37,7 +37,7 @@ func (t *terraformCLIVersion) CreateTerraformCLIDownloadURL(ctx context.Context,
 	}
 
 	// Execute mutation request.
-	err := t.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := t.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return "", err
 	}

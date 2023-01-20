@@ -46,7 +46,7 @@ func (r *run) GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run,
 		"id": graphql.String(input.ID),
 	}
 
-	err := r.client.graphqlClient.Query(ctx, &target, variables)
+	err := r.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]
 	}
 
 	// Query for variables.
-	err := r.client.graphqlClient.Query(ctx, &target, variables)
+	err := r.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (r *run) CreateRun(ctx context.Context, input *types.CreateRunInput) (*type
 		"input": *input,
 	}
 
-	err := r.client.graphqlClient.Mutate(ctx, &wrappedCreate, variables)
+	err := r.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (r *run) ApplyRun(ctx context.Context, input *types.ApplyRunInput) (*types.
 		"input": *input,
 	}
 
-	err := r.client.graphqlClient.Mutate(ctx, &wrappedApply, variables)
+	err := r.client.graphqlClient.Mutate(ctx, true, &wrappedApply, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (r *run) CancelRun(ctx context.Context, input *types.CancelRunInput) (*type
 		"input": *input,
 	}
 
-	err := r.client.graphqlClient.Mutate(ctx, &wrappedCancel, variables)
+	err := r.client.graphqlClient.Mutate(ctx, true, &wrappedCancel, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func getRuns(ctx context.Context, client graphqlClient,
 	variables["sort"] = RunSort(*input.Sort)
 
 	// Now, do the query.
-	err := client.Query(ctx, queryStructP, variables)
+	err := client.Query(ctx, true, queryStructP, variables)
 	if err != nil {
 		return nil, err
 	}

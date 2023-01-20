@@ -82,10 +82,7 @@ func Load(optFns ...func(*LoadOptions) error) (*Config, error) {
 		}
 	}
 
-	// If still no token provider, install a noop token provider that will return an error if GetToken is called.
-	if c.TokenProvider == nil {
-		c.TokenProvider = auth.NewNoopTokenProvider()
-	}
+	// If still no token provider, leave c.TokenProvider nil.
 
 	// Validate the config.
 	if err := c.Validate(); err != nil {

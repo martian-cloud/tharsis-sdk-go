@@ -23,11 +23,11 @@ const (
 	expirationGuardband = 30 * time.Second // seconds of guardband for expiration time
 )
 
-// loginBody is returned by the raw GraphQL mutation.
-// When the token is expired (and likely other ways), Errors is populated and Data is null.
-type loginBody struct {
+// createTokenBody is returned by the raw GraphQL mutation.
+// For some API server error conditions, Errors is populated and Data is null.
+type createTokenBody struct {
 	Data struct {
-		ServiceAccountLogin struct {
+		ServiceAccountCreateToken struct {
 			Token     *string `json:"token"`
 			ExpiresIn *int    `json:"expiresIn"`
 			Problems  []struct {
@@ -35,7 +35,7 @@ type loginBody struct {
 				Type    string   `json:"type"`
 				Field   []string `json:"field"`
 			} `json:"problems"`
-		} `json:"serviceAccountLogin"`
+		} `json:"serviceAccountCreateToken"`
 	} `json:"data"`
 	Errors []struct {
 		Message    string   `json:"message"`
@@ -82,7 +82,7 @@ func NewServiceAccountTokenProvider(endpointURL, accountPath, token string) (Tok
 	}
 
 	serviceAccountProvider := serviceAccountTokenProvider{
-		// For the login URL, do not use path.Join to combine the URL and the path.  It corrupts "//" to "/".
+		// For the create token URL, do not use path.Join to combine the URL and the path.  It corrupts "//" to "/".
 		endpointURL: endpointURL,
 		options: &options{
 			serviceAccountPath: accountPath,
@@ -135,7 +135,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	mutationCore := fmt.Sprintf(
 		`mutation {
-			serviceAccountLogin(
+			serviceAccountCreateToken(
 				input:{
 					serviceAccountPath: "%s"
 					token:              "%s"
@@ -176,7 +176,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 		return fmt.Errorf("service account token renewal failed: %s", respBody)
 	}
 
-	var gotRespBody loginBody
+	var gotRespBody createTokenBody
 	err = json.Unmarshal(respBody, &gotRespBody)
 	if err != nil {
 		return err
@@ -189,14 +189,14 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// Must check for GraphQL problems in the response.
 	// All cases of user input should have been mapped by the API into GraphQL Problems.
-	if len(gotRespBody.Data.ServiceAccountLogin.Problems) > 0 {
+	if len(gotRespBody.Data.ServiceAccountCreateToken.Problems) > 0 {
 
 		// For now, parse the incoming problem into an error without the aid of the
 		// errorFromGraphqlProblems from the errors module, while trying to mimic its function.
 		// See below for a map, a type, and its methods copied from the errors module.
 
 		var result error
-		for _, problem := range gotRespBody.Data.ServiceAccountLogin.Problems {
+		for _, problem := range gotRespBody.Data.ServiceAccountCreateToken.Problems {
 
 			code, ok := graphqlErrorCodeToSDKErrorCode[problem.Type]
 			if !ok {
@@ -214,17 +214,17 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// If the API server is not working properly (no KMS access, for example), the pointer
 	//  fields in the response structure can be nil.  Check for that to avoid a panic.
-	if gotRespBody.Data.ServiceAccountLogin.Token == nil {
+	if gotRespBody.Data.ServiceAccountCreateToken.Token == nil {
 		return fmt.Errorf("service account token renewal failed: nil token field in response")
 	}
-	if gotRespBody.Data.ServiceAccountLogin.ExpiresIn == nil {
+	if gotRespBody.Data.ServiceAccountCreateToken.ExpiresIn == nil {
 		return fmt.Errorf("service account token renewal failed: nil expiration field in response")
 	}
 
 	// Store the (temporary) token and expiration time.
 	p.token.mutex.Lock()
-	p.token.token = *gotRespBody.Data.ServiceAccountLogin.Token
-	expiresWhen := time.Now().Add(time.Duration(*gotRespBody.Data.ServiceAccountLogin.ExpiresIn) * time.Second)
+	p.token.token = *gotRespBody.Data.ServiceAccountCreateToken.Token
+	expiresWhen := time.Now().Add(time.Duration(*gotRespBody.Data.ServiceAccountCreateToken.ExpiresIn) * time.Second)
 	p.token.expires = &expiresWhen
 	p.token.mutex.Unlock()
 

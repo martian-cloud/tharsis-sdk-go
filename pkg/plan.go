@@ -40,7 +40,7 @@ func (p *plan) UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*t
 		"input": *input,
 	}
 
-	err := p.client.graphqlClient.Mutate(ctx, &wrappedUpdate, variables)
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
 	if err != nil {
 		return nil, err
 	}

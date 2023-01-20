@@ -43,14 +43,14 @@ type DeleteServiceAccountInput struct {
 	ID string `json:"id"`
 }
 
-// ServiceAccountLoginInput is the input for logging in to a service account.
-type ServiceAccountLoginInput struct {
+// ServiceAccountCreateTokenInput is the input for logging in to a service account.
+type ServiceAccountCreateTokenInput struct {
 	ServiceAccountPath string `json:"serviceAccountPath"`
 	Token              string `json:"token"`
 }
 
-// ServiceAccountLoginResponse is the output from logging in to a service account.
-type ServiceAccountLoginResponse struct {
+// ServiceAccountCreateTokenResponse is the output from logging in to a service account.
+type ServiceAccountCreateTokenResponse struct {
 	Token     string        `json:"token"`
 	ExpiresIn time.Duration `json:"expiresIn"`
 }

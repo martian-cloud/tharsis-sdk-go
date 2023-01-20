@@ -697,27 +697,27 @@ func TestDeleteServiceAccount(t *testing.T) {
 
 }
 
-func TestServiceAccountLogin(t *testing.T) {
+func TestServiceAccountCreateToken(t *testing.T) {
 	serviceAccountPath := "service/account/path"
 	inputToken := "some-input-token"
 	outputToken := "some-output-token"
 	testExpiresIn := 25 * time.Second
 	testExpiresInSeconds := int(testExpiresIn / time.Second)
 
-	type graphqlServiceAccountLoginMutation struct {
+	type graphqlServiceAccountCreateTokenMutation struct {
 		Token     string                       `json:"token"`
 		ExpiresIn int                          `json:"expiresIn"` // in seconds to match API
 		Problems  []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
-	type graphqlServiceAccountLoginPayload struct {
-		ServiceAccountLogin graphqlServiceAccountLoginMutation `json:"serviceAccountLogin"`
+	type graphqlServiceAccountCreateTokenPayload struct {
+		ServiceAccountCreateToken graphqlServiceAccountCreateTokenMutation `json:"serviceAccountCreateToken"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload interface{}
-		input           *types.ServiceAccountLoginInput
+		input           *types.ServiceAccountCreateTokenInput
 		name            string
 		expectToken     string
 		expectExpiresIn time.Duration
@@ -729,13 +729,13 @@ func TestServiceAccountLogin(t *testing.T) {
 		// positive
 		{
 			name: "Successfully logged in to service account",
-			input: &types.ServiceAccountLoginInput{
+			input: &types.ServiceAccountCreateTokenInput{
 				ServiceAccountPath: serviceAccountPath,
 				Token:              inputToken,
 			},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlServiceAccountLoginPayload{
-					ServiceAccountLogin: graphqlServiceAccountLoginMutation{
+				Data: graphqlServiceAccountCreateTokenPayload{
+					ServiceAccountCreateToken: graphqlServiceAccountCreateTokenMutation{
 						Token:     outputToken,
 						ExpiresIn: testExpiresInSeconds,
 					},
@@ -747,14 +747,14 @@ func TestServiceAccountLogin(t *testing.T) {
 
 		// negative: mutation returns error
 		{
-			name:  "negative: service account login mutation returns error",
-			input: &types.ServiceAccountLoginInput{},
+			name:  "negative: service account token creation mutation returns error",
+			input: &types.ServiceAccountCreateTokenInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
 				Errors: []fakeGraphqlResponseError{
 					{
 						Message: "ERROR: JWT is missing issuer claim",
 						Path: []string{
-							"serviceAccountLogin",
+							"serviceAccountCreateToken",
 						},
 						Extensions: fakeGraphqlResponseErrorExtension{
 							Code: "UNAUTHENTICATED", // could also use UNAUTHORIZED
@@ -768,10 +768,10 @@ func TestServiceAccountLogin(t *testing.T) {
 		// negative: mutation behaves as if the specified service account did not exist
 		{
 			name:  "negative: mutation behaves as if the specified service account did not exist",
-			input: &types.ServiceAccountLoginInput{},
+			input: &types.ServiceAccountCreateTokenInput{},
 			responsePayload: &fakeGraphqlResponsePayload{
-				Data: graphqlServiceAccountLoginPayload{
-					ServiceAccountLogin: graphqlServiceAccountLoginMutation{
+				Data: graphqlServiceAccountCreateTokenPayload{
+					ServiceAccountCreateToken: graphqlServiceAccountCreateTokenMutation{
 						Problems: []fakeGraphqlResponseProblem{
 							{
 								Message: "service account with path does/not/exist not found",
@@ -805,7 +805,7 @@ func TestServiceAccountLogin(t *testing.T) {
 			client.ServiceAccount = NewServiceAccount(client)
 
 			// Call the method being tested.
-			actualResponse, actualError := client.ServiceAccount.Login(ctx, test.input)
+			actualResponse, actualError := client.ServiceAccount.CreateToken(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 			if test.expectToken != "" {
