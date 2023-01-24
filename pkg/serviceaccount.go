@@ -172,8 +172,8 @@ func (m *serviceAccount) CreateToken(ctx context.Context,
 	var wrappedCreateToken struct {
 		ServiceAccountCreateToken struct {
 			Token     graphql.String
-			ExpiresIn graphql.Int
 			Problems  []internal.GraphQLProblem
+			ExpiresIn graphql.Int
 		} `graphql:"serviceAccountCreateToken(input: $input)"`
 	}
 

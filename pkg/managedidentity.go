@@ -34,6 +34,10 @@ type ManagedIdentity interface {
 		input *types.UpdateManagedIdentityAccessRuleInput) (*types.ManagedIdentityAccessRule, error)
 	DeleteManagedIdentityAccessRule(ctx context.Context,
 		input *types.DeleteManagedIdentityAccessRuleInput) error
+	CreateManagedIdentityAlias(ctx context.Context,
+		input *types.CreateManagedIdentityAliasInput) (*types.ManagedIdentity, error)
+	DeleteManagedIdentityAlias(ctx context.Context,
+		input *types.DeleteManagedIdentityAliasInput) error
 }
 
 type managedIdentity struct {
@@ -154,11 +158,7 @@ func (m *managedIdentity) DeleteManagedIdentity(ctx context.Context,
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentity.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentity.Problems)
 }
 
 // CreateManagedIdentityCredentials returns new managed identity credentials.
@@ -380,11 +380,57 @@ func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAccessRule.Problems); err != nil {
+	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAccessRule.Problems)
+}
+
+func (m *managedIdentity) CreateManagedIdentityAlias(ctx context.Context,
+	input *types.CreateManagedIdentityAliasInput) (*types.ManagedIdentity, error) {
+
+	var wrappedCreate struct {
+		CreateManagedIdentityAlias struct {
+			ManagedIdentity GraphQLManagedIdentity
+			Problems        []internal.GraphQLProblem
+		} `graphql:"createManagedIdentityAlias(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedCreate, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAlias.Problems); err != nil {
+		return nil, err
+	}
+
+	identity := identityFromGraphQL(wrappedCreate.CreateManagedIdentityAlias.ManagedIdentity)
+	return &identity, nil
+}
+
+func (m *managedIdentity) DeleteManagedIdentityAlias(ctx context.Context,
+	input *types.DeleteManagedIdentityAliasInput) error {
+
+	var wrappedDelete struct {
+		DeleteManagedIdentityAlias struct {
+			Problems []internal.GraphQLProblem
+		} `graphql:"deleteManagedIdentityAlias(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	// Execute mutation request.
+	err := m.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAlias.Problems)
 }
 
 // Related types and conversion functions:
@@ -401,17 +447,24 @@ type graphQLManagedIdentityAccessRule struct {
 	AllowedTeams           []graphQLTeam
 }
 
+// graphQLAliasSource is the source managed identity for an alias.
+type graphQLAliasSource struct {
+	ID graphql.String
+}
+
 // GraphQLManagedIdentity represents the insides of the query structure,
 // everything in the managed identity object, and with graphql types.
 type GraphQLManagedIdentity struct {
-	ID           graphql.String
+	AliasSource  *graphQLAliasSource
 	Metadata     internal.GraphQLMetadata
+	ID           graphql.String
 	Type         graphql.String
 	ResourcePath graphql.String
 	Name         graphql.String
 	Description  graphql.String
 	Data         graphql.String
 	CreatedBy    graphql.String
+	IsAlias      graphql.Boolean
 }
 
 // TODO: Some of these functions may not be needed.
@@ -437,7 +490,7 @@ func accessRulesFromGraphQL(g []graphQLManagedIdentityAccessRule) []types.Manage
 
 // identityFromGraphQL converts a GraphQL Managed Identity to an external managed identity.
 func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
-	return types.ManagedIdentity{
+	result := types.ManagedIdentity{
 		Metadata:     internal.MetadataFromGraphQL(g.Metadata, g.ID),
 		Type:         types.ManagedIdentityType(g.Type),
 		ResourcePath: string(g.ResourcePath),
@@ -445,7 +498,14 @@ func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
 		Description:  string(g.Description),
 		Data:         string(g.Data),
 		CreatedBy:    string(g.CreatedBy),
+		IsAlias:      bool(g.IsAlias),
 	}
+
+	if g.AliasSource != nil {
+		result.AliasSourceID = (*string)(&g.AliasSource.ID)
+	}
+
+	return result
 }
 
 // accessRuleFromGraphQL converts a GraphQL Managed Identity Access Rule

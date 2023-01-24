@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -299,6 +300,84 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 	err = client.ManagedIdentity.DeleteManagedIdentity(ctx, &types.DeleteManagedIdentityInput{
 		ID:    createdIdentity.Metadata.ID,
 		Force: true,
+	})
+	assert.Nil(t, err)
+}
+
+func TestCreateDeleteManagedIdentityAlias(t *testing.T) {
+
+	ctx := context.Background()
+	client, err := createClient()
+	assert.Nil(t, err)
+	assert.NotNil(t, client)
+
+	managedIdentityName := "managed-identity-02"
+	managedIdentityIAMRole := "managed-identity-02-iam-role"
+	aliasName := managedIdentityName + "-alias"
+
+	// Prepare managed identity data.
+	bytes, err := json.Marshal(map[string]string{
+		"role": managedIdentityIAMRole,
+	})
+	assert.Nil(t, err)
+
+	// Base64 encode the data.
+	managedIdentityData := base64.StdEncoding.EncodeToString(bytes)
+
+	// Create a child group beneath the root group, so that an alias can be shared up
+	// to the parent group. Reverse isn't possible.
+	identityGroup, err := client.Group.CreateGroup(ctx, &types.CreateGroupInput{
+		Name:        "group-for-managed-identity",
+		ParentPath:  ptr.String(topGroupName),
+		Description: "This is a group created to test managed identity aliases",
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, identityGroup)
+
+	// Create the managed identity first so it can be aliased.
+	createdIdentity, err := client.ManagedIdentity.CreateManagedIdentity(ctx, &types.CreateManagedIdentityInput{
+		Name:        managedIdentityName,
+		Type:        types.ManagedIdentityAWSFederated,
+		Description: "This is a test managed identity",
+		GroupPath:   identityGroup.FullPath,
+		Data:        managedIdentityData,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, createdIdentity)
+
+	// Create the managed identity alias in the root group.
+	createdAlias, err := client.ManagedIdentity.CreateManagedIdentityAlias(ctx, &types.CreateManagedIdentityAliasInput{
+		AliasSourceID: &createdIdentity.Metadata.ID,
+		Name:          aliasName,
+		GroupPath:     topGroupName,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, createdAlias)
+	assert.NotNil(t, createdAlias.AliasSourceID)
+	assert.Equal(t, aliasName, createdAlias.Name)
+	assert.Equal(t, createdIdentity.Description, createdAlias.Description)
+	assert.Equal(t, createdIdentity.Type, createdAlias.Type)
+	assert.Equal(t, strings.Join([]string{topGroupName, aliasName}, "/"), createdAlias.ResourcePath)
+	assert.Equal(t, createdIdentity.Data, createdAlias.Data)
+	assert.Equal(t, createdIdentity.Metadata.ID, *createdAlias.AliasSourceID)
+	assert.True(t, createdAlias.IsAlias)
+
+	err = client.ManagedIdentity.DeleteManagedIdentityAlias(ctx, &types.DeleteManagedIdentityAliasInput{
+		ID:    createdAlias.Metadata.ID,
+		Force: true,
+	})
+	assert.Nil(t, err)
+
+	managedIdentity, err := client.ManagedIdentity.GetManagedIdentity(ctx, &types.GetManagedIdentityInput{
+		ID: createdAlias.Metadata.ID,
+	})
+	assert.Nil(t, managedIdentity)
+	assert.NotNil(t, err) // Expect an error here.
+
+	// Deleting the group will delete the nested managed identity as well.
+	err = client.Group.DeleteGroup(ctx, &types.DeleteGroupInput{
+		ID:    &identityGroup.Metadata.ID,
+		Force: ptr.Bool(true),
 	})
 	assert.Nil(t, err)
 }
