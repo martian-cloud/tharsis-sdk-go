@@ -153,5 +153,5 @@ func errorFromHTTPResponse(r *http.Response) error {
 		sdkErrorCode = mappedCode
 	}
 
-	return newError(sdkErrorCode, "http request recieved http status code %d: %s", r.StatusCode, string(bodyBytes))
+	return newError(sdkErrorCode, "http request received http status code %d: %s", r.StatusCode, string(bodyBytes))
 }

@@ -64,13 +64,15 @@ type AssignManagedIdentityInput struct {
 // It is used as input to and output from some operations.
 type ManagedIdentity struct {
 	// ID resides in the metadata
-	Metadata     ResourceMetadata
-	Type         ManagedIdentityType
-	ResourcePath string
-	Name         string
-	Description  string
-	Data         string
-	CreatedBy    string
+	Metadata      ResourceMetadata
+	Type          ManagedIdentityType
+	AliasSourceID *string
+	ResourcePath  string
+	Name          string
+	Description   string
+	Data          string
+	CreatedBy     string
+	IsAlias       bool
 }
 
 // ManagedIdentityAccessRule represents an access rule for a managed identity.
@@ -109,6 +111,20 @@ type UpdateManagedIdentityAccessRuleInput struct {
 // DeleteManagedIdentityAccessRuleInput is the input for deleting a managed identity access rule.
 type DeleteManagedIdentityAccessRuleInput struct {
 	ID string `json:"id"`
+}
+
+// CreateManagedIdentityAliasInput is the input for creating a managed identity alias.
+type CreateManagedIdentityAliasInput struct {
+	AliasSourceID   *string `json:"aliasSourceId"`
+	AliasSourcePath *string `json:"aliasSourcePath"`
+	Name            string  `json:"name"`
+	GroupPath       string  `json:"groupPath"`
+}
+
+// DeleteManagedIdentityAliasInput is the input for deleting a managed identity alias.
+type DeleteManagedIdentityAliasInput struct {
+	ID    string `json:"id"`
+	Force bool   `json:"force"`
 }
 
 // The End.

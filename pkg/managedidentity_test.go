@@ -672,6 +672,212 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 
 }
 
+func TestCreateManagedIdentityAlias(t *testing.T) {
+	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
+
+	aliasID := "test-alias-1"
+	aliasVersion := "alias-version-1"
+	aliasSourceID := "test-managed-identity-1"
+
+	type graphqlCreateManagedIdentityAliasMutation struct {
+		ManagedIdentity GraphQLManagedIdentity       `json:"managedIdentity"`
+		Problems        []fakeGraphqlResponseProblem `json:"problems"`
+	}
+
+	type graphqlCreateManagedIdentityAliasPayload struct {
+		CreateManagedIdentityAlias graphqlCreateManagedIdentityAliasMutation `json:"createManagedIdentityAlias"`
+	}
+
+	// test cases
+	type testCase struct {
+		responsePayload interface{}
+		input           *types.CreateManagedIdentityAliasInput
+		expectAlias     *types.ManagedIdentity
+		name            string
+		expectErrorCode ErrorCode
+	}
+
+	testCases := []testCase{
+
+		// positive
+		{
+			name: "successfully created managed identity alias",
+			input: &types.CreateManagedIdentityAliasInput{
+				Name:          "test-alias",
+				AliasSourceID: &aliasSourceID,
+				GroupPath:     "test/group",
+			},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlCreateManagedIdentityAliasPayload{
+					CreateManagedIdentityAlias: graphqlCreateManagedIdentityAliasMutation{
+						ManagedIdentity: GraphQLManagedIdentity{
+							ID: graphql.String(aliasID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+								Version:   graphql.String(aliasVersion),
+							},
+							Type:         graphql.String(types.ManagedIdentityAWSFederated),
+							ResourcePath: graphql.String("alias-resource-path"),
+							Name:         graphql.String("test-alias"),
+							Description:  graphql.String("some-description"),
+							Data:         graphql.String("some-data"),
+							CreatedBy:    graphql.String("some-creator"),
+							AliasSource: &graphQLAliasSource{
+								ID: graphql.String(aliasSourceID),
+							},
+							IsAlias: graphql.Boolean(true),
+						},
+					},
+				},
+			},
+			expectAlias: &types.ManagedIdentity{
+				Metadata: types.ResourceMetadata{
+					ID:                   aliasID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              aliasVersion,
+				},
+				Type:          types.ManagedIdentityAWSFederated,
+				ResourcePath:  "alias-resource-path",
+				Name:          "test-alias",
+				Description:   "some-description",
+				Data:          "some-data",
+				CreatedBy:     "some-creator",
+				AliasSourceID: &aliasSourceID,
+				IsAlias:       true,
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.ManagedIdentity = NewManagedIdentity(client)
+
+			// Call the method being tested.
+			actualAlias, actualError := client.ManagedIdentity.CreateManagedIdentityAlias(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			checkIdentity(t, test.expectAlias, actualAlias)
+		})
+	}
+}
+
+func TestDeleteManagedIdentityAlias(t *testing.T) {
+	aliasID := "test-alias-1"
+
+	type graphqlDeleteManagedIdentityAliasMutation struct {
+		Problems []fakeGraphqlResponseProblem `json:"problems"`
+	}
+
+	type graphqlDeleteManagedIdentityAliasPayload struct {
+		DeleteManagedIdentityAlias graphqlDeleteManagedIdentityAliasMutation `json:"deleteManagedIdentityAlias"`
+	}
+
+	// test cases
+	type testCase struct {
+		responsePayload interface{}
+		input           *types.DeleteManagedIdentityAliasInput
+		name            string
+		expectErrorCode ErrorCode
+	}
+
+	testCases := []testCase{
+
+		// positive
+		{
+			name: "Successfully deleted managed identity alias",
+			input: &types.DeleteManagedIdentityAliasInput{
+				ID: aliasID,
+			},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlDeleteManagedIdentityAliasPayload{
+					DeleteManagedIdentityAlias: graphqlDeleteManagedIdentityAliasMutation{},
+				},
+			},
+		},
+
+		// negative: mutation returns error
+		{
+			name:  "negative: managed identity alias delete mutation returns error",
+			input: &types.DeleteManagedIdentityAliasInput{},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02)",
+						Path: []string{
+							"deleteManagedIdentityAccessRule",
+						},
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "INTERNAL_SERVER_ERROR",
+						},
+					},
+				},
+			},
+			expectErrorCode: ErrInternal,
+		},
+
+		// negative: mutation behaves as if the specified alias did not exist
+		{
+			name:  "negative: mutation behaves as if the specified alias did not exist",
+			input: &types.DeleteManagedIdentityAliasInput{},
+			responsePayload: &fakeGraphqlResponsePayload{
+				Data: graphqlDeleteManagedIdentityAliasPayload{
+					DeleteManagedIdentityAlias: graphqlDeleteManagedIdentityAliasMutation{
+						Problems: []fakeGraphqlResponseProblem{
+							{
+								Message: "Managed identity with ID fe2eb564-6311-42ae-901f-9195125ca92a not found",
+								Type:    "NOT_FOUND",
+								Field:   []string{},
+							},
+						},
+					},
+				},
+			},
+			expectErrorCode: ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.ManagedIdentity = NewManagedIdentity(client)
+
+			// Call the method being tested.
+			actualError := client.ManagedIdentity.DeleteManagedIdentityAlias(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+		})
+	}
+}
+
 // Utility functions:
 
 func checkIdentity(t *testing.T, expectIdentity, actualIdentity *types.ManagedIdentity) {

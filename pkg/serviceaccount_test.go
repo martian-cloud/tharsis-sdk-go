@@ -706,8 +706,8 @@ func TestServiceAccountCreateToken(t *testing.T) {
 
 	type graphqlServiceAccountCreateTokenMutation struct {
 		Token     string                       `json:"token"`
-		ExpiresIn int                          `json:"expiresIn"` // in seconds to match API
 		Problems  []fakeGraphqlResponseProblem `json:"problems"`
+		ExpiresIn int                          `json:"expiresIn"`
 	}
 
 	type graphqlServiceAccountCreateTokenPayload struct {
@@ -720,8 +720,8 @@ func TestServiceAccountCreateToken(t *testing.T) {
 		input           *types.ServiceAccountCreateTokenInput
 		name            string
 		expectToken     string
-		expectExpiresIn time.Duration
 		expectErrorCode ErrorCode
+		expectExpiresIn time.Duration
 	}
 
 	testCases := []testCase{
