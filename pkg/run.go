@@ -398,6 +398,7 @@ type graphQLRun struct {
 	Apply                  *graphQLApply
 	ConfigurationVersion   *struct{ ID graphql.String }
 	ModuleVersion          *graphql.String
+	ModuleDigest           *graphql.String
 	ForceCanceledBy        *graphql.String
 	ForceCancelAvailableAt *graphql.String
 	Workspace              struct {
@@ -432,6 +433,7 @@ func runFromGraphQL(g graphQLRun) types.Run {
 		WorkspacePath:          string(g.Workspace.FullPath),
 		ModuleSource:           (*string)(g.ModuleSource),
 		ModuleVersion:          (*string)(g.ModuleVersion),
+		ModuleDigest:           (*string)(g.ModuleDigest),
 		ForceCanceledBy:        (*string)(g.ForceCanceledBy),
 		ForceCancelAvailableAt: timeFromGraphQL(g.ForceCancelAvailableAt),
 		ForceCanceled:          bool(g.ForceCanceled),

@@ -69,6 +69,7 @@ type Run struct {
 	ConfigurationVersionID *string
 	ForceCanceledBy        *string
 	ModuleVersion          *string
+	ModuleDigest           *string
 	Plan                   *Plan
 	Apply                  *Apply
 	ForceCancelAvailableAt *time.Time
