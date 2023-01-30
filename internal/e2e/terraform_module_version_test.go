@@ -38,7 +38,7 @@ func TestTerraformModuleVersionVersions(t *testing.T) {
 
 	// Get the moduleVersion.
 	moduleVersion2, err := client.TerraformModuleVersion.GetModuleVersion(ctx, &types.GetTerraformModuleVersionInput{
-		ID: moduleVersion.Metadata.ID,
+		ID: &moduleVersion.Metadata.ID,
 	})
 	require.Nil(t, err)
 

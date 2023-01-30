@@ -10,19 +10,38 @@ const (
 	ManagedIdentityTharsisFederated ManagedIdentityType = "tharsis_federated"
 )
 
+// ManagedIdentityAccessRuleType represents the supported managed identity rule types
+type ManagedIdentityAccessRuleType string
+
+// ManagedIdentityAccessRuleType constants
+const (
+	ManagedIdentityAccessRuleEligiblePrincipals ManagedIdentityAccessRuleType = "eligible_principals"
+	ManagedIdentityAccessRuleModuleAttestation  ManagedIdentityAccessRuleType = "module_attestation"
+)
+
 // GetManagedIdentityInput is the input for retrieving
 // a managed identity and/or its access rules.
 type GetManagedIdentityInput struct {
 	ID string `json:"id"`
 }
 
+// ManagedIdentityAccessRuleModuleAttestationPolicy is used in access rules to verify that a
+// module has an in-toto attestation that is signed with the specified public key and an optional
+// predicate type
+type ManagedIdentityAccessRuleModuleAttestationPolicy struct {
+	PredicateType *string `json:"predicateType"`
+	PublicKey     string  `json:"publicKey"`
+}
+
 // ManagedIdentityAccessRuleInput is the input for managed identity access rules
 // when created at the same time as the managed identity.
 type ManagedIdentityAccessRuleInput struct {
-	RunStage               JobType  `json:"runStage"`
-	AllowedUsers           []string `json:"allowedUsers"`
-	AllowedServiceAccounts []string `json:"allowedServiceAccounts"`
-	AllowedTeams           []string `json:"allowedTeams"`
+	Type                      ManagedIdentityAccessRuleType                      `json:"type"`
+	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
+	RunStage                  JobType                                            `json:"runStage"`
+	AllowedUsers              []string                                           `json:"allowedUsers"`
+	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
+	AllowedTeams              []string                                           `json:"allowedTeams"`
 }
 
 // CreateManagedIdentityInput is the input for creating a managed identity.
@@ -77,12 +96,14 @@ type ManagedIdentity struct {
 
 // ManagedIdentityAccessRule represents an access rule for a managed identity.
 type ManagedIdentityAccessRule struct {
-	Metadata               ResourceMetadata
-	RunStage               JobType
-	ManagedIdentityID      string
-	AllowedUsers           []User
-	AllowedServiceAccounts []ServiceAccount
-	AllowedTeams           []Team
+	Metadata                  ResourceMetadata
+	RunStage                  JobType
+	ManagedIdentityID         string
+	AllowedUsers              []User
+	AllowedServiceAccounts    []ServiceAccount
+	AllowedTeams              []Team
+	Type                      ManagedIdentityAccessRuleType
+	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy
 }
 
 // GetManagedIdentityAccessRuleInput is the input for retrieving a managed identity access rule.
@@ -92,20 +113,23 @@ type GetManagedIdentityAccessRuleInput struct {
 
 // CreateManagedIdentityAccessRuleInput is the input for creating a managed identity access rule.
 type CreateManagedIdentityAccessRuleInput struct {
-	ManagedIdentityID      string   `json:"managedIdentityId"`
-	RunStage               JobType  `json:"runStage"`
-	AllowedUsers           []string `json:"allowedUsers"`
-	AllowedServiceAccounts []string `json:"allowedServiceAccounts"`
-	AllowedTeams           []string `json:"allowedTeams"`
+	Type                      ManagedIdentityAccessRuleType                      `json:"type"`
+	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
+	ManagedIdentityID         string                                             `json:"managedIdentityId"`
+	RunStage                  JobType                                            `json:"runStage"`
+	AllowedUsers              []string                                           `json:"allowedUsers"`
+	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
+	AllowedTeams              []string                                           `json:"allowedTeams"`
 }
 
 // UpdateManagedIdentityAccessRuleInput is the input for updating a managed identity access rule.
 type UpdateManagedIdentityAccessRuleInput struct {
-	ID                     string   `json:"id"`
-	RunStage               JobType  `json:"runStage"`
-	AllowedUsers           []string `json:"allowedUsers"`
-	AllowedServiceAccounts []string `json:"allowedServiceAccounts"`
-	AllowedTeams           []string `json:"allowedTeams"`
+	ID                        string                                             `json:"id"`
+	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
+	RunStage                  JobType                                            `json:"runStage"`
+	AllowedUsers              []string                                           `json:"allowedUsers"`
+	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
+	AllowedTeams              []string                                           `json:"allowedTeams"`
 }
 
 // DeleteManagedIdentityAccessRuleInput is the input for deleting a managed identity access rule.

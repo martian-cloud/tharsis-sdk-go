@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -50,12 +49,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			return nil, newError(ErrNotFound, "workspace with path %s not found", *input.Path)
 		}
 
-		result, err := workspaceFromGraphQL(*target.Workspace)
-		if err != nil {
-			return nil, err
-		}
-
-		return result, nil
+		return workspaceFromGraphQL(*target.Workspace)
 	case input.ID != nil:
 		// Node query by ID.
 
@@ -78,9 +72,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 
 		return workspaceFromGraphQL(target.Node.Workspace)
 	default:
-		// Didn't ask for anything.
-
-		return nil, fmt.Errorf("must specify path or ID when calling GetWorkspace")
+		return nil, newError(ErrBadRequest, "must specify path or ID when calling GetWorkspace")
 	}
 }
 
