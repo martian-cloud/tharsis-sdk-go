@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/hasura/go-graphql-client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,16 +22,21 @@ func TestGetWorkspaceByID(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	workspaceID := "workspace-id-1"
+	workspacePath := "fp01"
 	workspaceVersion := "workspace-version-1"
 
-	// Field name taken from GraphiQL.
-	type graphqlNodeWorkspacePayload struct {
+	type graphqlWorkspacePayloadByID struct {
 		Node *graphQLWorkspace `json:"node"`
+	}
+
+	type graphqlWorkspacePayloadByPath struct {
+		Workspace *graphQLWorkspace `json:"workspace"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload interface{}
+		input           *types.GetWorkspaceInput
 		expectWorkspace *types.Workspace
 		name            string
 		expectErrorCode ErrorCode
@@ -41,8 +47,11 @@ func TestGetWorkspaceByID(t *testing.T) {
 		// positive
 		{
 			name: "Successfully return workspace by ID",
+			input: &types.GetWorkspaceInput{
+				ID: &workspaceID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeWorkspacePayload{
+				Data: graphqlWorkspacePayloadByID{
 					Node: &graphQLWorkspace{
 						ID: graphql.String(workspaceID),
 						Metadata: internal.GraphQLMetadata{
@@ -69,17 +78,55 @@ func TestGetWorkspaceByID(t *testing.T) {
 			},
 		},
 
-		// query returns error as if the ID is invalid
 		{
-			name: "query returns error as if the ID is invalid",
+			name: "Successfully return workspace by path",
+			input: &types.GetWorkspaceInput{
+				Path: &workspacePath,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeWorkspacePayload{},
+				Data: graphqlWorkspacePayloadByPath{
+					Workspace: &graphQLWorkspace{
+						ID: graphql.String(workspaceID),
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   graphql.String(workspaceVersion),
+						},
+						Name:        "nm01",
+						Description: "de01",
+						FullPath:    "fp01",
+					},
+				},
+			},
+			expectWorkspace: &types.Workspace{
+				Metadata: types.ResourceMetadata{
+					ID:                   workspaceID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              workspaceVersion,
+				},
+				Name:        "nm01",
+				Description: "de01",
+				FullPath:    "fp01",
+			},
+		},
+
+		{
+			name:            "returns an error since ID and path were unspecified",
+			input:           &types.GetWorkspaceInput{},
+			expectErrorCode: ErrBadRequest,
+		},
+
+		{
+			name: "verify that correct error is returned",
+			input: &types.GetWorkspaceInput{
+				ID: ptr.String("invalid"),
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlWorkspacePayloadByID{},
 				Errors: []fakeGraphqlResponseError{
 					{
-						Message: "ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02)",
-						Path: []string{
-							"workspace",
-						},
+						Message: "an error occurred",
 						Extensions: fakeGraphqlResponseErrorExtension{
 							Code: "INTERNAL_SERVER_ERROR",
 						},
@@ -92,8 +139,11 @@ func TestGetWorkspaceByID(t *testing.T) {
 		// query returns nil workspace, as if the specified workspace does not exist.
 		{
 			name: "query returns nil workspace, as if the specified workspace does not exist",
+			input: &types.GetWorkspaceInput{
+				ID: &workspaceID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeWorkspacePayload{},
+				Data: graphqlWorkspacePayloadByID{},
 			},
 			expectErrorCode: ErrNotFound,
 		},
@@ -118,10 +168,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 			client.Workspaces = NewWorkspaces(client)
 
 			// Call the method being tested.
-			actualWorkspace, actualError := client.Workspaces.GetWorkspace(
-				ctx,
-				&types.GetWorkspaceInput{ID: &workspaceID},
-			)
+			actualWorkspace, actualError := client.Workspaces.GetWorkspace(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 			checkWorkspace(t, test.expectWorkspace, actualWorkspace)

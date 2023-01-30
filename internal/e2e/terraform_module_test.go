@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -32,7 +33,7 @@ func TestTerraformModules(t *testing.T) {
 
 	// Get the module.
 	module2, err := client.TerraformModule.GetModule(ctx, &types.GetTerraformModuleInput{
-		ID: module.Metadata.ID,
+		ID: &module.Metadata.ID,
 	})
 	require.Nil(t, err)
 
@@ -43,7 +44,7 @@ func TestTerraformModules(t *testing.T) {
 	// Update the module
 	module3, err := client.TerraformModule.UpdateModule(ctx, &types.UpdateTerraformModuleInput{
 		ID:   module.Metadata.ID,
-		Name: "tharsis-sdk-e2e-test-updated",
+		Name: ptr.String("tharsis-sdk-e2e-test-updated"),
 	})
 	require.Nil(t, err)
 

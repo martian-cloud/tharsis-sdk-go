@@ -22,14 +22,20 @@ func TestGetModuleVersion(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	moduleVersionID := "1"
+	modulePath := "some/module/aws"
 
-	type graphqlModuleVersionPayload struct {
+	type graphqlModuleVersionPayloadByID struct {
 		Node *graphQLTerraformModuleVersion `json:"node"`
+	}
+
+	type graphqlModuleVersionPayloadByModulePath struct {
+		TerraformModuleVersion *graphQLTerraformModuleVersion `json:"terraformModuleVersion"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload     interface{}
+		input               *types.GetTerraformModuleVersionInput
 		expectModuleVersion *types.TerraformModuleVersion
 		name                string
 		expectErrorCode     ErrorCode
@@ -38,8 +44,11 @@ func TestGetModuleVersion(t *testing.T) {
 	testCases := []testCase{
 		{
 			name: "Successfully return module version by ID",
+			input: &types.GetTerraformModuleVersionInput{
+				ID: &moduleVersionID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModuleVersionPayload{
+				Data: graphqlModuleVersionPayloadByID{
 					Node: &graphQLTerraformModuleVersion{
 						Metadata: internal.GraphQLMetadata{
 							CreatedAt: &now,
@@ -78,9 +87,61 @@ func TestGetModuleVersion(t *testing.T) {
 			},
 		},
 		{
-			name: "verify that correct error is returned",
+			name: "Successfully return module version by module path",
+			input: &types.GetTerraformModuleVersionInput{
+				ModulePath: &modulePath,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModuleVersionPayload{},
+				Data: graphqlModuleVersionPayloadByModulePath{
+					TerraformModuleVersion: &graphQLTerraformModuleVersion{
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   "1",
+						},
+						ID:          graphql.String(moduleVersionID),
+						Version:     "1.0.0",
+						SHASum:      "7ae471ed18395339572f5265b835860e28a2f85016455214cb214bafe4422c7d",
+						Status:      "pending",
+						Error:       "error",
+						Diagnostics: "error on line 2",
+						Submodules:  []string{"submodule1"},
+						Examples:    []string{"example1"},
+						Module: graphQLTerraformModule{
+							ID: "module-1",
+						},
+					},
+				},
+			},
+			expectModuleVersion: &types.TerraformModuleVersion{
+				Metadata: types.ResourceMetadata{
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					ID:                   moduleVersionID,
+					Version:              "1",
+				},
+				Version:     "1.0.0",
+				SHASum:      "7ae471ed18395339572f5265b835860e28a2f85016455214cb214bafe4422c7d",
+				Status:      "pending",
+				Error:       "error",
+				Diagnostics: "error on line 2",
+				Submodules:  []string{"submodule1"},
+				Examples:    []string{"example1"},
+				ModuleID:    "module-1",
+			},
+		},
+		{
+			name:            "returns an error since ID and modulePath were unspecified",
+			input:           &types.GetTerraformModuleVersionInput{},
+			expectErrorCode: ErrBadRequest,
+		},
+		{
+			name: "verify that correct error is returned",
+			input: &types.GetTerraformModuleVersionInput{
+				ID: &moduleVersionID,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlModuleVersionPayloadByID{},
 				Errors: []fakeGraphqlResponseError{{
 					Message: "an error occurred",
 					Extensions: fakeGraphqlResponseErrorExtension{
@@ -92,8 +153,11 @@ func TestGetModuleVersion(t *testing.T) {
 		},
 		{
 			name: "returns nil because module version does not exist",
+			input: &types.GetTerraformModuleVersionInput{
+				ID: &moduleVersionID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModuleVersionPayload{},
+				Data: graphqlModuleVersionPayloadByID{},
 			},
 			expectErrorCode: ErrNotFound,
 		},
@@ -117,10 +181,7 @@ func TestGetModuleVersion(t *testing.T) {
 			client.TerraformModuleVersion = NewTerraformModuleVersion(client)
 
 			// Call the method being tested.
-			moduleVersion, actualError := client.TerraformModuleVersion.GetModuleVersion(
-				ctx,
-				&types.GetTerraformModuleVersionInput{ID: moduleVersionID},
-			)
+			moduleVersion, actualError := client.TerraformModuleVersion.GetModuleVersion(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 

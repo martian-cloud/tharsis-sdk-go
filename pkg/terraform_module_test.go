@@ -18,14 +18,20 @@ func TestGetModule(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	moduleID := "1"
+	modulePath := "groupA/awesome-module/aws"
 
-	type graphqlModulePayload struct {
+	type graphqlModulePayloadByID struct {
 		Node *graphQLTerraformModule `json:"node"`
+	}
+
+	type graphqlModulePayloadByPath struct {
+		TerraformModule *graphQLTerraformModule `json:"terraformModule"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload interface{}
+		input           *types.GetTerraformModuleInput
 		expectModule    *types.TerraformModule
 		name            string
 		expectErrorCode ErrorCode
@@ -34,8 +40,11 @@ func TestGetModule(t *testing.T) {
 	testCases := []testCase{
 		{
 			name: "Successfully return module by ID",
+			input: &types.GetTerraformModuleInput{
+				ID: &moduleID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModulePayload{
+				Data: graphqlModulePayloadByID{
 					Node: &graphQLTerraformModule{
 						Metadata: internal.GraphQLMetadata{
 							CreatedAt: &now,
@@ -45,7 +54,7 @@ func TestGetModule(t *testing.T) {
 						ID:                graphql.String(moduleID),
 						Name:              "awesome-module",
 						System:            "aws",
-						ResourcePath:      "groupA/awesome-module/aws",
+						ResourcePath:      modulePath,
 						RegistryNamespace: "groupA",
 						Private:           true,
 					},
@@ -60,15 +69,59 @@ func TestGetModule(t *testing.T) {
 				},
 				Name:              "awesome-module",
 				System:            "aws",
-				ResourcePath:      "groupA/awesome-module/aws",
+				ResourcePath:      modulePath,
 				RegistryNamespace: "groupA",
 				Private:           true,
 			},
 		},
 		{
-			name: "verify that correct error is returned",
+			name: "Successfully return module by path",
+			input: &types.GetTerraformModuleInput{
+				Path: &modulePath,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModulePayload{},
+				Data: graphqlModulePayloadByPath{
+					TerraformModule: &graphQLTerraformModule{
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   "1",
+						},
+						ID:                graphql.String(moduleID),
+						Name:              "awesome-module",
+						System:            "aws",
+						ResourcePath:      modulePath,
+						RegistryNamespace: "groupA",
+						Private:           true,
+					},
+				},
+			},
+			expectModule: &types.TerraformModule{
+				Metadata: types.ResourceMetadata{
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					ID:                   moduleID,
+					Version:              "1",
+				},
+				Name:              "awesome-module",
+				System:            "aws",
+				ResourcePath:      modulePath,
+				RegistryNamespace: "groupA",
+				Private:           true,
+			},
+		},
+		{
+			name:            "returns an error since ID and path are unspecified",
+			input:           &types.GetTerraformModuleInput{},
+			expectErrorCode: ErrBadRequest,
+		},
+		{
+			name: "verify that correct error is returned",
+			input: &types.GetTerraformModuleInput{
+				ID: &moduleID,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlModulePayloadByID{},
 				Errors: []fakeGraphqlResponseError{{
 					Message: "an error occurred",
 					Extensions: fakeGraphqlResponseErrorExtension{
@@ -80,8 +133,11 @@ func TestGetModule(t *testing.T) {
 		},
 		{
 			name: "returns nil because module does not exist",
+			input: &types.GetTerraformModuleInput{
+				ID: &moduleID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlModulePayload{},
+				Data: graphqlModulePayloadByID{},
 			},
 			expectErrorCode: ErrNotFound,
 		},
@@ -105,10 +161,7 @@ func TestGetModule(t *testing.T) {
 			client.TerraformModule = NewTerraformModule(client)
 
 			// Call the method being tested.
-			module, actualError := client.TerraformModule.GetModule(
-				ctx,
-				&types.GetTerraformModuleInput{ID: moduleID},
-			)
+			module, actualError := client.TerraformModule.GetModule(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 

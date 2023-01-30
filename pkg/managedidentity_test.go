@@ -166,6 +166,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 		{
 			name: "Successfully created managed identity access rule",
 			input: &types.CreateManagedIdentityAccessRuleInput{
+				Type:                   types.ManagedIdentityAccessRuleEligiblePrincipals,
 				RunStage:               types.JobPlanType,
 				AllowedUsers:           []string{"test-user-1", "test-user-2"},
 				AllowedServiceAccounts: []string{"test-service-account-1", "test-service-account-2"},
@@ -182,6 +183,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(accessRuleVersion),
 							},
+							Type:     graphql.String(types.ManagedIdentityAccessRuleEligiblePrincipals),
 							RunStage: graphql.String(types.JobPlanType),
 							AllowedUsers: []graphQLUser{
 								{Username: "test-user-1"},
@@ -209,6 +211,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              accessRuleVersion,
 				},
+				Type:     types.ManagedIdentityAccessRuleEligiblePrincipals,
 				RunStage: types.JobPlanType,
 				AllowedUsers: []types.User{
 					{Username: "test-user-1"},
@@ -222,7 +225,8 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					{Name: "test-team-1"},
 					{Name: "test-team-2"},
 				},
-				ManagedIdentityID: managedIdentityID,
+				ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				ManagedIdentityID:         managedIdentityID,
 			},
 		},
 
@@ -307,10 +311,12 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 							UpdatedAt: &now,
 							Version:   graphql.String(accessRuleVersion),
 						},
-						RunStage:               graphql.String(types.JobPlanType),
-						AllowedUsers:           []graphQLUser{},
-						AllowedServiceAccounts: []graphQLServiceAccount{},
-						AllowedTeams:           []graphQLTeam{},
+						Type:                      graphql.String(types.ManagedIdentityAccessRuleEligiblePrincipals),
+						RunStage:                  graphql.String(types.JobPlanType),
+						AllowedUsers:              []graphQLUser{},
+						AllowedServiceAccounts:    []graphQLServiceAccount{},
+						AllowedTeams:              []graphQLTeam{},
+						ModuleAttestationPolicies: []graphQLAccessRuleModuleAttestationPolicy{},
 						ManagedIdentity: GraphQLManagedIdentity{
 							ID: graphql.String(managedIdentityID),
 						},
@@ -324,11 +330,13 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              accessRuleVersion,
 				},
-				RunStage:               types.JobPlanType,
-				AllowedUsers:           []types.User{},
-				AllowedServiceAccounts: []types.ServiceAccount{},
-				AllowedTeams:           []types.Team{},
-				ManagedIdentityID:      managedIdentityID,
+				Type:                      types.ManagedIdentityAccessRuleEligiblePrincipals,
+				RunStage:                  types.JobPlanType,
+				AllowedUsers:              []types.User{},
+				AllowedServiceAccounts:    []types.ServiceAccount{},
+				AllowedTeams:              []types.Team{},
+				ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				ManagedIdentityID:         managedIdentityID,
 			},
 		},
 
@@ -443,6 +451,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 		{
 			name: "Successfully updated managed identity access rule",
 			input: &types.UpdateManagedIdentityAccessRuleInput{
+				ID:                     accessRuleID,
 				RunStage:               types.JobApplyType,
 				AllowedUsers:           []string{"test-user-3", "test-user-4"},
 				AllowedServiceAccounts: []string{"test-service-account-5", "test-service-account-6"},
@@ -458,6 +467,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(accessRuleVersion),
 							},
+							Type:     graphql.String(types.ManagedIdentityAccessRuleEligiblePrincipals),
 							RunStage: graphql.String(types.JobPlanType),
 							AllowedUsers: []graphQLUser{
 								{Username: "test-user-3"},
@@ -485,6 +495,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              accessRuleVersion,
 				},
+				Type:     types.ManagedIdentityAccessRuleEligiblePrincipals,
 				RunStage: types.JobPlanType,
 				AllowedUsers: []types.User{
 					{Username: "test-user-3"},
@@ -498,7 +509,8 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					{Name: "test-team-7"},
 					{Name: "test-team-8"},
 				},
-				ManagedIdentityID: managedIdentityID,
+				ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				ManagedIdentityID:         managedIdentityID,
 			},
 		},
 
@@ -717,16 +729,14 @@ func TestCreateManagedIdentityAlias(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(aliasVersion),
 							},
-							Type:         graphql.String(types.ManagedIdentityAWSFederated),
-							ResourcePath: graphql.String("alias-resource-path"),
-							Name:         graphql.String("test-alias"),
-							Description:  graphql.String("some-description"),
-							Data:         graphql.String("some-data"),
-							CreatedBy:    graphql.String("some-creator"),
-							AliasSource: &graphQLAliasSource{
-								ID: graphql.String(aliasSourceID),
-							},
-							IsAlias: graphql.Boolean(true),
+							Type:          graphql.String(types.ManagedIdentityAWSFederated),
+							ResourcePath:  graphql.String("alias-resource-path"),
+							Name:          graphql.String("test-alias"),
+							Description:   graphql.String("some-description"),
+							Data:          graphql.String("some-data"),
+							CreatedBy:     graphql.String("some-creator"),
+							AliasSourceID: graphql.NewString(graphql.String(aliasSourceID)),
+							IsAlias:       graphql.Boolean(true),
 						},
 					},
 				},
@@ -820,7 +830,7 @@ func TestDeleteManagedIdentityAlias(t *testing.T) {
 					{
 						Message: "ERROR: invalid input syntax for type uuid: \"fe2eb564-6311-42qe-901f-9195125ca92a\" (SQLSTATE 22P02)",
 						Path: []string{
-							"deleteManagedIdentityAccessRule",
+							"deleteManagedIdentityAlias",
 						},
 						Extensions: fakeGraphqlResponseErrorExtension{
 							Code: "INTERNAL_SERVER_ERROR",

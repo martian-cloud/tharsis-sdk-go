@@ -435,36 +435,40 @@ func (m *managedIdentity) DeleteManagedIdentityAlias(ctx context.Context,
 
 // Related types and conversion functions:
 
+// graphQLAccessRuleModuleAttestationPolicy represents a
+// ManagedIdentityAccessRuleModuleAttestationPolicy with graphql types.
+type graphQLAccessRuleModuleAttestationPolicy struct {
+	PredicateType *graphql.String
+	PublicKey     graphql.String
+}
+
 // graphQLManagedIdentityAccessRule represents a managed identity
 // access rule with graphQL types.
 type graphQLManagedIdentityAccessRule struct {
-	ManagedIdentity        GraphQLManagedIdentity
-	Metadata               internal.GraphQLMetadata
-	ID                     graphql.String
-	RunStage               graphql.String
-	AllowedUsers           []graphQLUser
-	AllowedServiceAccounts []graphQLServiceAccount
-	AllowedTeams           []graphQLTeam
-}
-
-// graphQLAliasSource is the source managed identity for an alias.
-type graphQLAliasSource struct {
-	ID graphql.String
+	Metadata                  internal.GraphQLMetadata
+	ID                        graphql.String
+	RunStage                  graphql.String
+	Type                      graphql.String
+	ModuleAttestationPolicies []graphQLAccessRuleModuleAttestationPolicy
+	ManagedIdentity           GraphQLManagedIdentity
+	AllowedUsers              []graphQLUser
+	AllowedServiceAccounts    []graphQLServiceAccount
+	AllowedTeams              []graphQLTeam
 }
 
 // GraphQLManagedIdentity represents the insides of the query structure,
 // everything in the managed identity object, and with graphql types.
 type GraphQLManagedIdentity struct {
-	AliasSource  *graphQLAliasSource
-	Metadata     internal.GraphQLMetadata
-	ID           graphql.String
-	Type         graphql.String
-	ResourcePath graphql.String
-	Name         graphql.String
-	Description  graphql.String
-	Data         graphql.String
-	CreatedBy    graphql.String
-	IsAlias      graphql.Boolean
+	AliasSourceID *graphql.String
+	Metadata      internal.GraphQLMetadata
+	ID            graphql.String
+	Type          graphql.String
+	ResourcePath  graphql.String
+	Name          graphql.String
+	Description   graphql.String
+	Data          graphql.String
+	CreatedBy     graphql.String
+	IsAlias       graphql.Boolean
 }
 
 // TODO: Some of these functions may not be needed.
@@ -501,8 +505,22 @@ func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
 		IsAlias:      bool(g.IsAlias),
 	}
 
-	if g.AliasSource != nil {
-		result.AliasSourceID = (*string)(&g.AliasSource.ID)
+	if g.AliasSourceID != nil {
+		result.AliasSourceID = (*string)(g.AliasSourceID)
+	}
+
+	return result
+}
+
+// moduleAttestationPolicyFromGraphQL converts a GraphQL ManagedIdentityAccessRuleModuleAttestationPolicy
+// to an external ManagedIdentityAccessRuleModuleAttestationPolicy.
+func moduleAttestationPolicyFromGraphQL(g graphQLAccessRuleModuleAttestationPolicy) types.ManagedIdentityAccessRuleModuleAttestationPolicy {
+	result := types.ManagedIdentityAccessRuleModuleAttestationPolicy{
+		PublicKey: string(g.PublicKey),
+	}
+
+	if g.PredicateType != nil {
+		result.PredicateType = (*string)(g.PredicateType)
 	}
 
 	return result
@@ -531,13 +549,20 @@ func accessRuleFromGraphQL(g graphQLManagedIdentityAccessRule) types.ManagedIden
 		teams = append(teams, teamFromGraphQL(team))
 	}
 
+	attestationPolicies := []types.ManagedIdentityAccessRuleModuleAttestationPolicy{}
+	for _, policy := range g.ModuleAttestationPolicies {
+		attestationPolicies = append(attestationPolicies, moduleAttestationPolicyFromGraphQL(policy))
+	}
+
 	return types.ManagedIdentityAccessRule{
-		Metadata:               internal.MetadataFromGraphQL(g.Metadata, g.ID),
-		RunStage:               types.JobType(g.RunStage),
-		AllowedUsers:           users,
-		AllowedServiceAccounts: serviceAccounts,
-		AllowedTeams:           teams,
-		ManagedIdentityID:      string(g.ManagedIdentity.ID),
+		Metadata:                  internal.MetadataFromGraphQL(g.Metadata, g.ID),
+		RunStage:                  types.JobType(g.RunStage),
+		AllowedUsers:              users,
+		AllowedServiceAccounts:    serviceAccounts,
+		AllowedTeams:              teams,
+		ManagedIdentityID:         string(g.ManagedIdentity.ID),
+		Type:                      types.ManagedIdentityAccessRuleType(g.Type),
+		ModuleAttestationPolicies: attestationPolicies,
 	}
 }
 

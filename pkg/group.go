@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -72,9 +71,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 		result := groupFromGraphQL(target.Node.Group)
 		return &result, nil
 	default:
-		// Didn't ask for anything.
-
-		return nil, fmt.Errorf("must specify path or ID when calling GetGroup")
+		return nil, newError(ErrBadRequest, "must specify path or ID when calling GetGroup")
 	}
 }
 

@@ -2,9 +2,11 @@ package tharsis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -14,6 +16,7 @@ import (
 // TerraformModuleVersion implements functions related to Tharsis module versions.
 type TerraformModuleVersion interface {
 	GetModuleVersion(ctx context.Context, input *types.GetTerraformModuleVersionInput) (*types.TerraformModuleVersion, error)
+	GetModuleVersions(ctx context.Context, input *types.GetTerraformModuleVersionsInput) (*types.GetTerraformModuleVersionsOutput, error)
 	CreateModuleVersion(ctx context.Context, input *types.CreateTerraformModuleVersionInput) (*types.TerraformModuleVersion, error)
 	UploadModuleVersion(ctx context.Context, moduleVersionID string, reader io.Reader) error
 	DeleteModuleVersion(ctx context.Context, input *types.DeleteTerraformModuleVersionInput) error
@@ -30,23 +33,90 @@ func NewTerraformModuleVersion(client *Client) TerraformModuleVersion {
 
 // GetTerraformModuleVersion returns a module version
 func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTerraformModuleVersionInput) (*types.TerraformModuleVersion, error) {
-	var target struct {
-		Node *struct {
-			TerraformModuleVersion graphQLTerraformModuleVersion `graphql:"...on TerraformModuleVersion"`
-		} `graphql:"node(id: $id)"`
-	}
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+	switch {
+	case input.ModulePath != nil:
+		pathParts := strings.Split(*input.ModulePath, "/")
+		if len(pathParts) < 3 {
+			return nil, errors.New("module path is not valid")
+		}
 
-	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
+		var target struct {
+			TerraformModuleVersion *graphQLTerraformModuleVersion `graphql:"terraformModuleVersion(registryNamespace: $registryNamespace, moduleName: $moduleName, system: $system, version: $version)"`
+		}
+
+		variables := map[string]interface{}{
+			"registryNamespace": graphql.String(pathParts[0]),
+			"moduleName":        graphql.String(pathParts[len(pathParts)-2]),
+			"system":            graphql.String(pathParts[len(pathParts)-1]),
+		}
+
+		var version *graphql.String
+		if input.Version != nil {
+			versionString := graphql.String(*input.Version)
+			version = &versionString
+		} else {
+			version = nil
+		}
+		variables["version"] = version
+
+		err := p.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.TerraformModuleVersion == nil {
+			return nil, newError(ErrNotFound, "terraform module version with module path %s not found", *input.ModulePath)
+		}
+
+		result := moduleVersionFromGraphQL(*target.TerraformModuleVersion)
+		return &result, nil
+	case input.ID != nil:
+		var target struct {
+			Node *struct {
+				TerraformModuleVersion graphQLTerraformModuleVersion `graphql:"...on TerraformModuleVersion"`
+			} `graphql:"node(id: $id)"`
+		}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := p.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Node == nil {
+			return nil, newError(ErrNotFound, "module version with id %s not found", *input.ID)
+		}
+
+		result := moduleVersionFromGraphQL(target.Node.TerraformModuleVersion)
+		return &result, nil
+	default:
+		return nil, newError(ErrBadRequest, "must specify ID or ModulePath (optionally version) when calling GetModuleVersion")
+	}
+}
+
+func (p *moduleVersion) GetModuleVersions(ctx context.Context, input *types.GetTerraformModuleVersionsInput) (*types.GetTerraformModuleVersionsOutput, error) {
+	// Pass nil for after so the user's cursor value will be used.
+	queryStruct, err := p.getTerraformModuleVersions(ctx, p.client.graphqlClient, input, nil)
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil {
-		return nil, newError(ErrNotFound, "module version with id %s not found", input.ID)
+
+	if queryStruct.Node == nil {
+		return nil, newError(ErrNotFound, "module with id %s not found", input.TerraformModuleID)
 	}
 
-	result := moduleVersionFromGraphQL(target.Node.TerraformModuleVersion)
-	return &result, nil
+	// Convert and repackage the type-specific results.
+	versionResults := make([]types.TerraformModuleVersion, len(queryStruct.Node.TerraformModule.Versions.Edges))
+	for ix, versionCustom := range queryStruct.Node.TerraformModule.Versions.Edges {
+		versionResults[ix] = moduleVersionFromGraphQL(versionCustom.Node)
+	}
+
+	return &types.GetTerraformModuleVersionsOutput{
+		PageInfo: &types.PageInfo{
+			TotalCount:  int(queryStruct.Node.TerraformModule.Versions.TotalCount),
+			HasNextPage: bool(queryStruct.Node.TerraformModule.Versions.PageInfo.HasNextPage),
+			Cursor:      string(queryStruct.Node.TerraformModule.Versions.PageInfo.EndCursor),
+		},
+		ModuleVersions: versionResults,
+	}, nil
 }
 
 func (p *moduleVersion) CreateModuleVersion(ctx context.Context, input *types.CreateTerraformModuleVersionInput) (*types.TerraformModuleVersion, error) {
@@ -124,6 +194,67 @@ func (p *moduleVersion) UploadModuleVersion(ctx context.Context, moduleVersionID
 	}
 
 	return nil
+}
+
+// getTerraformModuleVersions runs the query and returns the results.
+func (p *moduleVersion) getTerraformModuleVersions(ctx context.Context, client graphqlClient,
+	input *types.GetTerraformModuleVersionsInput, after *string) (*getTerraformModuleVersionsQuery, error) {
+
+	// Must generate a new query structure for each page to
+	// avoid the reflect slice index out of range panic.
+	queryStructP := &getTerraformModuleVersionsQuery{}
+
+	// Build the variables for filtering, sorting, and pagination.
+	variables := map[string]interface{}{}
+
+	variables["id"] = graphql.String(input.TerraformModuleID)
+
+	// Shared input variables--possible candidates to factor out:
+	if input.PaginationOptions.Limit != nil {
+		variables["first"] = graphql.Int(*input.PaginationOptions.Limit)
+	}
+	if input.PaginationOptions.Cursor == nil {
+		variables["after"] = (*graphql.String)(nil)
+	} else {
+		variables["after"] = graphql.String(*input.PaginationOptions.Cursor)
+	}
+
+	// after overrides input
+	if after != nil {
+		variables["after"] = graphql.String(*after)
+	}
+
+	type TerraformModuleVersionSort string
+	variables["sort"] = TerraformModuleVersionSort(*input.Sort)
+
+	// Now, do the query.
+	err := client.Query(ctx, true, queryStructP, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return queryStructP, nil
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+// The query structure:
+
+// getTerraformModuleVersionsQuery is the query structure for GetTerraformModuleVersions.
+// It contains the tag with the include-everything argument list.
+type getTerraformModuleVersionsQuery struct {
+	Node *struct {
+		TerraformModule struct {
+			Versions struct {
+				PageInfo struct {
+					EndCursor   graphql.String
+					HasNextPage graphql.Boolean
+				}
+				Edges      []struct{ Node graphQLTerraformModuleVersion }
+				TotalCount graphql.Int
+			} `graphql:"versions(first: $first, after: $after, sort: $sort)"`
+		} `graphql:"...on TerraformModule"`
+	} `graphql:"node(id: $id)"`
 }
 
 //////////////////////////////////////////////////////////////////////////////

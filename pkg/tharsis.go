@@ -19,28 +19,29 @@ const (
 // Client provides access for the client/user to access the SDK functions.
 // Note: When adding a new field here, make sure to assign the field near the end of the NewClient function.
 type Client struct {
-	cfg                       *config.Config // not currently essential but could become so
-	logger                    *log.Logger
-	httpClient                *http.Client
-	graphqlClient             graphqlClient
-	graphqlSubscriptionClient subscriptionClient
-	ConfigurationVersion      ConfigurationVersion
-	Group                     Group
-	Job                       Job
-	ManagedIdentity           ManagedIdentity
-	Plan                      Plan
-	Apply                     Apply
-	Run                       Run
-	ServiceAccount            ServiceAccount
-	StateVersion              StateVersion
-	Variable                  Variable
-	Workspaces                Workspaces
-	TerraformProvider         TerraformProvider
-	TerraformProviderVersion  TerraformProviderVersion
-	TerraformModule           TerraformModule
-	TerraformModuleVersion    TerraformModuleVersion
-	TerraformProviderPlatform TerraformProviderPlatform
-	TerraformCLIVersions      TerraformCLIVersion
+	cfg                        *config.Config // not currently essential but could become so
+	logger                     *log.Logger
+	httpClient                 *http.Client
+	graphqlClient              graphqlClient
+	graphqlSubscriptionClient  subscriptionClient
+	ConfigurationVersion       ConfigurationVersion
+	Group                      Group
+	Job                        Job
+	ManagedIdentity            ManagedIdentity
+	Plan                       Plan
+	Apply                      Apply
+	Run                        Run
+	ServiceAccount             ServiceAccount
+	StateVersion               StateVersion
+	Variable                   Variable
+	Workspaces                 Workspaces
+	TerraformProvider          TerraformProvider
+	TerraformProviderVersion   TerraformProviderVersion
+	TerraformModule            TerraformModule
+	TerraformModuleVersion     TerraformModuleVersion
+	TerraformModuleAttestation TerraformModuleAttestation
+	TerraformProviderPlatform  TerraformProviderPlatform
+	TerraformCLIVersions       TerraformCLIVersion
 }
 
 // NewClient returns a TharsisClient.
@@ -95,6 +96,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.TerraformProviderPlatform = NewTerraformProviderPlatform(client)
 	client.TerraformModule = NewTerraformModule(client)
 	client.TerraformModuleVersion = NewTerraformModuleVersion(client)
+	client.TerraformModuleAttestation = NewTerraformModuleAttestation(client)
 	client.TerraformCLIVersions = NewTerraformCLIVersion(client)
 
 	return client, nil

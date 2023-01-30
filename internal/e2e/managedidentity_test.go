@@ -102,6 +102,7 @@ func TestUpdateManagedIdentity(t *testing.T) {
 	// Access rules for the managed identity.
 	updateManagedIdentityAccessRules := []types.ManagedIdentityAccessRuleInput{
 		{
+			Type:                   types.ManagedIdentityAccessRuleEligiblePrincipals,
 			RunStage:               types.JobPlanType,
 			AllowedUsers:           []string{},
 			AllowedServiceAccounts: []string{},
@@ -153,7 +154,9 @@ func TestUpdateManagedIdentity(t *testing.T) {
 
 	// Verify accessRules.
 	for _, accessRule := range accessRules {
+		assert.Equal(t, types.ManagedIdentityAccessRuleEligiblePrincipals, accessRule.Type)
 		assert.Equal(t, types.JobPlanType, accessRule.RunStage)
+		assert.Empty(t, accessRule.ModuleAttestationPolicies)
 		assert.NotNil(t, accessRule.AllowedUsers)
 		assert.NotNil(t, accessRule.AllowedServiceAccounts)
 		assert.NotNil(t, accessRule.AllowedTeams)
@@ -231,6 +234,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 
 	// Create an access rule.
 	ruleInput := &types.CreateManagedIdentityAccessRuleInput{
+		Type:                   types.ManagedIdentityAccessRuleEligiblePrincipals,
 		ManagedIdentityID:      createdIdentity.Metadata.ID,
 		RunStage:               types.JobPlanType,
 		AllowedUsers:           []string{username},
@@ -253,6 +257,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 	assert.Equal(t, types.JobPlanType, readRule.RunStage)
 	assert.NotNil(t, readRule.AllowedUsers)
 	assert.Equal(t, 1, len(readRule.AllowedUsers))
+	assert.Equal(t, types.ManagedIdentityAccessRuleEligiblePrincipals, readRule.Type)
 	assert.Equal(t, email, readRule.AllowedUsers[0].Email)
 	assert.NotNil(t, readRule.AllowedServiceAccounts)
 	assert.NotNil(t, readRule.AllowedTeams)

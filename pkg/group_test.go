@@ -21,16 +21,21 @@ func TestGetGroupByID(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
 	groupID := "group-id-1"
+	groupPath := "fp01"
 	groupVersion := "group-version-1"
 
-	// Field name taken from GraphiQL.
-	type graphqlNodeGroupPayload struct {
+	type graphqlGroupPayloadByID struct {
 		Node *graphQLGroup `json:"node"`
+	}
+
+	type graphqlGroupPayloadByPath struct {
+		Group *graphQLGroup `json:"group"`
 	}
 
 	// test cases
 	type testCase struct {
 		responsePayload interface{}
+		input           *types.GetGroupInput
 		expectGroup     *types.Group
 		name            string
 		expectErrorCode ErrorCode
@@ -41,8 +46,11 @@ func TestGetGroupByID(t *testing.T) {
 		// positive
 		{
 			name: "Successfully return group by ID",
+			input: &types.GetGroupInput{
+				ID: &groupID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeGroupPayload{
+				Data: graphqlGroupPayloadByID{
 					Node: &graphQLGroup{
 						ID: graphql.String(groupID),
 						Metadata: internal.GraphQLMetadata{
@@ -69,17 +77,55 @@ func TestGetGroupByID(t *testing.T) {
 			},
 		},
 
-		// query returns error as if the ID is invalid
 		{
-			name: "query returns error as if the ID is invalid",
+			name: "Successfully return group by path",
+			input: &types.GetGroupInput{
+				Path: &groupPath,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeGroupPayload{},
+				Data: graphqlGroupPayloadByPath{
+					Group: &graphQLGroup{
+						ID: graphql.String(groupID),
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   graphql.String(groupVersion),
+						},
+						Name:        "nm01",
+						Description: "de01",
+						FullPath:    "fp01",
+					},
+				},
+			},
+			expectGroup: &types.Group{
+				Metadata: types.ResourceMetadata{
+					ID:                   groupID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              groupVersion,
+				},
+				Name:        "nm01",
+				Description: "de01",
+				FullPath:    "fp01",
+			},
+		},
+
+		{
+			name:            "returns an error since ID and path were unspecified",
+			input:           &types.GetGroupInput{},
+			expectErrorCode: ErrBadRequest,
+		},
+
+		{
+			name: "verify that correct error is returned",
+			input: &types.GetGroupInput{
+				ID: &groupID,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlGroupPayloadByID{},
 				Errors: []fakeGraphqlResponseError{
 					{
-						Message: "ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02)",
-						Path: []string{
-							"group",
-						},
+						Message: "an error occurred",
 						Extensions: fakeGraphqlResponseErrorExtension{
 							Code: "INTERNAL_SERVER_ERROR",
 						},
@@ -92,8 +138,11 @@ func TestGetGroupByID(t *testing.T) {
 		// query returns nil group, as if the specified group does not exist.
 		{
 			name: "query returns nil group, as if the specified group does not exist",
+			input: &types.GetGroupInput{
+				ID: &groupID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlNodeGroupPayload{},
+				Data: graphqlGroupPayloadByID{},
 			},
 			expectErrorCode: ErrNotFound,
 		},
@@ -118,10 +167,7 @@ func TestGetGroupByID(t *testing.T) {
 			client.Group = NewGroup(client)
 
 			// Call the method being tested.
-			actualGroup, actualError := client.Group.GetGroup(
-				ctx,
-				&types.GetGroupInput{ID: &groupID},
-			)
+			actualGroup, actualError := client.Group.GetGroup(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 			checkGroup(t, test.expectGroup, actualGroup)
