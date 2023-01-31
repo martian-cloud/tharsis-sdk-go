@@ -38,11 +38,11 @@ type createTokenBody struct {
 		} `json:"serviceAccountCreateToken"`
 	} `json:"data"`
 	Errors []struct {
-		Message    string   `json:"message"`
-		Path       []string `json:"path"`
+		Message    string `json:"message"`
 		Extensions struct {
 			Code string `json:"code"`
 		} `json:"extensions"`
+		Path []string `json:"path"`
 	} `json:"errors"`
 }
 
@@ -160,7 +160,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 		return err
 	}
 
-	resp, err := http.Post(graphQLEndpoint.String(), "", bytes.NewReader(reqBody))
+	resp, err := http.Post(graphQLEndpoint.String(), "", bytes.NewReader(reqBody)) // nosemgrep: gosec.G107-1
 	if err != nil {
 		return err
 	}
