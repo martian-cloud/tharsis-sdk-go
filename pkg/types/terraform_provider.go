@@ -12,7 +12,7 @@ type TerraformProvider struct {
 
 // GetTerraformProviderInput is the input to specify a single provider to fetch.
 type GetTerraformProviderInput struct {
-	ID string
+	ID string `json:"id"`
 }
 
 // CreateTerraformProviderInput is the input for creating a new provider.
@@ -21,4 +21,17 @@ type CreateTerraformProviderInput struct {
 	GroupPath     string `json:"groupPath"`
 	RepositoryURL string `json:"repositoryUrl"`
 	Private       bool   `json:"private"`
+}
+
+// UpdateTerraformProviderInput is the input for updating a TF provider.
+type UpdateTerraformProviderInput struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	RepositoryURL string `json:"repositoryUrl"`
+	Private       bool   `json:"private"`
+}
+
+// DeleteTerraformProviderInput is the input for deleting a TF provider.
+type DeleteTerraformProviderInput struct {
+	ID string `json:"id"`
 }
