@@ -25,6 +25,7 @@ type Client struct {
 	graphqlClient              graphqlClient
 	graphqlSubscriptionClient  subscriptionClient
 	ConfigurationVersion       ConfigurationVersion
+	GPGKey                     GPGKey
 	Group                      Group
 	Job                        Job
 	ManagedIdentity            ManagedIdentity
@@ -42,6 +43,8 @@ type Client struct {
 	TerraformModuleAttestation TerraformModuleAttestation
 	TerraformProviderPlatform  TerraformProviderPlatform
 	TerraformCLIVersions       TerraformCLIVersion
+	VCSProvider                VCSProvider
+	WorkspaceVCSProviderLink   WorkspaceVCSProviderLink
 }
 
 // NewClient returns a TharsisClient.
@@ -81,6 +84,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	}
 
 	client.ConfigurationVersion = NewConfigurationVersion(client)
+	client.GPGKey = NewGPGKey(client)
 	client.Group = NewGroup(client)
 	client.Job = NewJob(client)
 	client.ManagedIdentity = NewManagedIdentity(client)
@@ -98,6 +102,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.TerraformModuleVersion = NewTerraformModuleVersion(client)
 	client.TerraformModuleAttestation = NewTerraformModuleAttestation(client)
 	client.TerraformCLIVersions = NewTerraformCLIVersion(client)
+	client.VCSProvider = NewVCSProvider(client)
+	client.WorkspaceVCSProviderLink = NewWorkspaceVCSProviderLink(client)
 
 	return client, nil
 }

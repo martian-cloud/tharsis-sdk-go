@@ -12,6 +12,8 @@ import (
 type TerraformProvider interface {
 	GetProvider(ctx context.Context, input *types.GetTerraformProviderInput) (*types.TerraformProvider, error)
 	CreateProvider(ctx context.Context, input *types.CreateTerraformProviderInput) (*types.TerraformProvider, error)
+	UpdateProvider(ctx context.Context, input *types.UpdateTerraformProviderInput) (*types.TerraformProvider, error)
+	DeleteProvider(ctx context.Context, input *types.DeleteTerraformProviderInput) (*types.TerraformProvider, error)
 }
 
 type provider struct {
@@ -70,6 +72,58 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 
 	created := providerFromGraphQL(wrappedCreate.CreateTerraformProvider.Provider)
 	return &created, nil
+}
+
+func (p *provider) UpdateProvider(ctx context.Context, input *types.UpdateTerraformProviderInput) (*types.TerraformProvider, error) {
+
+	var wrappedUpdate struct {
+		UpdateTerraformProvider struct {
+			Provider graphQLTerraformProvider
+			Problems []internal.GraphQLProblem
+		} `graphql:"updateTerraformProvider(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
+		return nil, err
+	}
+
+	updated := providerFromGraphQL(wrappedUpdate.UpdateTerraformProvider.Provider)
+	return &updated, nil
+}
+
+func (p *provider) DeleteProvider(ctx context.Context, input *types.DeleteTerraformProviderInput) (*types.TerraformProvider, error) {
+
+	var wrappedDelete struct {
+		DeleteTerraformProvider struct {
+			Provider graphQLTerraformProvider
+			Problems []internal.GraphQLProblem
+		} `graphql:"deleteTerraformProvider(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := p.client.graphqlClient.Mutate(ctx, true, &wrappedDelete, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
+		return nil, err
+	}
+
+	deleted := providerFromGraphQL(wrappedDelete.DeleteTerraformProvider.Provider)
+	return &deleted, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////
