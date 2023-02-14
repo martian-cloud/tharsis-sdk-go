@@ -463,6 +463,7 @@ type GraphQLManagedIdentity struct {
 	Metadata      internal.GraphQLMetadata
 	ID            graphql.String
 	Type          graphql.String
+	GroupPath     graphql.String
 	ResourcePath  graphql.String
 	Name          graphql.String
 	Description   graphql.String
@@ -497,6 +498,7 @@ func identityFromGraphQL(g GraphQLManagedIdentity) types.ManagedIdentity {
 	result := types.ManagedIdentity{
 		Metadata:     internal.MetadataFromGraphQL(g.Metadata, g.ID),
 		Type:         types.ManagedIdentityType(g.Type),
+		GroupPath:    string(g.GroupPath),
 		ResourcePath: string(g.ResourcePath),
 		Name:         string(g.Name),
 		Description:  string(g.Description),

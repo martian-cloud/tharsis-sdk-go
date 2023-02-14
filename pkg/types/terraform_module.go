@@ -44,6 +44,7 @@ type TerraformModule struct {
 	Metadata          ResourceMetadata
 	Name              string
 	System            string
+	GroupPath         string
 	ResourcePath      string
 	RegistryNamespace string
 	RepositoryURL     string

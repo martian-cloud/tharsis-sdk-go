@@ -22,6 +22,7 @@ func TestCreateServiceAccount(t *testing.T) {
 	serviceAccountID := "service-account-id-1"
 	serviceAccountVersion := "service-account-version-1"
 	serviceAccountDescription := "service account description 1"
+	groupPath := parentGroupName
 	resourcePath := parentGroupName + "/" + serviceAccountName
 	trustPolicyIssuer1 := "https://trust-policy-issuer-1"
 	boundClaimName1a := "bound-claim-name-1a"
@@ -88,6 +89,7 @@ func TestCreateServiceAccount(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(serviceAccountVersion),
 							},
+							GroupPath:    graphql.String(groupPath),
 							ResourcePath: graphql.String(resourcePath),
 							Name:         graphql.String(serviceAccountName),
 							Description:  graphql.String(serviceAccountDescription),
@@ -130,6 +132,7 @@ func TestCreateServiceAccount(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              serviceAccountVersion,
 				},
+				GroupPath:    groupPath,
 				ResourcePath: resourcePath,
 				Name:         serviceAccountName,
 				Description:  serviceAccountDescription,
@@ -206,6 +209,7 @@ func TestGetServiceAccount(t *testing.T) {
 	parentGroupName := "parent-group-name"
 	serviceAccountName := "service-account-name-1"
 	serviceAccountDescription := "service account description 1"
+	groupPath := parentGroupName
 	resourcePath := parentGroupName + "/" + serviceAccountName
 	serviceAccountID := "service-account-id-1"
 	serviceAccountVersion := "service-account-version-1"
@@ -246,6 +250,7 @@ func TestGetServiceAccount(t *testing.T) {
 							UpdatedAt: &now,
 							Version:   graphql.String(serviceAccountVersion),
 						},
+						GroupPath:    graphql.String(groupPath),
 						ResourcePath: graphql.String(resourcePath),
 						Name:         graphql.String(serviceAccountName),
 						Description:  graphql.String(serviceAccountDescription),
@@ -287,6 +292,7 @@ func TestGetServiceAccount(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              serviceAccountVersion,
 				},
+				GroupPath:    groupPath,
 				ResourcePath: resourcePath,
 				Name:         serviceAccountName,
 				Description:  serviceAccountDescription,
@@ -395,6 +401,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 	parentGroupName := "parent-group-name"
 	serviceAccountName := "service-account-name-1"
 	serviceAccountDescription := "service account description 1"
+	groupPath := parentGroupName
 	resourcePath := parentGroupName + "/" + serviceAccountName
 	serviceAccountID := "service-account-id-1"
 	serviceAccountVersion := "service-account-version-1"
@@ -463,6 +470,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(serviceAccountVersion),
 							},
+							GroupPath:    graphql.String(groupPath),
 							ResourcePath: graphql.String(resourcePath),
 							Name:         graphql.String(serviceAccountName),
 							Description:  graphql.String(serviceAccountDescription),
@@ -505,6 +513,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              serviceAccountVersion,
 				},
+				GroupPath:    groupPath,
 				ResourcePath: resourcePath,
 				Name:         serviceAccountName,
 				Description:  serviceAccountDescription,

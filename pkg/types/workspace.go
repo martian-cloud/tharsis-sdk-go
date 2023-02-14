@@ -49,6 +49,7 @@ type Workspace struct {
 	CurrentStateVersion *StateVersion
 	Metadata            ResourceMetadata
 	Name                string
+	GroupPath           string
 	FullPath            string
 	Description         string
 	TerraformVersion    string

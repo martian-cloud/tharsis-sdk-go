@@ -17,6 +17,7 @@ type VCSProvider struct {
 	Name               string
 	Description        string
 	Hostname           string
+	GroupPath          string
 	ResourcePath       string
 	Type               VCSProviderType
 	AutoCreateWebhooks bool

@@ -139,6 +139,7 @@ type graphQLVCSProvider struct {
 	Name               graphql.String
 	Description        graphql.String
 	Hostname           graphql.String
+	GroupPath          graphql.String
 	ResourcePath       graphql.String
 	Type               graphql.String
 	AutoCreateWebhooks graphql.Boolean
@@ -152,6 +153,7 @@ func vcsProviderFromGraphQL(gvp graphQLVCSProvider) types.VCSProvider {
 		Name:               string(gvp.Name),
 		Description:        string(gvp.Description),
 		Hostname:           string(gvp.Hostname),
+		GroupPath:          string(gvp.GroupPath),
 		ResourcePath:       string(gvp.ResourcePath),
 		Type:               types.VCSProviderType(gvp.Type),
 		AutoCreateWebhooks: bool(gvp.AutoCreateWebhooks),
