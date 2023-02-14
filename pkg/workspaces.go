@@ -361,6 +361,7 @@ type graphQLWorkspace struct {
 	ID                  graphql.String
 	Name                graphql.String
 	Description         graphql.String
+	GroupPath           graphql.String
 	FullPath            graphql.String
 	TerraformVersion    graphql.String
 	MaxJobDuration      graphql.Int
@@ -377,6 +378,7 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 	return &types.Workspace{
 		Metadata:            internal.MetadataFromGraphQL(g.Metadata, g.ID),
 		Name:                string(g.Name),
+		GroupPath:           string(g.GroupPath),
 		FullPath:            string(g.FullPath),
 		Description:         string(g.Description),
 		CurrentStateVersion: currentStateVersion,

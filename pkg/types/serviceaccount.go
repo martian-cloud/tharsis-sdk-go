@@ -11,6 +11,7 @@ type OIDCTrustPolicy struct {
 // ServiceAccount provides M2M authentication
 type ServiceAccount struct {
 	Metadata          ResourceMetadata
+	GroupPath         string
 	ResourcePath      string
 	Name              string
 	Description       string

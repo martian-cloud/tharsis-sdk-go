@@ -134,6 +134,7 @@ type graphQLTerraformProvider struct {
 	ID                graphql.String
 	Metadata          internal.GraphQLMetadata
 	Name              string
+	GroupPath         string
 	ResourcePath      string
 	RegistryNamespace string
 	RepositoryURL     string
@@ -145,6 +146,7 @@ func providerFromGraphQL(p graphQLTerraformProvider) types.TerraformProvider {
 	result := types.TerraformProvider{
 		Metadata:          internal.MetadataFromGraphQL(p.Metadata, p.ID),
 		Name:              p.Name,
+		GroupPath:         p.GroupPath,
 		ResourcePath:      p.ResourcePath,
 		RegistryNamespace: p.RegistryNamespace,
 		Private:           p.Private,

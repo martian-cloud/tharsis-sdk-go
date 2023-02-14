@@ -4,6 +4,7 @@ package types
 type TerraformProvider struct {
 	Metadata          ResourceMetadata
 	Name              string
+	GroupPath         string
 	ResourcePath      string
 	RegistryNamespace string
 	RepositoryURL     string

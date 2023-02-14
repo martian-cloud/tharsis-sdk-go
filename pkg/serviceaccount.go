@@ -220,6 +220,7 @@ type graphQLTrustPolicy struct {
 type graphQLServiceAccount struct {
 	ID                graphql.String
 	Metadata          internal.GraphQLMetadata
+	GroupPath         graphql.String
 	ResourcePath      graphql.String
 	Name              graphql.String
 	Description       graphql.String
@@ -234,6 +235,7 @@ func serviceAccountFromGraphQL(g graphQLServiceAccount) types.ServiceAccount {
 	}
 	return types.ServiceAccount{
 		Metadata:          internal.MetadataFromGraphQL(g.Metadata, g.ID),
+		GroupPath:         string(g.GroupPath),
 		ResourcePath:      string(g.ResourcePath),
 		Name:              string(g.Name),
 		Description:       string(g.Description),

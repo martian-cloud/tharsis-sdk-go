@@ -19,6 +19,7 @@ func TestGetModule(t *testing.T) {
 
 	moduleID := "1"
 	modulePath := "groupA/awesome-module/aws"
+	groupPath := "groupA"
 
 	type graphqlModulePayloadByID struct {
 		Node *graphQLTerraformModule `json:"node"`
@@ -54,6 +55,7 @@ func TestGetModule(t *testing.T) {
 						ID:                graphql.String(moduleID),
 						Name:              "awesome-module",
 						System:            "aws",
+						GroupPath:         groupPath,
 						ResourcePath:      modulePath,
 						RegistryNamespace: "groupA",
 						Private:           true,
@@ -69,6 +71,7 @@ func TestGetModule(t *testing.T) {
 				},
 				Name:              "awesome-module",
 				System:            "aws",
+				GroupPath:         groupPath,
 				ResourcePath:      modulePath,
 				RegistryNamespace: "groupA",
 				Private:           true,
@@ -90,6 +93,7 @@ func TestGetModule(t *testing.T) {
 						ID:                graphql.String(moduleID),
 						Name:              "awesome-module",
 						System:            "aws",
+						GroupPath:         groupPath,
 						ResourcePath:      modulePath,
 						RegistryNamespace: "groupA",
 						Private:           true,
@@ -105,6 +109,7 @@ func TestGetModule(t *testing.T) {
 				},
 				Name:              "awesome-module",
 				System:            "aws",
+				GroupPath:         groupPath,
 				ResourcePath:      modulePath,
 				RegistryNamespace: "groupA",
 				Private:           true,
@@ -210,6 +215,7 @@ func TestCreateModule(t *testing.T) {
 							ID:                graphql.String(moduleID),
 							Name:              "awesome-module",
 							System:            "aws",
+							GroupPath:         "groupA",
 							ResourcePath:      "groupA/awesome-module/aws",
 							RegistryNamespace: "groupA",
 							Private:           true,
@@ -226,6 +232,7 @@ func TestCreateModule(t *testing.T) {
 				},
 				Name:              "awesome-module",
 				System:            "aws",
+				GroupPath:         "groupA",
 				ResourcePath:      "groupA/awesome-module/aws",
 				RegistryNamespace: "groupA",
 				Private:           true,
@@ -317,6 +324,7 @@ func TestUpdateModule(t *testing.T) {
 							ID:                graphql.String(moduleID),
 							Name:              "awesome-module",
 							System:            "aws",
+							GroupPath:         "groupA",
 							ResourcePath:      "groupA/awesome-module/aws",
 							RegistryNamespace: "groupA",
 							Private:           true,
@@ -333,6 +341,7 @@ func TestUpdateModule(t *testing.T) {
 				},
 				Name:              "awesome-module",
 				System:            "aws",
+				GroupPath:         "groupA",
 				ResourcePath:      "groupA/awesome-module/aws",
 				RegistryNamespace: "groupA",
 				Private:           true,

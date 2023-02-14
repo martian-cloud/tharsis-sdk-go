@@ -20,6 +20,7 @@ func TestGetTerraformProvider(t *testing.T) {
 	tfpID := "tf-provider-id-1"
 	tfpVersion := "tf-provider-version-1"
 	tfpName := "tf-provider-name-1"
+	tfpGroupPath := "tf-provider-group-path"
 	tfpResourcePath := "tf-provider-resource-path"
 	tfpRegistryNamespace := "tf-provider-registry-namespace"
 	tfpRepositoryURL := "tf-provider-repository-url"
@@ -56,6 +57,7 @@ func TestGetTerraformProvider(t *testing.T) {
 							Version:   graphql.String(tfpVersion),
 						},
 						Name:              tfpName,
+						GroupPath:         tfpGroupPath,
 						ResourcePath:      tfpResourcePath,
 						RegistryNamespace: tfpRegistryNamespace,
 						RepositoryURL:     tfpRepositoryURL,
@@ -71,6 +73,7 @@ func TestGetTerraformProvider(t *testing.T) {
 					Version:              tfpVersion,
 				},
 				Name:              tfpName,
+				GroupPath:         tfpGroupPath,
 				ResourcePath:      tfpResourcePath,
 				RegistryNamespace: tfpRegistryNamespace,
 				RepositoryURL:     tfpRepositoryURL,
@@ -186,6 +189,7 @@ func TestCreateTerraformProvider(t *testing.T) {
 								Version:   graphql.String(tfpVersion),
 							},
 							Name:              tfpName,
+							GroupPath:         tfpGroupPath,
 							ResourcePath:      tfpResourcePath,
 							RegistryNamespace: tfpRegistryNamespace,
 							RepositoryURL:     tfpRepositoryURL,
@@ -202,6 +206,7 @@ func TestCreateTerraformProvider(t *testing.T) {
 					Version:              tfpVersion,
 				},
 				Name:              tfpName,
+				GroupPath:         tfpGroupPath,
 				ResourcePath:      tfpResourcePath,
 				RegistryNamespace: tfpRegistryNamespace,
 				RepositoryURL:     tfpRepositoryURL,
@@ -259,6 +264,7 @@ func TestUpdateTerraformProvider(t *testing.T) {
 	tfpID := "tf-provider-id-1"
 	tfpVersion := "tf-provider-version-1"
 	tfpName := "tf-provider-name-1"
+	tfpGroupPath := "tf-provider-group-path"
 	tfpResourcePath := "tf-provider-resource-path"
 	tfpRegistryNamespace := "tf-provider-registry-namespace"
 	tfpRepositoryURL := "tf-provider-repository-url"
@@ -304,6 +310,7 @@ func TestUpdateTerraformProvider(t *testing.T) {
 								Version:   graphql.String(tfpVersion),
 							},
 							Name:              tfpName,
+							GroupPath:         tfpGroupPath,
 							ResourcePath:      tfpResourcePath,
 							RegistryNamespace: tfpRegistryNamespace,
 							RepositoryURL:     tfpRepositoryURL,
@@ -320,6 +327,7 @@ func TestUpdateTerraformProvider(t *testing.T) {
 					Version:              tfpVersion,
 				},
 				Name:              tfpName,
+				GroupPath:         tfpGroupPath,
 				ResourcePath:      tfpResourcePath,
 				RegistryNamespace: tfpRegistryNamespace,
 				RepositoryURL:     tfpRepositoryURL,
@@ -377,6 +385,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 	tfpID := "tf-provider-id-1"
 	tfpVersion := "tf-provider-version-1"
 	tfpName := "tf-provider-name-1"
+	tfpGroupPath := "tf-provider-group-path"
 	tfpResourcePath := "tf-provider-resource-path"
 	tfpRegistryNamespace := "tf-provider-registry-namespace"
 	tfpRepositoryURL := "tf-provider-repository-url"
@@ -419,6 +428,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 								Version:   graphql.String(tfpVersion),
 							},
 							Name:              tfpName,
+							GroupPath:         tfpGroupPath,
 							ResourcePath:      tfpResourcePath,
 							RegistryNamespace: tfpRegistryNamespace,
 							RepositoryURL:     tfpRepositoryURL,
@@ -435,6 +445,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 					Version:              tfpVersion,
 				},
 				Name:              tfpName,
+				GroupPath:         tfpGroupPath,
 				ResourcePath:      tfpResourcePath,
 				RegistryNamespace: tfpRegistryNamespace,
 				RepositoryURL:     tfpRepositoryURL,

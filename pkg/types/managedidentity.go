@@ -86,6 +86,7 @@ type ManagedIdentity struct {
 	Metadata      ResourceMetadata
 	Type          ManagedIdentityType
 	AliasSourceID *string
+	GroupPath     string
 	ResourcePath  string
 	Name          string
 	Description   string

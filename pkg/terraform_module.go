@@ -251,6 +251,7 @@ type graphQLTerraformModule struct {
 	Metadata          internal.GraphQLMetadata `json:"metadata"`
 	Name              string                   `json:"name"`
 	System            string                   `json:"system"`
+	GroupPath         string                   `json:"groupPath"`
 	ResourcePath      string                   `json:"resourcePath"`
 	RegistryNamespace string                   `json:"registryNamespace"`
 	RepositoryURL     string                   `json:"repositoryUrl"`
@@ -263,6 +264,7 @@ func moduleFromGraphQL(p graphQLTerraformModule) types.TerraformModule {
 		Metadata:          internal.MetadataFromGraphQL(p.Metadata, p.ID),
 		Name:              p.Name,
 		System:            p.System,
+		GroupPath:         p.GroupPath,
 		ResourcePath:      p.ResourcePath,
 		RegistryNamespace: p.RegistryNamespace,
 		Private:           p.Private,

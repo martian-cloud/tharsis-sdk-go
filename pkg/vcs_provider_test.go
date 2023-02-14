@@ -24,6 +24,7 @@ func TestGetVCSProvider(t *testing.T) {
 	vpName := "vcs-provider-name-1"
 	vpDescription := "vcs-provider-description-1"
 	vpHostname := "vcs-provider-hostname"
+	vpGroupPath := parentGroupName
 	vpResourcePath := parentGroupName + "/" + vpName
 	vpType := types.VCSProviderTypeGitlab
 	vpAutoCreateWebhooks := true
@@ -62,6 +63,7 @@ func TestGetVCSProvider(t *testing.T) {
 						Name:               graphql.String(vpName),
 						Description:        graphql.String(vpDescription),
 						Hostname:           graphql.String(vpHostname),
+						GroupPath:          graphql.String(vpGroupPath),
 						ResourcePath:       graphql.String(vpResourcePath),
 						Type:               graphql.String(vpType),
 						AutoCreateWebhooks: graphql.Boolean(vpAutoCreateWebhooks),
@@ -79,6 +81,7 @@ func TestGetVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				Hostname:           vpHostname,
+				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
 				AutoCreateWebhooks: vpAutoCreateWebhooks,
@@ -205,6 +208,7 @@ func TestCreateVCSProvider(t *testing.T) {
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
 							Hostname:           graphql.String(vpHostname),
+							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
 							AutoCreateWebhooks: graphql.Boolean(vpAutoCreateWebhooks),
@@ -223,6 +227,7 @@ func TestCreateVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				Hostname:           vpHostname,
+				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
 				AutoCreateWebhooks: vpAutoCreateWebhooks,
@@ -342,6 +347,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
 							Hostname:           graphql.String(vpHostname),
+							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
 							AutoCreateWebhooks: graphql.Boolean(vpAutoCreateWebhooks),
@@ -360,6 +366,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				Hostname:           vpHostname,
+				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
 				AutoCreateWebhooks: vpAutoCreateWebhooks,
@@ -470,6 +477,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
 							Hostname:           graphql.String(vpHostname),
+							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
 							AutoCreateWebhooks: graphql.Boolean(vpAutoCreateWebhooks),
@@ -488,6 +496,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				Hostname:           vpHostname,
+				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
 				AutoCreateWebhooks: vpAutoCreateWebhooks,
