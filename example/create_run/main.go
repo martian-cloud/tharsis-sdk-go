@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/example/job"
 	tharsis "gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -108,28 +108,17 @@ func ExampleCreateRun(workspacePath, directoryPath string) error {
 	}
 	planJobID := createdRun.Plan.CurrentJobID
 
-	// Fourth, process the plan logs.
-	logChannel, err := client.Job.GetJobLogs(ctx, &types.GetJobLogsInput{
-		ID:          *planJobID,
-		StartOffset: 0,
-		Limit:       5 * 1024 * 1024,
-	})
-	if err != nil {
-		return err
+	input := &job.DisplayLogsInput{
+		Client:      client,
+		RunID:       createdRun.Metadata.ID,
+		WorkspaceID: createdRun.WorkspaceID,
+		JobID:       *planJobID,
 	}
 
-	fmt.Println("Starting plan job logs:")
-	for {
-		logs, ok := <-logChannel
-		if !ok {
-			break
-		}
-		_, err = os.Stdout.Write([]byte(logs))
-		if err != nil {
-			return err
-		}
+	// Display the job logs.
+	if err = job.DisplayLogs(ctx, input); err != nil {
+		return err
 	}
-	fmt.Println("Finished plan job logs.")
 
 	return nil
 }
