@@ -3,6 +3,7 @@ package tharsis
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -14,8 +15,7 @@ type Job interface {
 	GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job, error)
 	SubscribeToJobCancellationEvent(ctx context.Context, input *types.JobCancellationEventSubscriptionInput) (<-chan *types.CancellationEvent, error)
 	SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) error
-	SubscribeToJobLogEvents(ctx context.Context, input *types.JobLogSubscriptionInput) (<-chan *types.JobLogEvent, error)
-	GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (*types.GetJobLogsOutput, error)
+	GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (chan string, error)
 }
 
 type job struct {
@@ -119,94 +119,59 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 	return nil
 }
 
-func (j *job) SubscribeToJobLogEvents(ctx context.Context, input *types.JobLogSubscriptionInput) (<-chan *types.JobLogEvent, error) {
-	// Make sure the run hasn't already finished.
-	run, err := j.client.Run.GetRun(ctx, &types.GetRunInput{ID: input.RunID})
-	if err != nil {
-		return nil, err
-	}
+// GetJobLogs launches a goroutine that periodically fetches job logs and sends
+// them to the channel.  It closes the channel after the job has finished.
+// It passes the log strings through with _NO_ attempt to glue together split
+// lines or any other fancy processing.
+func (j *job) GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (chan string, error) {
+	startOffset := input.StartOffset
+	logChannel := make(chan string)
+	pollForLogs := func() {
+		defer close(logChannel)
+		for {
 
-	switch run.Status {
-	case types.RunApplied,
-		types.RunCanceled,
-		types.RunPlanned,
-		types.RunPlannedAndFinished,
-		types.RunErrored:
-		// Run has finished meaning no more job logs.
-		return nil, newError(ErrBadRequest, "Run has already %s", run.Status)
-	}
-
-	eventChannel := make(chan *types.JobLogEvent)
-
-	var target struct {
-		JobLogEvent types.JobLogEvent `graphql:"jobLogEvents(input: $input)"`
-	}
-
-	variables := map[string]interface{}{
-		"input": *input,
-	}
-
-	// The embedded job log event callback function.
-	jobLogEventCallback := func(message []byte, err error) error {
-		// Detect any incoming error.
-		if err != nil {
-			// close channel
-			close(eventChannel)
-			return err
-		}
-
-		var event struct {
-			JobLogEvent types.JobLogEvent `json:"jobLogEvents"`
-		}
-
-		if message != nil {
-			if err = json.Unmarshal(message, &event); err != nil {
-				return err
+			variables := map[string]interface{}{
+				"id":          graphql.String(input.ID),
+				"startOffset": graphql.Int(startOffset),
+				"limit":       graphql.Int(input.Limit),
 			}
 
-			eventChannel <- &event.JobLogEvent
+			var target struct {
+				Job *struct {
+					ID     graphql.String
+					Status graphql.String
+					Logs   graphql.String `graphql:"logs(startOffset: $startOffset, limit: $limit)"`
+				} `graphql:"job(id: $id)"`
+			}
+
+			err := j.client.graphqlClient.Query(ctx, true, &target, variables)
+			if err != nil {
+				j.client.cfg.Logger.Printf("error: failed to query job: %s", err)
+				return
+			}
+			if target.Job == nil {
+				j.client.cfg.Logger.Printf("error: job not found: %s", input.ID)
+				return
+			}
+
+			logs := string(target.Job.Logs)
+			status := string(target.Job.Status)
+
+			logChannel <- logs
+			startOffset += len(logs)
+			if status == jobFinished {
+				return
+			}
+
+			time.Sleep(jobLogQuerySleep)
 		}
-
-		return nil
 	}
 
-	// Create the subscription.
-	_, err = j.client.graphqlSubscriptionClient.Subscribe(&target, variables, jobLogEventCallback)
-	if err != nil {
-		return nil, err
-	}
+	go func() {
+		pollForLogs()
+	}()
 
-	return eventChannel, nil
-}
-
-// GetJobLogs returns job logs.
-func (j *job) GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (*types.GetJobLogsOutput, error) {
-	variables := map[string]interface{}{
-		"id":          graphql.String(input.ID),
-		"startOffset": graphql.Int(input.StartOffset),
-		"limit":       graphql.Int(input.Limit),
-	}
-
-	var target struct {
-		Job *struct {
-			Logs    graphql.String `graphql:"logs(startOffset: $startOffset, limit: $limit)"`
-			LogSize graphql.Int
-		} `graphql:"job(id: $id)"`
-	}
-
-	err := j.client.graphqlClient.Query(ctx, true, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-
-	if target.Job == nil {
-		return nil, newError(ErrNotFound, "Job with id %s not found", input.ID)
-	}
-
-	return &types.GetJobLogsOutput{
-		Logs:    string(target.Job.Logs),
-		LogSize: int32(target.Job.LogSize),
-	}, nil
+	return logChannel, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////
