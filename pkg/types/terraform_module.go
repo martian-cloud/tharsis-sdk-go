@@ -73,8 +73,6 @@ type CreateTerraformModuleInput struct {
 
 // UpdateTerraformModuleInput is the input for updating a module.
 type UpdateTerraformModuleInput struct {
-	Name          *string `json:"name"`
-	System        *string `json:"system"`
 	RepositoryURL *string `json:"repositoryUrl"`
 	Private       *bool   `json:"private"`
 	ID            string  `json:"id"`
