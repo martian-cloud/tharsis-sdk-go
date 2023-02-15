@@ -7,7 +7,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aws/smithy-go/ptr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
@@ -42,13 +41,14 @@ func TestTerraformModules(t *testing.T) {
 	assert.Equal(t, true, module2.Private)
 
 	// Update the module
+	newFalse := false
 	module3, err := client.TerraformModule.UpdateModule(ctx, &types.UpdateTerraformModuleInput{
-		ID:   module.Metadata.ID,
-		Name: ptr.String("tharsis-sdk-e2e-test-updated"),
+		ID:      module.Metadata.ID,
+		Private: &newFalse,
 	})
 	require.Nil(t, err)
 
-	assert.Equal(t, "tharsis-sdk-e2e-test-updated", module3.Name)
+	assert.Equal(t, false, module3.Private)
 
 	// Delete the module
 	err = client.TerraformModule.DeleteModule(ctx, &types.DeleteTerraformModuleInput{
