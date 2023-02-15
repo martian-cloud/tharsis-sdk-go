@@ -341,8 +341,8 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 	vpWebhookDisabled := false
 
 	type graphqlUpdateWorkspaceVCSProviderLinkMutation struct {
-		WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink `json:"workspaceVCSProviderLink"`
 		Problems                 []fakeGraphqlResponseProblem    `json:"problems"`
+		WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink `json:"workspaceVCSProviderLink"`
 	}
 
 	type graphqlUpdateWorkspaceVCSProviderLinkPayload struct {
