@@ -14,11 +14,12 @@ type GetJobInput struct {
 	ID string `json:"id"`
 }
 
-// GetJobLogsInput is the input to query a chunk of job logs
-type GetJobLogsInput struct {
-	ID          string `json:"id"`
-	StartOffset int    `json:"startOffset"`
-	Limit       int    `json:"limit"`
+// JobLogsSubscriptionInput is the input for subscribing to job logs.
+type JobLogsSubscriptionInput struct {
+	Limit         *int32
+	RunID         string
+	WorkspacePath string
+	JobID         string `json:"jobId"`
 }
 
 // JobCancellationEventSubscriptionInput is the input for Job cancellation event subscription
@@ -50,6 +51,12 @@ type Job struct {
 // CancellationEvent represents a job cancellation event
 type CancellationEvent struct {
 	Job Job
+}
+
+// JobLogsEvent is the output for subscribing to job logs.
+type JobLogsEvent struct {
+	Error error
+	Logs  string
 }
 
 // The End.
