@@ -106,10 +106,10 @@ func ExampleApplyRun(workspacePath, directoryPath string) error {
 	planJobID := createdRun.Plan.CurrentJobID
 
 	// Fourth, process the plan logs.
-	logChannel, err := client.Job.GetJobLogs(ctx, &types.GetJobLogsInput{
-		ID:          *planJobID,
-		StartOffset: 0,
-		Limit:       5 * 1024 * 1024,
+	logChannel, err := client.Job.SubscribeToJobLogs(ctx, &types.JobLogsSubscriptionInput{
+		RunID:         createdRun.Metadata.ID,
+		WorkspacePath: createdRun.WorkspacePath,
+		JobID:         *planJobID,
 	})
 	if err != nil {
 		return err
@@ -117,11 +117,17 @@ func ExampleApplyRun(workspacePath, directoryPath string) error {
 
 	fmt.Println("Starting plan job logs:")
 	for {
-		logs, ok := <-logChannel
+		logsEvent, ok := <-logChannel
 		if !ok {
 			break
 		}
-		_, err = os.Stdout.Write([]byte(logs))
+
+		if logsEvent.Error != nil {
+			// Catch any incoming errors.
+			return logsEvent.Error
+		}
+
+		_, err = os.Stdout.Write([]byte(logsEvent.Logs))
 		if err != nil {
 			return err
 		}
@@ -152,10 +158,10 @@ func ExampleApplyRun(workspacePath, directoryPath string) error {
 	applyJobID := appliedRun.Apply.CurrentJobID
 
 	// Sixth, process the apply logs.
-	logChannel, err = client.Job.GetJobLogs(ctx, &types.GetJobLogsInput{
-		ID:          *applyJobID,
-		StartOffset: 0,
-		Limit:       5 * 1024 * 1024,
+	logChannel, err = client.Job.SubscribeToJobLogs(ctx, &types.JobLogsSubscriptionInput{
+		RunID:         appliedRun.Metadata.ID,
+		WorkspacePath: appliedRun.WorkspacePath,
+		JobID:         *applyJobID,
 	})
 	if err != nil {
 		return err
@@ -163,11 +169,17 @@ func ExampleApplyRun(workspacePath, directoryPath string) error {
 
 	fmt.Println("Starting apply job logs:")
 	for {
-		logs, ok := <-logChannel
+		logsEvent, ok := <-logChannel
 		if !ok {
 			break
 		}
-		_, err = os.Stdout.Write([]byte(logs))
+
+		if logsEvent.Error != nil {
+			// Catch any incoming errors.
+			return logsEvent.Error
+		}
+
+		_, err = os.Stdout.Write([]byte(logsEvent.Logs))
 		if err != nil {
 			return err
 		}
@@ -216,10 +228,10 @@ func ExampleApplyModule(workspacePath, moduleSource, moduleVersion string) error
 	planJobID := createdRun.Plan.CurrentJobID
 
 	// Fourth, process the plan logs.
-	logChannel, err := client.Job.GetJobLogs(ctx, &types.GetJobLogsInput{
-		ID:          *planJobID,
-		StartOffset: 0,
-		Limit:       5 * 1024 * 1024,
+	logChannel, err := client.Job.SubscribeToJobLogs(ctx, &types.JobLogsSubscriptionInput{
+		RunID:         createdRun.Metadata.ID,
+		WorkspacePath: createdRun.WorkspacePath,
+		JobID:         *planJobID,
 	})
 	if err != nil {
 		return err
@@ -227,11 +239,17 @@ func ExampleApplyModule(workspacePath, moduleSource, moduleVersion string) error
 
 	fmt.Println("Starting plan job logs:")
 	for {
-		logs, ok := <-logChannel
+		logsEvent, ok := <-logChannel
 		if !ok {
 			break
 		}
-		_, err = os.Stdout.Write([]byte(logs))
+
+		if logsEvent.Error != nil {
+			// Catch any incoming errors.
+			return logsEvent.Error
+		}
+
+		_, err = os.Stdout.Write([]byte(logsEvent.Logs))
 		if err != nil {
 			return err
 		}
@@ -262,10 +280,10 @@ func ExampleApplyModule(workspacePath, moduleSource, moduleVersion string) error
 	applyJobID := appliedRun.Apply.CurrentJobID
 
 	// Sixth, process the apply logs.
-	logChannel, err = client.Job.GetJobLogs(ctx, &types.GetJobLogsInput{
-		ID:          *applyJobID,
-		StartOffset: 0,
-		Limit:       5 * 1024 * 1024,
+	logChannel, err = client.Job.SubscribeToJobLogs(ctx, &types.JobLogsSubscriptionInput{
+		RunID:         appliedRun.Metadata.ID,
+		WorkspacePath: appliedRun.WorkspacePath,
+		JobID:         *applyJobID,
 	})
 	if err != nil {
 		return err
@@ -273,11 +291,17 @@ func ExampleApplyModule(workspacePath, moduleSource, moduleVersion string) error
 
 	fmt.Println("Starting apply job logs:")
 	for {
-		logs, ok := <-logChannel
+		logsEvent, ok := <-logChannel
 		if !ok {
 			break
 		}
-		_, err = os.Stdout.Write([]byte(logs))
+
+		if logsEvent.Error != nil {
+			// Catch any incoming errors.
+			return logsEvent.Error
+		}
+
+		_, err = os.Stdout.Write([]byte(logsEvent.Logs))
 		if err != nil {
 			return err
 		}

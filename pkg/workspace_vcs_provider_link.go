@@ -59,10 +59,10 @@ func (gk *workspaceVCSProviderLink) CreateLink(ctx context.Context,
 
 	var wrappedCreate struct {
 		CreateWorkspaceVCSProviderLink struct {
-			VCSProviderLink graphQLWorkspaceVCSProviderLink
 			WebhookToken    *graphql.String
 			WebhookURL      *graphql.String
 			Problems        []internal.GraphQLProblem
+			VCSProviderLink graphQLWorkspaceVCSProviderLink
 		} `graphql:"createWorkspaceVCSProviderLink(input: $input)"`
 	}
 
@@ -97,8 +97,8 @@ func (gk *workspaceVCSProviderLink) UpdateLink(ctx context.Context,
 
 	var wrappedUpdate struct {
 		UpdateWorkspaceVCSProviderLink struct {
-			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
 			Problems                 []internal.GraphQLProblem
+			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
 		} `graphql:"updateWorkspaceVCSProviderLink(input: $input)"`
 	}
 
@@ -127,8 +127,8 @@ func (gk *workspaceVCSProviderLink) DeleteLink(ctx context.Context,
 
 	var wrappedDelete struct {
 		DeleteWorkspaceVCSProviderLink struct {
-			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
 			Problems                 []internal.GraphQLProblem
+			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
 		} `graphql:"deleteWorkspaceVCSProviderLink(input: $input)"`
 	}
 
