@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -39,7 +40,7 @@ func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformPro
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "terraform provider with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "terraform provider with id %s not found", input.ID)
 	}
 
 	result := providerFromGraphQL(target.Node.Provider)
@@ -66,7 +67,7 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +93,7 @@ func (p *provider) UpdateProvider(ctx context.Context, input *types.UpdateTerraf
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +119,7 @@ func (p *provider) DeleteProvider(ctx context.Context, input *types.DeleteTerraf
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 

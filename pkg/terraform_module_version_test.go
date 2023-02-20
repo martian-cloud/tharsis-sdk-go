@@ -38,7 +38,7 @@ func TestGetModuleVersion(t *testing.T) {
 		input               *types.GetTerraformModuleVersionInput
 		expectModuleVersion *types.TerraformModuleVersion
 		name                string
-		expectErrorCode     ErrorCode
+		expectErrorCode     types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -133,7 +133,7 @@ func TestGetModuleVersion(t *testing.T) {
 		{
 			name:            "returns an error since ID and modulePath were unspecified",
 			input:           &types.GetTerraformModuleVersionInput{},
-			expectErrorCode: ErrBadRequest,
+			expectErrorCode: types.ErrBadRequest,
 		},
 		{
 			name: "verify that correct error is returned",
@@ -149,7 +149,7 @@ func TestGetModuleVersion(t *testing.T) {
 					},
 				}},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "returns nil because module version does not exist",
@@ -159,7 +159,7 @@ func TestGetModuleVersion(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlModuleVersionPayloadByID{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -212,7 +212,7 @@ func TestCreateModuleVersion(t *testing.T) {
 		responsePayload     interface{}
 		expectModuleVersion *types.TerraformModuleVersion
 		name                string
-		expectErrorCode     ErrorCode
+		expectErrorCode     types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -272,7 +272,7 @@ func TestCreateModuleVersion(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -320,7 +320,7 @@ func TestDeleteModuleVersion(t *testing.T) {
 	type testCase struct {
 		responsePayload interface{}
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -347,7 +347,7 @@ func TestDeleteModuleVersion(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -381,7 +381,7 @@ func TestUploadModuleVersion(t *testing.T) {
 	type testCase struct {
 		payloadToReturn interface{}
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 		statusToReturn  int
 	}
 
@@ -394,7 +394,7 @@ func TestUploadModuleVersion(t *testing.T) {
 			name:            "failed module version upload",
 			payloadToReturn: fakeRESTError{Detail: "internal server error"},
 			statusToReturn:  http.StatusInternalServerError,
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 

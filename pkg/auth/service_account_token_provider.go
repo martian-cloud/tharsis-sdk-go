@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/hasura/go-graphql-client"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 )
 
 // Provides tokens suitable for use by a service account, including automatic renewal.
@@ -100,7 +101,7 @@ func (p *serviceAccountTokenProvider) GetToken() (string, error) {
 	if p.isTokenExpired() {
 		err := p.renewToken()
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("service account token renewal failed: %w", err)
 		}
 	}
 
@@ -173,7 +174,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// Must check the status code.
 	if (resp.StatusCode != http.StatusCreated) && (resp.StatusCode != http.StatusOK) {
-		return fmt.Errorf("service account token renewal failed: %s", respBody)
+		return errors.ErrorFromHTTPResponse(resp)
 	}
 
 	var gotRespBody createTokenBody
@@ -184,41 +185,39 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// Check for GraphQL errors in the response (even if the status code is 'ok').
 	if len(gotRespBody.Errors) > 0 {
-		return fmt.Errorf("service account token renewal failed: errors in response body: %#v", gotRespBody.Errors)
+		return fmt.Errorf("errors in response body: %#v", gotRespBody.Errors)
 	}
 
 	// Must check for GraphQL problems in the response.
 	// All cases of user input should have been mapped by the API into GraphQL Problems.
-	if len(gotRespBody.Data.ServiceAccountCreateToken.Problems) > 0 {
-
-		// For now, parse the incoming problem into an error without the aid of the
-		// errorFromGraphqlProblems from the errors module, while trying to mimic its function.
-		// See below for a map, a type, and its methods copied from the errors module.
-
-		var result error
-		for _, problem := range gotRespBody.Data.ServiceAccountCreateToken.Problems {
-
-			code, ok := graphqlErrorCodeToSDKErrorCode[problem.Type]
-			if !ok {
-				code = "internal error"
+	gotProblems := gotRespBody.Data.ServiceAccountCreateToken.Problems
+	if len(gotProblems) > 0 {
+		// Convert from JSON struct to GraphQLProblem type.
+		problemsSlice := []internal.GraphQLProblem{}
+		for _, problem := range gotProblems {
+			graphQLProblem := internal.GraphQLProblem{
+				Message: graphql.String(problem.Message),
+				Type:    internal.GraphQLProblemType(problem.Type),
 			}
 
-			result = multierror.Append(result, &localError{
-				Code: code,
-				Msg:  problem.Message,
-			})
+			// Convert the field.
+			for _, field := range problem.Field {
+				graphQLProblem.Field = append(graphQLProblem.Field, graphql.String(field))
+			}
+
+			problemsSlice = append(problemsSlice, graphQLProblem)
 		}
 
-		return result
+		return errors.ErrorFromGraphqlProblems(problemsSlice)
 	}
 
 	// If the API server is not working properly (no KMS access, for example), the pointer
 	//  fields in the response structure can be nil.  Check for that to avoid a panic.
 	if gotRespBody.Data.ServiceAccountCreateToken.Token == nil {
-		return fmt.Errorf("service account token renewal failed: nil token field in response")
+		return fmt.Errorf("nil token field in response")
 	}
 	if gotRespBody.Data.ServiceAccountCreateToken.ExpiresIn == nil {
-		return fmt.Errorf("service account token renewal failed: nil expiration field in response")
+		return fmt.Errorf("nil expiration field in response")
 	}
 
 	// Store the (temporary) token and expiration time.
@@ -229,48 +228,6 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 	p.token.mutex.Unlock()
 
 	return nil
-}
-
-/////////////////////////////////////////////////////////////////////////////
-
-// This map, type, and its methods are (for now) copied from the errors module.
-
-var graphqlErrorCodeToSDKErrorCode = map[string]string{
-	"INTERNAL_SERVER_ERROR": "internal error",
-	"BAD_REQUEST":           "bad request",
-	"NOT_IMPLEMENTED":       "not implemented",
-	"CONFLICT":              "conflict",
-	"OPTIMISTIC_LOCK":       "optimistic lock",
-	"NOT_FOUND":             "not found",
-	"FORBIDDEN":             "forbidden",
-	"RATE_LIMIT_EXCEEDED":   "too many requests",
-	"UNAUTHENTICATED":       "unauthorized",
-	"UNAUTHORIZED":          "unauthorized",
-}
-
-// localError represents an error returned by the Tharsis API
-type localError struct {
-	Err  error
-	Code string
-	Msg  string
-}
-
-func (e *localError) Error() string {
-	if e.Msg != "" && e.Err != nil {
-		var b strings.Builder
-		b.WriteString(e.Msg)
-		b.WriteString(": ")
-		b.WriteString(e.Err.Error())
-		return b.String()
-	} else if e.Msg != "" {
-		return e.Msg
-	} else if e.Err != nil {
-		return e.Err.Error()
-	}
-	return fmt.Sprintf("<%s>", e.Code)
-}
-func (e *localError) Unwrap() error {
-	return e.Err
 }
 
 // The End.

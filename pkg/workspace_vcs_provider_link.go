@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -46,7 +47,7 @@ func (gk *workspaceVCSProviderLink) GetLink(ctx context.Context,
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "workspace VCS provider link with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "workspace VCS provider link with id %s not found", input.ID)
 	}
 
 	gotLink := workspaceVCSProviderLinkFromGraphQL(target.Node.WorkspaceVCSProviderLink)
@@ -77,7 +78,7 @@ func (gk *workspaceVCSProviderLink) CreateLink(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateWorkspaceVCSProviderLink.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateWorkspaceVCSProviderLink.Problems); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +114,7 @@ func (gk *workspaceVCSProviderLink) UpdateLink(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateWorkspaceVCSProviderLink.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateWorkspaceVCSProviderLink.Problems); err != nil {
 		return nil, err
 	}
 
@@ -141,7 +142,7 @@ func (gk *workspaceVCSProviderLink) DeleteLink(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteWorkspaceVCSProviderLink.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteWorkspaceVCSProviderLink.Problems); err != nil {
 		return nil, err
 	}
 

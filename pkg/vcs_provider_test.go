@@ -39,7 +39,7 @@ func TestGetVCSProvider(t *testing.T) {
 		input             *types.GetVCSProviderInput
 		expectVCSProvider *types.VCSProvider
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -103,7 +103,7 @@ func TestGetVCSProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil VCS provider, as if the specified VCS provider does not exist",
@@ -113,7 +113,7 @@ func TestGetVCSProvider(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlVCSProviderPayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -176,7 +176,7 @@ func TestCreateVCSProvider(t *testing.T) {
 		input             *types.CreateVCSProviderInput
 		expectVCSProvider *types.VCSProvider
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -256,7 +256,7 @@ func TestCreateVCSProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -319,7 +319,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 		input             *types.UpdateVCSProviderInput
 		expectVCSProvider *types.VCSProvider
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -391,7 +391,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -452,7 +452,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 		input             *types.DeleteVCSProviderInput
 		expectVCSProvider *types.VCSProvider
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -518,7 +518,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil VCS provider, as if the specified VCS provider does not exist",
@@ -537,7 +537,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

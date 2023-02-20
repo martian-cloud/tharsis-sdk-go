@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/paginators"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -45,7 +46,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 			return nil, err
 		}
 		if target.Group == nil {
-			return nil, newError(ErrNotFound, "group with path %s not found", *input.Path)
+			return nil, errors.NewError(types.ErrNotFound, "group with path %s not found", *input.Path)
 		}
 
 		result := groupFromGraphQL(*target.Group)
@@ -65,13 +66,13 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 			return nil, err
 		}
 		if target.Node == nil {
-			return nil, newError(ErrNotFound, "group with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "group with id %s not found", *input.ID)
 		}
 
 		result := groupFromGraphQL(target.Node.Group)
 		return &result, nil
 	default:
-		return nil, newError(ErrBadRequest, "must specify path or ID when calling GetGroup")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify path or ID when calling GetGroup")
 	}
 }
 
@@ -134,7 +135,7 @@ func (g *group) CreateGroup(ctx context.Context, input *types.CreateGroupInput) 
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateGroup.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateGroup.Problems); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +162,7 @@ func (g *group) UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) 
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateGroup.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateGroup.Problems); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +187,7 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems); err != nil {
 		return err
 	}
 

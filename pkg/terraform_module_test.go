@@ -35,7 +35,7 @@ func TestGetModule(t *testing.T) {
 		input           *types.GetTerraformModuleInput
 		expectModule    *types.TerraformModule
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -118,7 +118,7 @@ func TestGetModule(t *testing.T) {
 		{
 			name:            "returns an error since ID and path are unspecified",
 			input:           &types.GetTerraformModuleInput{},
-			expectErrorCode: ErrBadRequest,
+			expectErrorCode: types.ErrBadRequest,
 		},
 		{
 			name: "verify that correct error is returned",
@@ -134,7 +134,7 @@ func TestGetModule(t *testing.T) {
 					},
 				}},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "returns nil because module does not exist",
@@ -144,7 +144,7 @@ func TestGetModule(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlModulePayloadByID{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -197,7 +197,7 @@ func TestCreateModule(t *testing.T) {
 		responsePayload interface{}
 		expectModule    *types.TerraformModule
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -253,7 +253,7 @@ func TestCreateModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -306,7 +306,7 @@ func TestUpdateModule(t *testing.T) {
 		responsePayload interface{}
 		expectModule    *types.TerraformModule
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -362,7 +362,7 @@ func TestUpdateModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -410,7 +410,7 @@ func TestDeleteModule(t *testing.T) {
 	type testCase struct {
 		responsePayload interface{}
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -437,7 +437,7 @@ func TestDeleteModule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

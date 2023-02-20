@@ -50,7 +50,7 @@ func TestCreateServiceAccount(t *testing.T) {
 		input                *types.CreateServiceAccountInput
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorCode      ErrorCode
+		expectErrorCode      types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -172,7 +172,7 @@ func TestCreateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -233,7 +233,7 @@ func TestGetServiceAccount(t *testing.T) {
 		responsePayload      interface{}
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorCode      ErrorCode
+		expectErrorCode      types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -332,7 +332,7 @@ func TestGetServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -352,7 +352,7 @@ func TestGetServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -361,7 +361,7 @@ func TestGetServiceAccount(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlServiceAccountPayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -432,7 +432,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 		input                *types.UpdateServiceAccountInput
 		expectServiceAccount *types.ServiceAccount
 		name                 string
-		expectErrorCode      ErrorCode
+		expectErrorCode      types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -553,7 +553,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: query behaves as if the specified service account did not exist
@@ -573,7 +573,7 @@ func TestUpdateServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -620,7 +620,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 		responsePayload interface{}
 		input           *types.DeleteServiceAccountInput
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -655,7 +655,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified service account did not exist
@@ -675,7 +675,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -729,7 +729,7 @@ func TestServiceAccountCreateToken(t *testing.T) {
 		input           *types.ServiceAccountCreateTokenInput
 		name            string
 		expectToken     string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 		expectExpiresIn time.Duration
 	}
 
@@ -771,7 +771,7 @@ func TestServiceAccountCreateToken(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrUnauthorized,
+			expectErrorCode: types.ErrUnauthorized,
 		},
 
 		// negative: mutation behaves as if the specified service account did not exist
@@ -791,7 +791,7 @@ func TestServiceAccountCreateToken(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

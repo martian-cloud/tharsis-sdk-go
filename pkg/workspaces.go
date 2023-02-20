@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/paginators"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -46,7 +47,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			return nil, err
 		}
 		if target.Workspace == nil {
-			return nil, newError(ErrNotFound, "workspace with path %s not found", *input.Path)
+			return nil, errors.NewError(types.ErrNotFound, "workspace with path %s not found", *input.Path)
 		}
 
 		return workspaceFromGraphQL(*target.Workspace)
@@ -67,12 +68,12 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 		}
 
 		if target.Node == nil {
-			return nil, newError(ErrNotFound, "workspace with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "workspace with id %s not found", *input.ID)
 		}
 
 		return workspaceFromGraphQL(target.Node.Workspace)
 	default:
-		return nil, newError(ErrBadRequest, "must specify path or ID when calling GetWorkspace")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify path or ID when calling GetWorkspace")
 	}
 }
 
@@ -138,7 +139,7 @@ func (ws *workspaces) CreateWorkspace(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateWorkspace.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateWorkspace.Problems); err != nil {
 		return nil, err
 	}
 
@@ -169,7 +170,7 @@ func (ws *workspaces) UpdateWorkspace(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateWorkspace.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateWorkspace.Problems); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +202,7 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems); err != nil {
 		return err
 	}
 

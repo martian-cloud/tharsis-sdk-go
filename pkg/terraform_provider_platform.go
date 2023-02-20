@@ -8,6 +8,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -40,7 +41,7 @@ func (p *providerPlatform) GetProviderPlatform(ctx context.Context, input *types
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "terraform provider platform with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "terraform provider platform with id %s not found", input.ID)
 	}
 
 	result := providerPlatformFromGraphQL(target.Node.TerraformProviderPlatform)
@@ -67,7 +68,7 @@ func (p *providerPlatform) CreateProviderPlatform(ctx context.Context, input *ty
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderPlatform.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderPlatform.Problems); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +103,7 @@ func (p *providerPlatform) UploadProviderPlatformBinary(ctx context.Context, pro
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errorFromHTTPResponse(resp)
+		return errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return nil

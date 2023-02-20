@@ -2,7 +2,7 @@ package tharsis
 
 import (
 	"bytes"
-	"errors"
+	goerrors "errors"
 	"io"
 	"log"
 	"net/http"
@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
 // See http://hassansin.github.io/Unit-Testing-http-client-in-Go#2-by-replacing-httptransport
@@ -111,14 +112,14 @@ type fakeGraphqlResponseProblem struct {
 
 // Utility function(s):
 
-func checkError(t *testing.T, expectCode ErrorCode, actualError error) {
+func checkError(t *testing.T, expectCode types.ErrorCode, actualError error) {
 	if expectCode == "" {
 		assert.Nil(t, actualError)
 	} else {
 		// Uses require rather than assert to avoid a nil pointer dereference.
 		require.NotNil(t, actualError)
-		var tErr *Error
-		if errors.As(actualError, &tErr) {
+		var tErr *types.Error
+		if goerrors.As(actualError, &tErr) {
 			assert.Equal(t, expectCode, tErr.Code)
 		} else {
 			t.Fatalf("expected tharsis error with code %s but received error: %v", expectCode, actualError)

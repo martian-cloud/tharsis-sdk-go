@@ -36,7 +36,7 @@ func TestGetTerraformProvider(t *testing.T) {
 		input                   *types.GetTerraformProviderInput
 		expectTerraformProvider *types.TerraformProvider
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -96,7 +96,7 @@ func TestGetTerraformProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil Terraform provider, as if the specified Terraform provider does not exist",
@@ -106,7 +106,7 @@ func TestGetTerraformProvider(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlTerraformProviderPayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -164,7 +164,7 @@ func TestCreateTerraformProvider(t *testing.T) {
 		input                   *types.CreateTerraformProviderInput
 		expectTerraformProvider *types.TerraformProvider
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -227,7 +227,7 @@ func TestCreateTerraformProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -285,7 +285,7 @@ func TestUpdateTerraformProvider(t *testing.T) {
 		input                   *types.UpdateTerraformProviderInput
 		expectTerraformProvider *types.TerraformProvider
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -348,7 +348,7 @@ func TestUpdateTerraformProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -406,7 +406,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 		input                   *types.DeleteTerraformProviderInput
 		expectTerraformProvider *types.TerraformProvider
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -468,7 +468,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil Terraform provider, as if the specified Terraform provider does not exist",
@@ -487,7 +487,7 @@ func TestDeleteTerraformProvider(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

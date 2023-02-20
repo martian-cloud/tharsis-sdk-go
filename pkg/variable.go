@@ -6,6 +6,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -60,7 +61,7 @@ func (m *variable) CreateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateNamespaceVariable.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateNamespaceVariable.Problems); err != nil {
 		return nil, err
 	}
 
@@ -89,7 +90,7 @@ func (m *variable) GetVariable(ctx context.Context,
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "variable with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "variable with id %s not found", input.ID)
 	}
 
 	result := variableFromGraphQL(target.Node.NamespaceVariable)
@@ -119,7 +120,7 @@ func (m *variable) UpdateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateNamespaceVariable.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateNamespaceVariable.Problems); err != nil {
 		return nil, err
 	}
 
@@ -152,7 +153,7 @@ func (m *variable) DeleteVariable(ctx context.Context,
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteNamespaceVariable.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteNamespaceVariable.Problems); err != nil {
 		return err
 	}
 
@@ -177,7 +178,7 @@ func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVa
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems); err != nil {
 		return err
 	}
 

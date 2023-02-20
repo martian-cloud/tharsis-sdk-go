@@ -14,7 +14,7 @@ import (
 
 // This module applies and tears down a run.
 
-// TODO: Code this module.
+// TODO: This module eventually needs variables and perhaps other resources added.
 
 const (
 

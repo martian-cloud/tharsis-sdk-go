@@ -44,7 +44,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 		input                   *types.CreateNamespaceVariableInput
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -162,7 +162,7 @@ func TestCreateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -212,7 +212,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 		responsePayload         interface{}
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -269,7 +269,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -289,7 +289,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -298,7 +298,7 @@ func TestGetNamespaceVariable(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlNodeNamespaceVariablePayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -360,7 +360,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 		input                   *types.UpdateNamespaceVariableInput
 		expectNamespaceVariable *types.NamespaceVariable
 		name                    string
-		expectErrorCode         ErrorCode
+		expectErrorCode         types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -429,7 +429,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: query behaves as if the specified namespace variable did not exist
@@ -449,7 +449,7 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -496,7 +496,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 		responsePayload interface{}
 		input           *types.DeleteNamespaceVariableInput
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -531,7 +531,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified namespace variable did not exist
@@ -551,7 +551,7 @@ func TestDeleteNamespaceVariable(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
