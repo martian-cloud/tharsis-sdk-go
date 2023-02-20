@@ -33,7 +33,7 @@ func TestGetManagedIdentity(t *testing.T) {
 		responsePayload       interface{}
 		expectManagedIdentity *types.ManagedIdentity
 		name                  string
-		expectErrorCode       ErrorCode
+		expectErrorCode       types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -94,7 +94,7 @@ func TestGetManagedIdentity(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// query returns nil managed identity, as if the specified managed identity does not exist.
@@ -103,7 +103,7 @@ func TestGetManagedIdentity(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlManagedIdentityPayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -159,7 +159,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 		input            *types.CreateManagedIdentityAccessRuleInput
 		expectAccessRule *types.ManagedIdentityAccessRule
 		name             string
-		expectErrorCode  ErrorCode
+		expectErrorCode  types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -249,7 +249,7 @@ func TestCreateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -296,7 +296,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 		responsePayload  interface{}
 		expectAccessRule *types.ManagedIdentityAccessRule
 		name             string
-		expectErrorCode  ErrorCode
+		expectErrorCode  types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -359,7 +359,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrBadRequest,
+			expectErrorCode: types.ErrBadRequest,
 		},
 
 		// negative: query returns error, not found error--payload taken from GraphiQL
@@ -379,7 +379,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 
 		// negative: theoretical quiet not found
@@ -388,7 +388,7 @@ func TestGetManagedIdentityAccessRule(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlManagedIdentityAccessRulePayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -444,7 +444,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 		input            *types.UpdateManagedIdentityAccessRuleInput
 		expectAccessRule *types.ManagedIdentityAccessRule
 		name             string
-		expectErrorCode  ErrorCode
+		expectErrorCode  types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -533,7 +533,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: query behaves as if the specified access rule did not exist
@@ -553,7 +553,7 @@ func TestUpdateManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -600,7 +600,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 		responsePayload interface{}
 		input           *types.DeleteManagedIdentityAccessRuleInput
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -635,7 +635,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified access rule did not exist
@@ -655,7 +655,7 @@ func TestDeleteManagedIdentityAccessRule(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -708,7 +708,7 @@ func TestCreateManagedIdentityAlias(t *testing.T) {
 		input           *types.CreateManagedIdentityAliasInput
 		expectAlias     *types.ManagedIdentity
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -807,7 +807,7 @@ func TestDeleteManagedIdentityAlias(t *testing.T) {
 		responsePayload interface{}
 		input           *types.DeleteManagedIdentityAliasInput
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -842,7 +842,7 @@ func TestDeleteManagedIdentityAlias(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified alias did not exist
@@ -862,7 +862,7 @@ func TestDeleteManagedIdentityAlias(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

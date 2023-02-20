@@ -2,7 +2,6 @@ package tharsis
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -37,7 +37,7 @@ func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTe
 	case input.ModulePath != nil:
 		pathParts := strings.Split(*input.ModulePath, "/")
 		if len(pathParts) < 3 {
-			return nil, errors.New("module path is not valid")
+			return nil, errors.NewError(types.ErrBadRequest, "module path %s is not valid", *input.ModulePath)
 		}
 
 		var target struct {
@@ -64,7 +64,7 @@ func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTe
 			return nil, err
 		}
 		if target.TerraformModuleVersion == nil {
-			return nil, newError(ErrNotFound, "terraform module version with module path %s not found", *input.ModulePath)
+			return nil, errors.NewError(types.ErrNotFound, "terraform module version with module path %s not found", *input.ModulePath)
 		}
 
 		result := moduleVersionFromGraphQL(*target.TerraformModuleVersion)
@@ -82,13 +82,13 @@ func (p *moduleVersion) GetModuleVersion(ctx context.Context, input *types.GetTe
 			return nil, err
 		}
 		if target.Node == nil {
-			return nil, newError(ErrNotFound, "module version with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "module version with id %s not found", *input.ID)
 		}
 
 		result := moduleVersionFromGraphQL(target.Node.TerraformModuleVersion)
 		return &result, nil
 	default:
-		return nil, newError(ErrBadRequest, "must specify ID or ModulePath (optionally version) when calling GetModuleVersion")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID or ModulePath (optionally version) when calling GetModuleVersion")
 	}
 }
 
@@ -100,7 +100,7 @@ func (p *moduleVersion) GetModuleVersions(ctx context.Context, input *types.GetT
 	}
 
 	if queryStruct.Node == nil {
-		return nil, newError(ErrNotFound, "module with id %s not found", input.TerraformModuleID)
+		return nil, errors.NewError(types.ErrNotFound, "module with id %s not found", input.TerraformModuleID)
 	}
 
 	// Convert and repackage the type-specific results.
@@ -136,7 +136,7 @@ func (p *moduleVersion) CreateModuleVersion(ctx context.Context, input *types.Cr
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformModuleVersion.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformModuleVersion.Problems); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func (p *moduleVersion) DeleteModuleVersion(ctx context.Context, input *types.De
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleVersion.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleVersion.Problems); err != nil {
 		return err
 	}
 
@@ -190,7 +190,7 @@ func (p *moduleVersion) UploadModuleVersion(ctx context.Context, moduleVersionID
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errorFromHTTPResponse(resp)
+		return errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return nil

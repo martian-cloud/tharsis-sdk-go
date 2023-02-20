@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -76,7 +77,7 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentity.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateManagedIdentity.Problems); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +103,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 	}
 
 	if target.ManagedIdentity == nil {
-		return nil, newError(ErrNotFound, "managed identity with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", input.ID)
 	}
 
 	identity := identityFromGraphQL(*target.ManagedIdentity)
@@ -130,7 +131,7 @@ func (m *managedIdentity) UpdateManagedIdentity(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentity.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentity.Problems); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +159,7 @@ func (m *managedIdentity) DeleteManagedIdentity(ctx context.Context,
 		return err
 	}
 
-	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentity.Problems)
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentity.Problems)
 }
 
 // CreateManagedIdentityCredentials returns new managed identity credentials.
@@ -184,7 +185,7 @@ func (m *managedIdentity) CreateManagedIdentityCredentials(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityCredentials.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityCredentials.Problems); err != nil {
 		return nil, err
 	}
 
@@ -211,7 +212,7 @@ func (m *managedIdentity) AssignManagedIdentityToWorkspace(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedAssign.AssignManagedIdentity.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedAssign.AssignManagedIdentity.Problems); err != nil {
 		return nil, err
 	}
 
@@ -243,7 +244,7 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUnassign.UnAssignManagedIdentity.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUnassign.UnAssignManagedIdentity.Problems); err != nil {
 		return nil, err
 	}
 
@@ -300,7 +301,7 @@ func (m *managedIdentity) CreateManagedIdentityAccessRule(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAccessRule.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAccessRule.Problems); err != nil {
 		return nil, err
 	}
 
@@ -326,7 +327,7 @@ func (m *managedIdentity) GetManagedIdentityAccessRule(ctx context.Context,
 	}
 
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "managed identity access rule with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "managed identity access rule with id %s not found", input.ID)
 	}
 
 	accessRule := accessRuleFromGraphQL(target.Node.ManagedIdentityAccessRule)
@@ -353,7 +354,7 @@ func (m *managedIdentity) UpdateManagedIdentityAccessRule(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentityAccessRule.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateManagedIdentityAccessRule.Problems); err != nil {
 		return nil, err
 	}
 
@@ -380,7 +381,7 @@ func (m *managedIdentity) DeleteManagedIdentityAccessRule(ctx context.Context,
 		return err
 	}
 
-	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAccessRule.Problems)
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAccessRule.Problems)
 }
 
 func (m *managedIdentity) CreateManagedIdentityAlias(ctx context.Context,
@@ -403,7 +404,7 @@ func (m *managedIdentity) CreateManagedIdentityAlias(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAlias.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateManagedIdentityAlias.Problems); err != nil {
 		return nil, err
 	}
 
@@ -430,7 +431,7 @@ func (m *managedIdentity) DeleteManagedIdentityAlias(ctx context.Context,
 		return err
 	}
 
-	return errorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAlias.Problems)
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteManagedIdentityAlias.Problems)
 }
 
 // Related types and conversion functions:

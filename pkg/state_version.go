@@ -9,6 +9,7 @@ import (
 	"github.com/hasura/go-graphql-client"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -47,7 +48,7 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
 		return nil, err
 	}
 
@@ -86,7 +87,7 @@ func (s *stateVersion) DownloadStateVersion(ctx context.Context,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errorFromHTTPResponse(resp)
+		return errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return copyFromResponseBody(resp, writer)

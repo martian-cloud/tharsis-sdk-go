@@ -41,7 +41,7 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 		input                          *types.GetWorkspaceVCSProviderLinkInput
 		expectWorkspaceVCSProviderLink *types.WorkspaceVCSProviderLink
 		name                           string
-		expectErrorCode                ErrorCode
+		expectErrorCode                types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -115,7 +115,7 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil workspace VCS provider link, as if the specified workspace VCS provider link does not exist",
@@ -125,7 +125,7 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlWorkspaceVCSProviderLinkPayload{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -192,7 +192,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 		input                          *types.CreateWorkspaceVCSProviderLinkInput
 		expectWorkspaceVCSProviderLink *types.WorkspaceVCSProviderLink
 		name                           string
-		expectErrorCode                ErrorCode
+		expectErrorCode                types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -286,7 +286,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -355,7 +355,7 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 		input                          *types.UpdateWorkspaceVCSProviderLinkInput
 		expectWorkspaceVCSProviderLink *types.WorkspaceVCSProviderLink
 		name                           string
-		expectErrorCode                ErrorCode
+		expectErrorCode                types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -443,7 +443,7 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -506,7 +506,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 		input                          *types.DeleteWorkspaceVCSProviderLinkInput
 		expectWorkspaceVCSProviderLink *types.WorkspaceVCSProviderLink
 		name                           string
-		expectErrorCode                ErrorCode
+		expectErrorCode                types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -582,7 +582,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil workspace VCS provider link, as if the specified workspace VCS provider link does not exist",
@@ -601,7 +601,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

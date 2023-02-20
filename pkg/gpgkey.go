@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -40,7 +41,7 @@ func (gk *gpgKey) GetGPGKey(ctx context.Context, input *types.GetGPGKeyInput) (*
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "GPG key with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "GPG key with id %s not found", input.ID)
 	}
 
 	gotKey := gpgKeyFromGraphQL(target.Node.GPGKey)
@@ -68,7 +69,7 @@ func (gk *gpgKey) CreateGPGKey(ctx context.Context, input *types.CreateGPGKeyInp
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateGPGKey.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateGPGKey.Problems); err != nil {
 		return nil, err
 	}
 
@@ -94,7 +95,7 @@ func (gk *gpgKey) DeleteGPGKey(ctx context.Context, input *types.DeleteGPGKeyInp
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteGPGKey.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteGPGKey.Problems); err != nil {
 		return nil, err
 	}
 

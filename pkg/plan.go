@@ -8,6 +8,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -45,7 +46,7 @@ func (p *plan) UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*t
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdatePlan.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdatePlan.Problems); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +107,7 @@ func (p *plan) do(ctx context.Context,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errorFromHTTPResponse(resp)
+		return nil, errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return resp, nil

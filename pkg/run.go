@@ -7,6 +7,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/paginators"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
@@ -51,7 +52,7 @@ func (r *run) GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run,
 		return nil, err
 	}
 	if target.Run == nil {
-		return nil, newError(ErrNotFound, "run with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "run with id %s not found", input.ID)
 	}
 
 	result := runFromGraphQL(*target.Run)
@@ -145,7 +146,7 @@ func (r *run) CreateRun(ctx context.Context, input *types.CreateRunInput) (*type
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateRun.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateRun.Problems); err != nil {
 		return nil, err
 	}
 
@@ -174,7 +175,7 @@ func (r *run) ApplyRun(ctx context.Context, input *types.ApplyRunInput) (*types.
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedApply.ApplyRun.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedApply.ApplyRun.Problems); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +202,7 @@ func (r *run) CancelRun(ctx context.Context, input *types.CancelRunInput) (*type
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCancel.CancelRun.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCancel.CancelRun.Problems); err != nil {
 		return nil, err
 	}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -43,7 +44,7 @@ func (p *providerVersion) GetProviderVersion(ctx context.Context, input *types.G
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "terraform provider version with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "terraform provider version with id %s not found", input.ID)
 	}
 
 	result := providerVersionFromGraphQL(target.Node.TerraformProviderVersion)
@@ -70,7 +71,7 @@ func (p *providerVersion) CreateProviderVersion(ctx context.Context, input *type
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderVersion.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProviderVersion.Problems); err != nil {
 		return nil, err
 	}
 
@@ -114,7 +115,7 @@ func (p *providerVersion) uploadProviderFile(ctx context.Context, providerVersio
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errorFromHTTPResponse(resp)
+		return errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return nil

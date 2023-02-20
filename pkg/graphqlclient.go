@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/hasura/go-graphql-client"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 )
 
@@ -56,7 +57,7 @@ func (g *graphqlClientWrapper) Query(ctx context.Context, withAuth bool,
 
 	err = gClient.Query(ctx, q, variables, options...)
 	if err != nil {
-		return errorFromGraphqlError(err)
+		return errors.ErrorFromGraphqlError(err)
 	}
 
 	return nil
@@ -71,7 +72,7 @@ func (g *graphqlClientWrapper) Mutate(ctx context.Context, withAuth bool,
 
 	err = gClient.Mutate(ctx, m, variables, options...)
 	if err != nil {
-		return errorFromGraphqlError(err)
+		return errors.ErrorFromGraphqlError(err)
 	}
 
 	return nil

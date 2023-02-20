@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-slug"
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -53,7 +54,7 @@ func (cv *configurationVersion) GetConfigurationVersion(ctx context.Context,
 		return nil, err
 	}
 	if target.ConfigurationVersion == nil {
-		return nil, newError(ErrNotFound, "configuration version with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "configuration version with id %s not found", input.ID)
 	}
 
 	result := configurationVersionFromGraphQL(*target.ConfigurationVersion)
@@ -84,7 +85,7 @@ func (cv *configurationVersion) CreateConfigurationVersion(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateConfigurationVersion.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateConfigurationVersion.Problems); err != nil {
 		return nil, err
 	}
 
@@ -253,7 +254,7 @@ func (cv *configurationVersion) do(ctx context.Context,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errorFromHTTPResponse(resp)
+		return nil, errors.ErrorFromHTTPResponse(resp)
 	}
 
 	return resp, nil

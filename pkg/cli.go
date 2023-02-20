@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -42,7 +43,7 @@ func (t *terraformCLIVersion) CreateTerraformCLIDownloadURL(ctx context.Context,
 		return "", err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformCLIDownloadURL.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformCLIDownloadURL.Problems); err != nil {
 		return "", err
 	}
 

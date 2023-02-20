@@ -105,7 +105,7 @@ func TestCRUDServiceAccount(t *testing.T) {
 	_, err = client.ServiceAccount.GetServiceAccount(ctx, &types.GetServiceAccountInput{
 		ID: read2ServiceAccount.Metadata.ID,
 	})
-	assert.True(t, tharsis.NotFoundError(err))
+	assert.True(t, tharsis.IsNotFoundError(err))
 }
 
 // The End.

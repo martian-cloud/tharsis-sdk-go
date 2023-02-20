@@ -2,11 +2,11 @@ package tharsis
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -34,7 +34,7 @@ func (p *module) GetModule(ctx context.Context, input *types.GetTerraformModuleI
 	case input.Path != nil:
 		pathParts := strings.Split(*input.Path, "/")
 		if len(pathParts) < 3 {
-			return nil, errors.New("module path is not valid")
+			return nil, errors.NewError(types.ErrBadRequest, "module path %s is not valid", *input.Path)
 		}
 
 		var target struct {
@@ -51,7 +51,7 @@ func (p *module) GetModule(ctx context.Context, input *types.GetTerraformModuleI
 			return nil, err
 		}
 		if target.TerraformModule == nil {
-			return nil, newError(ErrNotFound, "terraform module with path %s not found", *input.Path)
+			return nil, errors.NewError(types.ErrNotFound, "terraform module with path %s not found", *input.Path)
 		}
 
 		result := moduleFromGraphQL(*target.TerraformModule)
@@ -69,13 +69,13 @@ func (p *module) GetModule(ctx context.Context, input *types.GetTerraformModuleI
 			return nil, err
 		}
 		if target.Node == nil {
-			return nil, newError(ErrNotFound, "module with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "module with id %s not found", *input.ID)
 		}
 
 		result := moduleFromGraphQL(target.Node.Module)
 		return &result, nil
 	default:
-		return nil, newError(ErrBadRequest, "must specify ID or path must be specified when calling GetModule")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID or path must be specified when calling GetModule")
 	}
 }
 func (p *module) GetModules(ctx context.Context, input *types.GetTerraformModulesInput) (*types.GetTerraformModulesOutput, error) {
@@ -118,7 +118,7 @@ func (p *module) CreateModule(ctx context.Context, input *types.CreateTerraformM
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformModule.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformModule.Problems); err != nil {
 		return nil, err
 	}
 
@@ -143,7 +143,7 @@ func (p *module) UpdateModule(ctx context.Context, input *types.UpdateTerraformM
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateTerraformModule.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformModule.Problems); err != nil {
 		return nil, err
 	}
 
@@ -168,7 +168,7 @@ func (p *module) DeleteModule(ctx context.Context, input *types.DeleteTerraformM
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteTerraformModule.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModule.Problems); err != nil {
 		return err
 	}
 

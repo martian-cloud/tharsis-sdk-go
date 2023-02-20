@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -27,7 +28,7 @@ func NewTerraformModuleAttestation(client *Client) TerraformModuleAttestation {
 
 func (ma *moduleAttestation) GetModuleAttestations(ctx context.Context, input *types.GetTerraformModuleAttestationsInput) (*types.GetTerraformModuleAttestationsOutput, error) {
 	if input.Filter == nil {
-		return nil, newError(ErrBadRequest, "Filter must be non-nil when calling GetModuleAttestations")
+		return nil, errors.NewError(types.ErrBadRequest, "Filter must be non-nil when calling GetModuleAttestations")
 	}
 
 	switch {
@@ -36,7 +37,7 @@ func (ma *moduleAttestation) GetModuleAttestations(ctx context.Context, input *t
 	case input.Filter.TerraformModuleVersionID != nil:
 		return ma.getTerraformModuleAttestationsForModuleVersion(ctx, ma.client.graphqlClient, input, nil)
 	default:
-		return nil, newError(ErrBadRequest, "Either TerraformModuleID or TerraformModuleVersionID must be specified in filter input")
+		return nil, errors.NewError(types.ErrBadRequest, "Either TerraformModuleID or TerraformModuleVersionID must be specified in filter input")
 	}
 }
 
@@ -57,7 +58,7 @@ func (ma *moduleAttestation) CreateModuleAttestation(ctx context.Context, input 
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateTerraformModuleAttestation.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformModuleAttestation.Problems); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +83,7 @@ func (ma *moduleAttestation) UpdateModuleAttestation(ctx context.Context, input 
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateTerraformModuleAttestation.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformModuleAttestation.Problems); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +108,7 @@ func (ma *moduleAttestation) DeleteModuleAttestation(ctx context.Context, input 
 		return err
 	}
 
-	return errorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleAttestation.Problems)
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleAttestation.Problems)
 }
 
 // getTerraformModuleAttestationsForModule runs the query and returns the results.
@@ -160,7 +161,7 @@ func (ma *moduleAttestation) getTerraformModuleAttestationsForModule(ctx context
 	}
 
 	if queryStructP.Node == nil {
-		return nil, newError(ErrNotFound, "module with id %s not found", *input.Filter.TerraformModuleID)
+		return nil, errors.NewError(types.ErrNotFound, "module with id %s not found", *input.Filter.TerraformModuleID)
 	}
 
 	// Convert and repackage the type-specific results.
@@ -217,7 +218,7 @@ func (ma *moduleAttestation) getTerraformModuleAttestationsForModuleVersion(ctx 
 	}
 
 	if queryStructP.Node == nil {
-		return nil, newError(ErrNotFound, "module with id %s not found", *input.Filter.TerraformModuleID)
+		return nil, errors.NewError(types.ErrNotFound, "module with id %s not found", *input.Filter.TerraformModuleID)
 	}
 
 	// Convert and repackage the type-specific results.

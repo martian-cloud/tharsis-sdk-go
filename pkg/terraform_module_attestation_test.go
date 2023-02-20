@@ -33,7 +33,7 @@ func TestCreateModuleAttestation(t *testing.T) {
 		responsePayload   interface{}
 		expectAttestation *types.TerraformModuleAttestation
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -91,7 +91,7 @@ func TestCreateModuleAttestation(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrConflict,
+			expectErrorCode: types.ErrConflict,
 		},
 	}
 
@@ -143,7 +143,7 @@ func TestUpdateModuleAttestation(t *testing.T) {
 		input             *types.UpdateTerraformModuleAttestationInput
 		expectAttestation *types.TerraformModuleAttestation
 		name              string
-		expectErrorCode   ErrorCode
+		expectErrorCode   types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -207,7 +207,7 @@ func TestUpdateModuleAttestation(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		{
@@ -226,7 +226,7 @@ func TestUpdateModuleAttestation(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -273,7 +273,7 @@ func TestDeleteModuleAttestation(t *testing.T) {
 		responsePayload interface{}
 		input           *types.DeleteTerraformModuleAttestationInput
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -308,7 +308,7 @@ func TestDeleteModuleAttestation(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// negative: mutation behaves as if the specified alias did not exist
@@ -328,7 +328,7 @@ func TestDeleteModuleAttestation(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

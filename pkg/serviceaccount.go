@@ -6,6 +6,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -67,7 +68,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +94,7 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 	}
 
 	if target.ServiceAccount == nil {
-		return nil, newError(ErrNotFound, "service account with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "service account with id %s not found", input.ID)
 	}
 
 	serviceAccount := serviceAccountFromGraphQL(*target.ServiceAccount)
@@ -130,7 +131,7 @@ func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +159,7 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteServiceAccount.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteServiceAccount.Problems); err != nil {
 		return err
 	}
 
@@ -187,7 +188,7 @@ func (m *serviceAccount) CreateToken(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
 		return nil, err
 	}
 

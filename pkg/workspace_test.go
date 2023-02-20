@@ -39,7 +39,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 		input           *types.GetWorkspaceInput
 		expectWorkspace *types.Workspace
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -118,7 +118,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 		{
 			name:            "returns an error since ID and path were unspecified",
 			input:           &types.GetWorkspaceInput{},
-			expectErrorCode: ErrBadRequest,
+			expectErrorCode: types.ErrBadRequest,
 		},
 
 		{
@@ -137,7 +137,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// query returns nil workspace, as if the specified workspace does not exist.
@@ -149,7 +149,7 @@ func TestGetWorkspaceByID(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlWorkspacePayloadByID{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

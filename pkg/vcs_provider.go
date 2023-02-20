@@ -5,6 +5,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -40,7 +41,7 @@ func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProvi
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, newError(ErrNotFound, "VCS provider with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "VCS provider with id %s not found", input.ID)
 	}
 
 	gotVCSProvider := vcsProviderFromGraphQL(target.Node.VCSProvider)
@@ -67,7 +68,7 @@ func (vp *vcsProvider) CreateProvider(ctx context.Context, input *types.CreateVC
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +94,7 @@ func (vp *vcsProvider) UpdateProvider(ctx context.Context, input *types.UpdateVC
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +120,7 @@ func (vp *vcsProvider) DeleteProvider(ctx context.Context, input *types.DeleteVC
 		return nil, err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 

@@ -38,7 +38,7 @@ func TestGetGroupByID(t *testing.T) {
 		input           *types.GetGroupInput
 		expectGroup     *types.Group
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -113,7 +113,7 @@ func TestGetGroupByID(t *testing.T) {
 		{
 			name:            "returns an error since ID and path were unspecified",
 			input:           &types.GetGroupInput{},
-			expectErrorCode: ErrBadRequest,
+			expectErrorCode: types.ErrBadRequest,
 		},
 
 		{
@@ -132,7 +132,7 @@ func TestGetGroupByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 
 		// query returns nil group, as if the specified group does not exist.
@@ -144,7 +144,7 @@ func TestGetGroupByID(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlGroupPayloadByID{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

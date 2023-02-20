@@ -34,7 +34,7 @@ func TestGetGPGKeyByID(t *testing.T) {
 		input           *types.GetGPGKeyInput
 		expectGPGKey    *types.GPGKey
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -90,7 +90,7 @@ func TestGetGPGKeyByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil GPG key, as if the specified GPG key does not exist",
@@ -100,7 +100,7 @@ func TestGetGPGKeyByID(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlGPGKeyPayloadByID{},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 
@@ -157,7 +157,7 @@ func TestCreateGPGKeyByID(t *testing.T) {
 		input           *types.CreateGPGKeyInput
 		expectGPGKey    *types.GPGKey
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -217,7 +217,7 @@ func TestCreateGPGKeyByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 	}
 
@@ -273,7 +273,7 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 		input           *types.DeleteGPGKeyInput
 		expectGPGKey    *types.GPGKey
 		name            string
-		expectErrorCode ErrorCode
+		expectErrorCode types.ErrorCode
 	}
 
 	testCases := []testCase{
@@ -331,7 +331,7 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrInternal,
+			expectErrorCode: types.ErrInternal,
 		},
 		{
 			name: "query returns nil GPG key, as if the specified GPG key does not exist",
@@ -350,7 +350,7 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 					},
 				},
 			},
-			expectErrorCode: ErrNotFound,
+			expectErrorCode: types.ErrNotFound,
 		},
 	}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -69,7 +70,7 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 		return nil, err
 	}
 	if target.Job == nil {
-		return nil, newError(ErrNotFound, "job with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "job with id %s not found", input.ID)
 	}
 
 	result := jobFromGraphQL(*target.Job)
@@ -138,7 +139,7 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 		return err
 	}
 
-	if err = errorFromGraphqlProblems(wrappedSave.SaveLogs.Problems); err != nil {
+	if err = errors.ErrorFromGraphqlProblems(wrappedSave.SaveLogs.Problems); err != nil {
 		return err
 	}
 
@@ -318,7 +319,7 @@ func (j *job) getJobLogs(ctx context.Context, input *getJobLogsInput) (*getJobLo
 	}
 
 	if target.Job == nil {
-		return nil, newError(ErrNotFound, "Job with id %s not found", input.id)
+		return nil, errors.NewError(types.ErrNotFound, "Job with id %s not found", input.id)
 	}
 
 	return &getJobLogsOutput{
