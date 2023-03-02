@@ -98,8 +98,8 @@ func (gk *workspaceVCSProviderLink) UpdateLink(ctx context.Context,
 
 	var wrappedUpdate struct {
 		UpdateWorkspaceVCSProviderLink struct {
-			Problems                 []internal.GraphQLProblem
-			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
+			Problems        []internal.GraphQLProblem
+			VCSProviderLink graphQLWorkspaceVCSProviderLink
 		} `graphql:"updateWorkspaceVCSProviderLink(input: $input)"`
 	}
 
@@ -118,7 +118,7 @@ func (gk *workspaceVCSProviderLink) UpdateLink(ctx context.Context,
 		return nil, err
 	}
 
-	updatedLink := workspaceVCSProviderLinkFromGraphQL(wrappedUpdate.UpdateWorkspaceVCSProviderLink.WorkspaceVCSProviderLink)
+	updatedLink := workspaceVCSProviderLinkFromGraphQL(wrappedUpdate.UpdateWorkspaceVCSProviderLink.VCSProviderLink)
 	return &updatedLink, nil
 }
 
@@ -128,8 +128,8 @@ func (gk *workspaceVCSProviderLink) DeleteLink(ctx context.Context,
 
 	var wrappedDelete struct {
 		DeleteWorkspaceVCSProviderLink struct {
-			Problems                 []internal.GraphQLProblem
-			WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink
+			Problems        []internal.GraphQLProblem
+			VCSProviderLink graphQLWorkspaceVCSProviderLink
 		} `graphql:"deleteWorkspaceVCSProviderLink(input: $input)"`
 	}
 
@@ -146,7 +146,7 @@ func (gk *workspaceVCSProviderLink) DeleteLink(ctx context.Context,
 		return nil, err
 	}
 
-	deletedLink := workspaceVCSProviderLinkFromGraphQL(wrappedDelete.DeleteWorkspaceVCSProviderLink.WorkspaceVCSProviderLink)
+	deletedLink := workspaceVCSProviderLinkFromGraphQL(wrappedDelete.DeleteWorkspaceVCSProviderLink.VCSProviderLink)
 	return &deletedLink, nil
 }
 
@@ -178,6 +178,7 @@ func workspaceVCSProviderLinkFromGraphQL(g graphQLWorkspaceVCSProviderLink) type
 		Metadata:            internal.MetadataFromGraphQL(g.Metadata, g.ID),
 		CreatedBy:           string(g.CreatedBy),
 		WorkspaceID:         string(g.Workspace.ID),
+		WorkspacePath:       string(g.Workspace.FullPath),
 		VCSProviderID:       string(g.VCSProvider.ID),
 		RepositoryPath:      string(g.RepositoryPath),
 		WebhookID:           internal.StringPointerFromGraphQL(g.WebhookID),

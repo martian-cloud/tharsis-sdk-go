@@ -27,7 +27,6 @@ type CreateTerraformProviderInput struct {
 // UpdateTerraformProviderInput is the input for updating a TF provider.
 type UpdateTerraformProviderInput struct {
 	ID            string `json:"id"`
-	Name          string `json:"name"`
 	RepositoryURL string `json:"repositoryUrl"`
 	Private       bool   `json:"private"`
 }

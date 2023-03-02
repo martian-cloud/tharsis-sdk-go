@@ -54,4 +54,10 @@ type DeleteVCSProviderInput struct {
 	Force bool   `json:"force"`
 }
 
+// CreateVCSProviderResponse is the response from creating a new VCS provider.
+type CreateVCSProviderResponse struct {
+	VCSProvider           *VCSProvider
+	OAuthAuthorizationURL string
+}
+
 // The End.

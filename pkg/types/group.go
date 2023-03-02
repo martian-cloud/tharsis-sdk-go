@@ -65,6 +65,8 @@ type CreateGroupInput struct {
 }
 
 // UpdateGroupInput is the input for updating a group.
+// One (and only one) of ID and GroupPath finds the group to update.
+// Description is modified.
 type UpdateGroupInput struct {
 	GroupPath   *string `json:"groupPath"`
 	ID          *string `json:"id"`

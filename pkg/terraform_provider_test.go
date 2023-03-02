@@ -295,7 +295,6 @@ func TestUpdateTerraformProvider(t *testing.T) {
 			name: "Successfully update Terraform provider",
 			input: &types.UpdateTerraformProviderInput{
 				ID:            tfpID,
-				Name:          tfpName,
 				RepositoryURL: tfpRepositoryURL,
 				Private:       tfpPrivate,
 			},

@@ -21,6 +21,7 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 	vpVersion := "workspace-vcs-provider-link-version-1"
 	vpCreatedBy := "workspace-vcs-provider-link-created-by"
 	vpWorkspaceID := "workspace-vcs-provider-link-workspace-id-1"
+	vpWorkspacePath := "workspace/vcs/provider/link/workspace/path-1"
 	vpVCSProviderID := "workspace-vcs-provider-link-vcs-provider-id-1"
 	vpRepositoryPath := "workspace-vcs-provider-link-repository-path-1"
 	vpWebhookID := "workspace-vcs-provider-link-webhook-id-1"
@@ -63,7 +64,8 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 						},
 						CreatedBy: graphql.String(vpCreatedBy),
 						Workspace: graphQLWorkspace{
-							ID: graphql.String(vpWorkspaceID),
+							ID:       graphql.String(vpWorkspaceID),
+							FullPath: graphql.String(vpWorkspacePath),
 						},
 						VCSProvider: graphQLVCSProvider{
 							ID: graphql.String(vpVCSProviderID),
@@ -88,6 +90,7 @@ func TestGetWorkspaceVCSProviderLink(t *testing.T) {
 				},
 				CreatedBy:           vpCreatedBy,
 				WorkspaceID:         vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				VCSProviderID:       vpVCSProviderID,
 				RepositoryPath:      vpRepositoryPath,
 				WebhookID:           &vpWebhookID,
@@ -163,6 +166,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 	vpVersion := "workspace-vcs-provider-link-version-1"
 	vpCreatedBy := "workspace-vcs-provider-link-created-by"
 	vpWorkspaceID := "workspace-vcs-provider-link-workspace-id-1"
+	vpWorkspacePath := "workspace/vcs/provider/link/workspace/path-1"
 	vpVCSProviderID := "workspace-vcs-provider-link-vcs-provider-id-1"
 	vpRepositoryPath := "workspace-vcs-provider-link-repository-path-1"
 	vpWebhookID := "workspace-vcs-provider-link-webhook-id-1"
@@ -203,7 +207,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 			input: &types.CreateWorkspaceVCSProviderLinkInput{
 				ModuleDirectory:     &vpModuleDirectory,
 				RepositoryPath:      vpRepositoryPath,
-				WorkspacePath:       vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				ProviderID:          vpVCSProviderID,
 				Branch:              &vpBranch,
 				TagRegex:            &vpTagRegex,
@@ -223,7 +227,8 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 							},
 							CreatedBy: graphql.String(vpCreatedBy),
 							Workspace: graphQLWorkspace{
-								ID: graphql.String(vpWorkspaceID),
+								ID:       graphql.String(vpWorkspaceID),
+								FullPath: graphql.String(vpWorkspacePath),
 							},
 							VCSProvider: graphQLVCSProvider{
 								ID: graphql.String(vpVCSProviderID),
@@ -251,6 +256,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 				},
 				CreatedBy:           vpCreatedBy,
 				WorkspaceID:         vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				VCSProviderID:       vpVCSProviderID,
 				RepositoryPath:      vpRepositoryPath,
 				WebhookID:           &vpWebhookID,
@@ -267,7 +273,7 @@ func TestCreateWorkspaceVCSProviderLink(t *testing.T) {
 			input: &types.CreateWorkspaceVCSProviderLinkInput{
 				ModuleDirectory:     &vpModuleDirectory,
 				RepositoryPath:      vpRepositoryPath,
-				WorkspacePath:       vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				ProviderID:          vpVCSProviderID,
 				Branch:              &vpBranch,
 				TagRegex:            &vpTagRegex,
@@ -330,6 +336,7 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 	vpVersion := "workspace-vcs-provider-link-version-1"
 	vpCreatedBy := "workspace-vcs-provider-link-created-by"
 	vpWorkspaceID := "workspace-vcs-provider-link-workspace-id-1"
+	vpWorkspacePath := "workspace/vcs/provider/link/workspace/path-1"
 	vpVCSProviderID := "workspace-vcs-provider-link-vcs-provider-id-1"
 	vpRepositoryPath := "workspace-vcs-provider-link-repository-path-1"
 	vpWebhookID := "workspace-vcs-provider-link-webhook-id-1"
@@ -341,8 +348,8 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 	vpWebhookDisabled := false
 
 	type graphqlUpdateWorkspaceVCSProviderLinkMutation struct {
-		Problems                 []fakeGraphqlResponseProblem    `json:"problems"`
-		WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink `json:"workspaceVCSProviderLink"`
+		Problems        []fakeGraphqlResponseProblem    `json:"problems"`
+		VCSProviderLink graphQLWorkspaceVCSProviderLink `json:"vcsProviderLink"`
 	}
 
 	type graphqlUpdateWorkspaceVCSProviderLinkPayload struct {
@@ -375,7 +382,7 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlUpdateWorkspaceVCSProviderLinkPayload{
 					UpdateWorkspaceVCSProviderLink: graphqlUpdateWorkspaceVCSProviderLinkMutation{
-						WorkspaceVCSProviderLink: graphQLWorkspaceVCSProviderLink{
+						VCSProviderLink: graphQLWorkspaceVCSProviderLink{
 							ID: graphql.String(vpID),
 							Metadata: internal.GraphQLMetadata{
 								CreatedAt: &now,
@@ -384,7 +391,8 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 							},
 							CreatedBy: graphql.String(vpCreatedBy),
 							Workspace: graphQLWorkspace{
-								ID: graphql.String(vpWorkspaceID),
+								ID:       graphql.String(vpWorkspaceID),
+								FullPath: graphql.String(vpWorkspacePath),
 							},
 							VCSProvider: graphQLVCSProvider{
 								ID: graphql.String(vpVCSProviderID),
@@ -410,6 +418,7 @@ func TestUpdateWorkspaceVCSProviderLink(t *testing.T) {
 				},
 				CreatedBy:           vpCreatedBy,
 				WorkspaceID:         vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				VCSProviderID:       vpVCSProviderID,
 				RepositoryPath:      vpRepositoryPath,
 				WebhookID:           &vpWebhookID,
@@ -481,6 +490,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 	vpVersion := "workspace-vcs-provider-link-version-1"
 	vpCreatedBy := "workspace-vcs-provider-link-created-by"
 	vpWorkspaceID := "workspace-vcs-provider-link-workspace-id-1"
+	vpWorkspacePath := "workspace/vcs/provider/link/workspace/path-1"
 	vpVCSProviderID := "workspace-vcs-provider-link-vcs-provider-id-1"
 	vpRepositoryPath := "workspace-vcs-provider-link-repository-path-1"
 	vpWebhookID := "workspace-vcs-provider-link-webhook-id-1"
@@ -492,8 +502,8 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 	vpWebhookDisabled := false
 
 	type graphqlDeleteWorkspaceVCSProviderLinkMutation struct {
-		Problems                 []fakeGraphqlResponseProblem    `json:"problems"`
-		WorkspaceVCSProviderLink graphQLWorkspaceVCSProviderLink `json:"workspaceVCSProviderLink"`
+		Problems        []fakeGraphqlResponseProblem    `json:"problems"`
+		VCSProviderLink graphQLWorkspaceVCSProviderLink `json:"vcsProviderLink"`
 	}
 
 	type graphqlDeleteWorkspaceVCSProviderLinkPayload struct {
@@ -520,7 +530,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 			responsePayload: fakeGraphqlResponsePayload{
 				Data: graphqlDeleteWorkspaceVCSProviderLinkPayload{
 					DeleteWorkspaceVCSProviderLink: graphqlDeleteWorkspaceVCSProviderLinkMutation{
-						WorkspaceVCSProviderLink: graphQLWorkspaceVCSProviderLink{
+						VCSProviderLink: graphQLWorkspaceVCSProviderLink{
 							ID: graphql.String(vpID),
 							Metadata: internal.GraphQLMetadata{
 								CreatedAt: &now,
@@ -529,7 +539,8 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 							},
 							CreatedBy: graphql.String(vpCreatedBy),
 							Workspace: graphQLWorkspace{
-								ID: graphql.String(vpWorkspaceID),
+								ID:       graphql.String(vpWorkspaceID),
+								FullPath: graphql.String(vpWorkspacePath),
 							},
 							VCSProvider: graphQLVCSProvider{
 								ID: graphql.String(vpVCSProviderID),
@@ -555,6 +566,7 @@ func TestDeleteWorkspaceVCSProviderLink(t *testing.T) {
 				},
 				CreatedBy:           vpCreatedBy,
 				WorkspaceID:         vpWorkspaceID,
+				WorkspacePath:       vpWorkspacePath,
 				VCSProviderID:       vpVCSProviderID,
 				RepositoryPath:      vpRepositoryPath,
 				WebhookID:           &vpWebhookID,

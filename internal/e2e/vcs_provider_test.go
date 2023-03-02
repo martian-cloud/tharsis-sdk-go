@@ -44,9 +44,10 @@ func TestVCSProviderCRUD(t *testing.T) {
 		Type:               vcsProviderType,
 		AutoCreateWebhooks: autoCreateWebhooks,
 	}
-	createdVCSProvider, err := client.VCSProvider.CreateProvider(ctx, toCreate)
+	createResponse, err := client.VCSProvider.CreateProvider(ctx, toCreate)
 
 	require.Nil(t, err)
+	createdVCSProvider := createResponse.VCSProvider
 	assert.NotNil(t, createdVCSProvider)
 	assert.Equal(t, name, createdVCSProvider.Name)
 	assert.Equal(t, description, createdVCSProvider.Description)
@@ -54,6 +55,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.Equal(t, resourcePath, createdVCSProvider.ResourcePath)
 	assert.Equal(t, vcsProviderType, createdVCSProvider.Type)
 	assert.Equal(t, autoCreateWebhooks, createdVCSProvider.AutoCreateWebhooks)
+	assert.NotEqual(t, "", createResponse.OAuthAuthorizationURL)
 
 	// Get the VCS provider to make sure it persisted.
 	gotVCSProvider, err := client.VCSProvider.GetProvider(ctx, &types.GetVCSProviderInput{

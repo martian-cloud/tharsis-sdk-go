@@ -146,6 +146,16 @@ func (g *group) CreateGroup(ctx context.Context, input *types.CreateGroupInput) 
 // UpdateGroup updates a group and returns its content.
 func (g *group) UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) (*types.Group, error) {
 
+	// Check that exactly one of ID and GroupPath are set in order to properly find the group to update.
+	if (input.ID == nil) && (input.GroupPath == nil) {
+		// Neither supplied.  Must have one.
+		return nil, errors.NewError(types.ErrBadRequest, "must specify either ID or GroupPath")
+	}
+	if (input.ID != nil) && (input.GroupPath != nil) {
+		// Both supplied.  Must have only one.
+		return nil, errors.NewError(types.ErrBadRequest, "must specify only one of ID and GroupPath, not both")
+	}
+
 	var wrappedUpdate struct {
 		UpdateGroup struct {
 			Group    graphQLGroup
