@@ -6,6 +6,7 @@ type WorkspaceVCSProviderLink struct {
 	Metadata            ResourceMetadata
 	CreatedBy           string
 	WorkspaceID         string
+	WorkspacePath       string
 	VCSProviderID       string
 	RepositoryPath      string
 	WebhookID           *string

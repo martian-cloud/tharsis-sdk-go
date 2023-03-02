@@ -23,6 +23,8 @@ func TestGetGPGKeyByID(t *testing.T) {
 	keyASCIIArmor := "gpg-key-ascii-armor"
 	keyFingerprint := "gpg-key-fingerprint"
 	keyGPGKeyID := "fedcba9876543210"
+	keyGroupPath := "gpg-key-group-path"
+	keyResourcePath := keyGroupPath + "/" + keyFingerprint
 
 	type graphqlGPGKeyPayloadByID struct {
 		Node *graphQLGPGKey `json:"node"`
@@ -54,10 +56,12 @@ func TestGetGPGKeyByID(t *testing.T) {
 							UpdatedAt: &now,
 							Version:   graphql.String(keyVersion),
 						},
-						CreatedBy:   graphql.String(keyCreatedBy),
-						ASCIIArmor:  graphql.String(keyASCIIArmor),
-						Fingerprint: graphql.String(keyFingerprint),
-						GPGKeyID:    graphql.String(keyGPGKeyID),
+						CreatedBy:    graphql.String(keyCreatedBy),
+						ASCIIArmor:   graphql.String(keyASCIIArmor),
+						Fingerprint:  graphql.String(keyFingerprint),
+						GPGKeyID:     graphql.String(keyGPGKeyID),
+						GroupPath:    graphql.String(keyGroupPath),
+						ResourcePath: graphql.String(keyResourcePath),
 					},
 				},
 			},
@@ -68,10 +72,12 @@ func TestGetGPGKeyByID(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              keyVersion,
 				},
-				CreatedBy:   keyCreatedBy,
-				ASCIIArmor:  keyASCIIArmor,
-				Fingerprint: keyFingerprint,
-				GPGKeyID:    keyGPGKeyID,
+				CreatedBy:    keyCreatedBy,
+				ASCIIArmor:   keyASCIIArmor,
+				Fingerprint:  keyFingerprint,
+				GPGKeyID:     keyGPGKeyID,
+				GroupPath:    keyGroupPath,
+				ResourcePath: keyResourcePath,
 			},
 		},
 		{
@@ -141,6 +147,7 @@ func TestCreateGPGKeyByID(t *testing.T) {
 	keyASCIIArmor := "gpg-key-ascii-armor"
 	keyFingerprint := "gpg-key-fingerprint"
 	keyGPGKeyID := "fedcba9876543210"
+	keyResourcePath := keyGroupPath + "/" + keyFingerprint
 
 	type graphqlCreateGPGKeyMutation struct {
 		GPGKey   graphQLGPGKey                `json:"gpgKey"`
@@ -179,10 +186,12 @@ func TestCreateGPGKeyByID(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(keyVersion),
 							},
-							CreatedBy:   graphql.String(keyCreatedBy),
-							ASCIIArmor:  graphql.String(keyASCIIArmor),
-							Fingerprint: graphql.String(keyFingerprint),
-							GPGKeyID:    graphql.String(keyGPGKeyID),
+							CreatedBy:    graphql.String(keyCreatedBy),
+							ASCIIArmor:   graphql.String(keyASCIIArmor),
+							Fingerprint:  graphql.String(keyFingerprint),
+							GPGKeyID:     graphql.String(keyGPGKeyID),
+							GroupPath:    graphql.String(keyGroupPath),
+							ResourcePath: graphql.String(keyResourcePath),
 						},
 					},
 				},
@@ -194,10 +203,12 @@ func TestCreateGPGKeyByID(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              keyVersion,
 				},
-				CreatedBy:   keyCreatedBy,
-				ASCIIArmor:  keyASCIIArmor,
-				Fingerprint: keyFingerprint,
-				GPGKeyID:    keyGPGKeyID,
+				CreatedBy:    keyCreatedBy,
+				ASCIIArmor:   keyASCIIArmor,
+				Fingerprint:  keyFingerprint,
+				GPGKeyID:     keyGPGKeyID,
+				GroupPath:    keyGroupPath,
+				ResourcePath: keyResourcePath,
 			},
 		},
 		{
@@ -257,6 +268,8 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 	keyASCIIArmor := "gpg-key-ascii-armor"
 	keyFingerprint := "gpg-key-fingerprint"
 	keyGPGKeyID := "fedcba9876543210"
+	keyGroupPath := "gpg-key-group-path"
+	keyResourcePath := keyGroupPath + "/" + keyFingerprint
 
 	type graphqlDeleteGPGKeyMutation struct {
 		GPGKey   graphQLGPGKey                `json:"gpgKey"`
@@ -294,10 +307,12 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 								UpdatedAt: &now,
 								Version:   graphql.String(keyVersion),
 							},
-							CreatedBy:   graphql.String(keyCreatedBy),
-							ASCIIArmor:  graphql.String(keyASCIIArmor),
-							Fingerprint: graphql.String(keyFingerprint),
-							GPGKeyID:    graphql.String(keyGPGKeyID),
+							CreatedBy:    graphql.String(keyCreatedBy),
+							ASCIIArmor:   graphql.String(keyASCIIArmor),
+							Fingerprint:  graphql.String(keyFingerprint),
+							GPGKeyID:     graphql.String(keyGPGKeyID),
+							GroupPath:    graphql.String(keyGroupPath),
+							ResourcePath: graphql.String(keyResourcePath),
 						},
 					},
 				},
@@ -309,10 +324,12 @@ func TestDeleteGPGKeyByID(t *testing.T) {
 					LastUpdatedTimestamp: &now,
 					Version:              keyVersion,
 				},
-				CreatedBy:   keyCreatedBy,
-				ASCIIArmor:  keyASCIIArmor,
-				Fingerprint: keyFingerprint,
-				GPGKeyID:    keyGPGKeyID,
+				CreatedBy:    keyCreatedBy,
+				ASCIIArmor:   keyASCIIArmor,
+				Fingerprint:  keyFingerprint,
+				GPGKeyID:     keyGPGKeyID,
+				GroupPath:    keyGroupPath,
+				ResourcePath: keyResourcePath,
 			},
 		},
 		{

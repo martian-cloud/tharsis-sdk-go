@@ -64,6 +64,8 @@ lNBLBcAMCdEMd4qgt0YvzKzE3GbQoiAkBKJ2qoqun2MXM60324j01B/x/r3E+p15
 `
 	gpgKeyID := "41F57AB6741F92F1"
 	fingerprint := "C48F7F19B14E59433DF9402341F57AB6741F92F1"
+	groupPath := topGroupName
+	resourcePath := groupPath + "/" + fingerprint
 
 	// Create the GPG key.
 	toCreate := &types.CreateGPGKeyInput{
@@ -77,6 +79,8 @@ lNBLBcAMCdEMd4qgt0YvzKzE3GbQoiAkBKJ2qoqun2MXM60324j01B/x/r3E+p15
 	assert.Equal(t, armor, createdGPGKey.ASCIIArmor)
 	assert.Equal(t, fingerprint, createdGPGKey.Fingerprint)
 	assert.Equal(t, gpgKeyID, createdGPGKey.GPGKeyID)
+	assert.Equal(t, groupPath, createdGPGKey.GroupPath)
+	assert.Equal(t, resourcePath, createdGPGKey.ResourcePath)
 
 	// Get the GPG key to make sure it persisted.
 	gotGPGKey, err := client.GPGKey.GetGPGKey(ctx, &types.GetGPGKeyInput{
@@ -89,6 +93,8 @@ lNBLBcAMCdEMd4qgt0YvzKzE3GbQoiAkBKJ2qoqun2MXM60324j01B/x/r3E+p15
 	assert.Equal(t, armor, gotGPGKey.ASCIIArmor)
 	assert.Equal(t, fingerprint, gotGPGKey.Fingerprint)
 	assert.Equal(t, gpgKeyID, gotGPGKey.GPGKeyID)
+	assert.Equal(t, groupPath, gotGPGKey.GroupPath)
+	assert.Equal(t, resourcePath, gotGPGKey.ResourcePath)
 
 	// Delete the GPG key.
 	deletedGPGKey, err := client.GPGKey.DeleteGPGKey(ctx, &types.DeleteGPGKeyInput{
@@ -99,6 +105,8 @@ lNBLBcAMCdEMd4qgt0YvzKzE3GbQoiAkBKJ2qoqun2MXM60324j01B/x/r3E+p15
 	assert.Equal(t, armor, deletedGPGKey.ASCIIArmor)
 	assert.Equal(t, fingerprint, deletedGPGKey.Fingerprint)
 	assert.Equal(t, gpgKeyID, deletedGPGKey.GPGKeyID)
+	assert.Equal(t, groupPath, deletedGPGKey.GroupPath)
+	assert.Equal(t, resourcePath, deletedGPGKey.ResourcePath)
 }
 
 // The End.

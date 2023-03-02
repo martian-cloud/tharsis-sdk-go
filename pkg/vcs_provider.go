@@ -12,7 +12,7 @@ import (
 // VCSProvider implements functions related to Tharsis VCS Providers.
 type VCSProvider interface {
 	GetProvider(ctx context.Context, input *types.GetVCSProviderInput) (*types.VCSProvider, error)
-	CreateProvider(ctx context.Context, input *types.CreateVCSProviderInput) (*types.VCSProvider, error)
+	CreateProvider(ctx context.Context, input *types.CreateVCSProviderInput) (*types.CreateVCSProviderResponse, error)
 	UpdateProvider(ctx context.Context, input *types.UpdateVCSProviderInput) (*types.VCSProvider, error)
 	DeleteProvider(ctx context.Context, input *types.DeleteVCSProviderInput) (*types.VCSProvider, error)
 }
@@ -48,12 +48,14 @@ func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProvi
 	return &gotVCSProvider, nil
 }
 
-func (vp *vcsProvider) CreateProvider(ctx context.Context, input *types.CreateVCSProviderInput) (*types.VCSProvider, error) {
+func (vp *vcsProvider) CreateProvider(ctx context.Context,
+	input *types.CreateVCSProviderInput) (*types.CreateVCSProviderResponse, error) {
 
 	var wrappedCreate struct {
 		CreateVCSProvider struct {
-			VCSProvider graphQLVCSProvider
-			Problems    []internal.GraphQLProblem
+			VCSProvider           graphQLVCSProvider
+			OAuthAuthorizationURL graphql.String
+			Problems              []internal.GraphQLProblem
 		} `graphql:"createVCSProvider(input: $input)"`
 	}
 
@@ -73,7 +75,10 @@ func (vp *vcsProvider) CreateProvider(ctx context.Context, input *types.CreateVC
 	}
 
 	created := vcsProviderFromGraphQL(wrappedCreate.CreateVCSProvider.VCSProvider)
-	return &created, nil
+	return &types.CreateVCSProviderResponse{
+		VCSProvider:           &created,
+		OAuthAuthorizationURL: string(wrappedCreate.CreateVCSProvider.OAuthAuthorizationURL),
+	}, nil
 }
 
 func (vp *vcsProvider) UpdateProvider(ctx context.Context, input *types.UpdateVCSProviderInput) (*types.VCSProvider, error) {

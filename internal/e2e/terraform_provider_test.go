@@ -27,7 +27,6 @@ func TestTerraformProviderCRUD(t *testing.T) {
 	tfpRepositoryURL := "tf-provider-repository-url"
 	tfpPrivate := true
 
-	updatedName := "tf-provider-name-1"
 	updatedRepositoryURL := "tf-provider-repository-url"
 	updatedPrivate := true
 
@@ -66,7 +65,6 @@ func TestTerraformProviderCRUD(t *testing.T) {
 	// Update the Terraform provider.
 	toUpdate := &types.UpdateTerraformProviderInput{
 		ID:            createdTerraformProvider.Metadata.ID,
-		Name:          updatedName,
 		RepositoryURL: updatedRepositoryURL,
 		Private:       updatedPrivate,
 	}

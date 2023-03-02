@@ -80,6 +80,8 @@ type CreateWorkspaceInput struct {
 }
 
 // UpdateWorkspaceInput is the input for updating a workspace.
+// One (and only one) of ID and WorkspacePath finds the workspace to update.
+// The other fields are modified.
 type UpdateWorkspaceInput struct {
 	MaxJobDuration     *int32  `json:"maxJobDuration"`
 	TerraformVersion   *string `json:"terraformVersion"`

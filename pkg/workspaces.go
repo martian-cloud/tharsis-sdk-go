@@ -154,6 +154,16 @@ func (ws *workspaces) CreateWorkspace(ctx context.Context,
 func (ws *workspaces) UpdateWorkspace(ctx context.Context,
 	input *types.UpdateWorkspaceInput) (*types.Workspace, error) {
 
+	// Check that exactly one of ID and WorkspacePath are set in order to properly find the workspace to update.
+	if (input.ID == nil) && (input.WorkspacePath == nil) {
+		// Neither supplied.  Must have one.
+		return nil, errors.NewError(types.ErrBadRequest, "must specify either ID or WorkspacePath")
+	}
+	if (input.ID != nil) && (input.WorkspacePath != nil) {
+		// Both supplied.  Must have only one.
+		return nil, errors.NewError(types.ErrBadRequest, "must specify only one of ID and WorkspacePath, not both")
+	}
+
 	var wrappedUpdate struct {
 		UpdateWorkspace struct {
 			Problems  []internal.GraphQLProblem

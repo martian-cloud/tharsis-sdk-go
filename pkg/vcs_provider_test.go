@@ -160,10 +160,12 @@ func TestCreateVCSProvider(t *testing.T) {
 	vpResourcePath := vpGroupPath + "/" + vpName
 	vpType := types.VCSProviderTypeGitlab
 	vpAutoCreateWebhooks := true
+	vpOAuthAuthorizationURL := "this-should-be-secret"
 
 	type graphqlCreateVCSProviderMutation struct {
-		VCSProvider graphQLVCSProvider           `json:"vcsProvider"`
-		Problems    []fakeGraphqlResponseProblem `json:"problems"`
+		VCSProvider           graphQLVCSProvider           `json:"vcsProvider"`
+		OAuthAuthorizationURL graphql.String               `json:"oAuthAuthorizationUrl"`
+		Problems              []fakeGraphqlResponseProblem `json:"problems"`
 	}
 
 	type graphqlCreateVCSProviderPayload struct {
@@ -213,6 +215,7 @@ func TestCreateVCSProvider(t *testing.T) {
 							Type:               graphql.String(vpType),
 							AutoCreateWebhooks: graphql.Boolean(vpAutoCreateWebhooks),
 						},
+						OAuthAuthorizationURL: graphql.String(vpOAuthAuthorizationURL),
 					},
 				},
 			},
@@ -279,10 +282,14 @@ func TestCreateVCSProvider(t *testing.T) {
 			client.VCSProvider = NewVCSProvider(client)
 
 			// Call the method being tested.
-			actualVCSProvider, actualError := client.VCSProvider.CreateProvider(ctx, test.input)
+			createResponse, actualError := client.VCSProvider.CreateProvider(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
-			checkVCSProvider(t, test.expectVCSProvider, actualVCSProvider)
+			assert.Equal(t, test.expectErrorCode == "", createResponse != nil)
+			if test.expectErrorCode == "" {
+				checkVCSProvider(t, test.expectVCSProvider, createResponse.VCSProvider)
+				assert.Equal(t, vpOAuthAuthorizationURL, createResponse.OAuthAuthorizationURL)
+			}
 		})
 	}
 }

@@ -109,22 +109,26 @@ func (gk *gpgKey) DeleteGPGKey(ctx context.Context, input *types.DeleteGPGKeyInp
 
 // graphQLGPGKey represents (most of) the insides of the query structure, with graphql types.
 type graphQLGPGKey struct {
-	ID          graphql.String
-	Metadata    internal.GraphQLMetadata
-	CreatedBy   graphql.String
-	ASCIIArmor  graphql.String
-	Fingerprint graphql.String
-	GPGKeyID    graphql.String
+	ID           graphql.String
+	Metadata     internal.GraphQLMetadata
+	CreatedBy    graphql.String
+	ASCIIArmor   graphql.String
+	Fingerprint  graphql.String
+	GPGKeyID     graphql.String
+	GroupPath    graphql.String
+	ResourcePath graphql.String
 }
 
 // gpgKeyFromGraphQL converts a GraphQL GPG key to an external GPG key.
 func gpgKeyFromGraphQL(ggk graphQLGPGKey) types.GPGKey {
 	result := types.GPGKey{
-		Metadata:    internal.MetadataFromGraphQL(ggk.Metadata, ggk.ID),
-		CreatedBy:   string(ggk.CreatedBy),
-		ASCIIArmor:  string(ggk.ASCIIArmor),
-		Fingerprint: string(ggk.Fingerprint),
-		GPGKeyID:    string(ggk.GPGKeyID),
+		Metadata:     internal.MetadataFromGraphQL(ggk.Metadata, ggk.ID),
+		CreatedBy:    string(ggk.CreatedBy),
+		ASCIIArmor:   string(ggk.ASCIIArmor),
+		Fingerprint:  string(ggk.Fingerprint),
+		GPGKeyID:     string(ggk.GPGKeyID),
+		GroupPath:    string(ggk.GroupPath),
+		ResourcePath: string(ggk.ResourcePath),
 	}
 	return result
 }
