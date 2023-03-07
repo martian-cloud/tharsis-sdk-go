@@ -18,7 +18,7 @@ import (
 const (
 	// options for creating a temporary tarfile
 	tarFlagWrite = os.O_CREATE | os.O_TRUNC | os.O_WRONLY
-	tarMode      = 0600
+	tarMode      = 0o600
 )
 
 // ConfigurationVersion implements functions related to Tharsis configuration versions.
@@ -43,7 +43,8 @@ func NewConfigurationVersion(client *Client) ConfigurationVersion {
 
 // GetConfigurationVersion returns everything about the configuration version.
 func (cv *configurationVersion) GetConfigurationVersion(ctx context.Context,
-	input *types.GetConfigurationVersionInput) (*types.ConfigurationVersion, error) {
+	input *types.GetConfigurationVersionInput,
+) (*types.ConfigurationVersion, error) {
 	var target struct {
 		ConfigurationVersion *graphQLConfigurationVersion `graphql:"configurationVersion(id: $id)"`
 	}
@@ -65,8 +66,8 @@ func (cv *configurationVersion) GetConfigurationVersion(ctx context.Context,
 // This call returns a ConfigurationVersion object, which contains an ID, aka created.Metadata.ID here.
 // Said ID is then used by the UploadConfigurationVersion operation as the ConfigurationVersionID.
 func (cv *configurationVersion) CreateConfigurationVersion(ctx context.Context,
-	input *types.CreateConfigurationVersionInput) (*types.ConfigurationVersion, error) {
-
+	input *types.CreateConfigurationVersionInput,
+) (*types.ConfigurationVersion, error) {
 	var wrappedCreate struct {
 		CreateConfigurationVersion struct {
 			ConfigurationVersion graphQLConfigurationVersion
@@ -123,9 +124,14 @@ func configurationVersionFromGraphQL(g graphQLConfigurationVersion) types.Config
 
 // DownloadConfigurationVersion downloads a configuration version and returns the response.
 func (cv configurationVersion) DownloadConfigurationVersion(ctx context.Context,
-	input *types.GetConfigurationVersionInput, writer io.WriterAt) error {
+	input *types.GetConfigurationVersionInput, writer io.WriterAt,
+) error {
+	tfeV2Endpoint, err := cv.client.services.ServiceURL("tfe.v2")
+	if err != nil {
+		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
+	}
 
-	url := strings.Join([]string{cv.client.cfg.Endpoint, "v1", "configuration-versions", input.ID, "content"}, "/")
+	url := tfeV2Endpoint.String() + strings.Join([]string{"configuration-versions", input.ID, "content"}, "/")
 	resp, err := cv.do(ctx, http.MethodGet, url, nil, 0)
 	if err != nil {
 		return err
@@ -138,8 +144,8 @@ func (cv configurationVersion) DownloadConfigurationVersion(ctx context.Context,
 // directory).  It packages it into a temporary tar.gz archive and then sends
 // a reader to the API.
 func (cv *configurationVersion) UploadConfigurationVersion(ctx context.Context,
-	input *types.UploadConfigurationVersionInput) error {
-
+	input *types.UploadConfigurationVersionInput,
+) error {
 	// Package the directory into a temporary tar.gz file.
 	tarPath, err := cv.makeTarfile(input.DirectoryPath)
 	if err != nil {
@@ -165,7 +171,6 @@ func (cv *configurationVersion) UploadConfigurationVersion(ctx context.Context,
 }
 
 func (cv *configurationVersion) makeTarfile(dirPath string) (string, error) {
-
 	// Check the directory path.
 	stat, err := os.Stat(dirPath)
 	if err != nil {
@@ -199,8 +204,8 @@ func (cv *configurationVersion) makeTarfile(dirPath string) (string, error) {
 
 // uploadTarfile calls the Tharsis REST API to upload a configuration version.
 func (cv *configurationVersion) uploadTarfile(ctx context.Context,
-	workspacePath, configurationVersionID string, rdr io.Reader, leng int64) error {
-
+	workspacePath, configurationVersionID string, rdr io.Reader, leng int64,
+) error {
 	// TODO: When the API has been changed to accept workspace path
 	// rather than only workspace ID, remove this workaround and
 	// pass the workspace path to the API rather than the ID.
@@ -209,8 +214,15 @@ func (cv *configurationVersion) uploadTarfile(ctx context.Context,
 		return err
 	}
 
-	url := strings.Join([]string{cv.client.cfg.Endpoint, "v1", "workspaces", workspaceID,
-		"configuration-versions", configurationVersionID, "upload"}, "/")
+	tfeV2Endpoint, err := cv.client.services.ServiceURL("tfe.v2")
+	if err != nil {
+		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
+	}
+
+	url := tfeV2Endpoint.String() + strings.Join([]string{
+		"workspaces", workspaceID,
+		"configuration-versions", configurationVersionID, "upload",
+	}, "/")
 	resp, err := cv.do(ctx, http.MethodPut, url, rdr, leng)
 	if err != nil {
 		return err
@@ -225,7 +237,8 @@ func (cv *configurationVersion) uploadTarfile(ctx context.Context,
 
 // do prepares, makes a request with appropriate headers and returns the response.
 func (cv *configurationVersion) do(ctx context.Context,
-	method string, url string, body io.Reader, length int64) (*http.Response, error) {
+	method string, url string, body io.Reader, length int64,
+) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -263,7 +276,8 @@ func (cv *configurationVersion) do(ctx context.Context,
 // TODO: When the API has been changed to accept a workspace path directly rather
 // than only a workspace ID, this method can be removed.
 func (cv *configurationVersion) translateWorkspacePathToID(ctx context.Context,
-	workspacePath string) (string, error) {
+	workspacePath string,
+) (string, error) {
 	workspace, err := cv.client.Workspaces.GetWorkspace(ctx,
 		&types.GetWorkspaceInput{Path: &workspacePath})
 	if err != nil {
@@ -280,5 +294,3 @@ func copyFromResponseBody(r *http.Response, v interface{}) error {
 	}
 	return nil
 }
-
-// The End.

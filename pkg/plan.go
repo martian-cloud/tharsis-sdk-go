@@ -2,6 +2,7 @@ package tharsis
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -56,9 +57,13 @@ func (p *plan) UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*t
 
 // DownloadPlanCache downloads a plan cache and returns the response.
 func (p *plan) DownloadPlanCache(ctx context.Context, id string, writer io.WriterAt) error {
+	tfeV2Endpoint, err := p.client.services.ServiceURL("tfe.v2")
+	if err != nil {
+		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
+	}
 
 	// Create the URL and request.
-	url := strings.Join([]string{p.client.cfg.Endpoint, "v1", "plans", id, "content"}, "/")
+	url := tfeV2Endpoint.String() + strings.Join([]string{"plans", id, "content"}, "/")
 	resp, err := p.do(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -69,6 +74,7 @@ func (p *plan) DownloadPlanCache(ctx context.Context, id string, writer io.Write
 
 // UploadPlanCache uploads a plan cache and returns any errors.
 func (p *plan) UploadPlanCache(ctx context.Context, id string, body io.Reader) error {
+	// Not a TFE endpoint
 	url := strings.Join([]string{p.client.cfg.Endpoint, "v1", "plans", id, "content"}, "/")
 	_, err := p.do(ctx, http.MethodPut, url, body)
 	if err != nil {
@@ -80,7 +86,8 @@ func (p *plan) UploadPlanCache(ctx context.Context, id string, body io.Reader) e
 
 // do prepares, makes a request with appropriate headers and returns the response.
 func (p *plan) do(ctx context.Context,
-	method string, url string, body io.Reader) (*http.Response, error) {
+	method string, url string, body io.Reader,
+) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -139,5 +146,3 @@ func planFromGraphQL(p graphQLPlan) *types.Plan {
 	}
 	return result
 }
-
-// The End.
