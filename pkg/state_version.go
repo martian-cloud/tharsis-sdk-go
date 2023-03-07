@@ -2,6 +2,7 @@ package tharsis
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -30,8 +31,8 @@ func NewStateVersion(client *Client) StateVersion {
 
 // CreateStateVersion creates a State Version and returns its contents.
 func (s *stateVersion) CreateStateVersion(ctx context.Context,
-	input *types.CreateStateVersionInput) (*types.StateVersion, error) {
-
+	input *types.CreateStateVersionInput,
+) (*types.StateVersion, error) {
 	var wrappedCreate struct {
 		CreateStateVersion struct {
 			StateVersion GraphQLStateVersion
@@ -62,10 +63,15 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 
 // DownloadStateVersion downloads a state version and returns the response.
 func (s *stateVersion) DownloadStateVersion(ctx context.Context,
-	input *types.DownloadStateVersionInput, writer io.WriterAt) error {
+	input *types.DownloadStateVersionInput, writer io.WriterAt,
+) error {
+	tfeV2Endpoint, err := s.client.services.ServiceURL("tfe.v2")
+	if err != nil {
+		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
+	}
 
 	// Create the URL and request.
-	url := strings.Join([]string{s.client.cfg.Endpoint, "v1", "state-versions", input.ID, "content"}, "/")
+	url := tfeV2Endpoint.String() + strings.Join([]string{"state-versions", input.ID, "content"}, "/")
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err

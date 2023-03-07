@@ -3,12 +3,16 @@ package tharsis
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 
 	"github.com/hashicorp/go-retryablehttp"
+	svchost "github.com/hashicorp/terraform-svchost"
+	"github.com/hashicorp/terraform-svchost/disco"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 )
 
@@ -24,6 +28,7 @@ type Client struct {
 	httpClient                 *http.Client
 	graphqlClient              graphqlClient
 	graphqlSubscriptionClient  subscriptionClient
+	services                   *disco.Host
 	ConfigurationVersion       ConfigurationVersion
 	GPGKey                     GPGKey
 	Group                      Group
@@ -49,7 +54,6 @@ type Client struct {
 
 // NewClient returns a TharsisClient.
 func NewClient(cfg *config.Config) (*Client, error) {
-
 	graphQLEndpoint, err := url.Parse(cfg.Endpoint)
 	if err != nil {
 		return nil, err
@@ -75,12 +79,27 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to initialize graphql subscription client %w", err)
 	}
 
+	tharsisHost, err := svchost.ForComparison(graphQLEndpoint.Host)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse host for TFE discovery: %w", err)
+	}
+
+	// Disable noise from disco package
+	log.Default().SetOutput(io.Discard)
+	services, err := disco.New().Discover(tharsisHost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to discovery TFE services: %w", err)
+	}
+	// Restore default logger
+	log.Default().SetOutput(os.Stderr)
+
 	client := &Client{
 		cfg:                       cfg,
 		logger:                    cfg.Logger,
 		httpClient:                httpClient,
 		graphqlClient:             wrappedGraphqlClient,
 		graphqlSubscriptionClient: subscriptionClient,
+		services:                  services,
 	}
 
 	client.ConfigurationVersion = NewConfigurationVersion(client)
@@ -113,5 +132,3 @@ func (c *Client) Close() error {
 	c.httpClient.CloseIdleConnections()
 	return c.graphqlSubscriptionClient.Close()
 }
-
-// The End.
