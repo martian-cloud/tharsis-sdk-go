@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/aws/smithy-go v1.13.5
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.2
 	github.com/hashicorp/go-slug v0.10.1
@@ -23,7 +24,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

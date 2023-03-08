@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
 	svchost "github.com/hashicorp/terraform-svchost"
 	"github.com/hashicorp/terraform-svchost/disco"
@@ -86,7 +87,16 @@ func NewClient(cfg *config.Config) (*Client, error) {
 
 	// Disable noise from disco package
 	log.Default().SetOutput(io.Discard)
-	services, err := disco.New().Discover(tharsisHost)
+	discovery := disco.New()
+	// The `disco` package doesn't support http and forces 'https',
+	// so we can workaround this if the Tharsis API is only http by
+	// setting the DialTLSContext to the DialContext
+	if graphQLEndpoint.Scheme == "http" {
+		tp := cleanhttp.DefaultPooledTransport()
+		tp.DialTLSContext = tp.DialContext
+		discovery.Transport = tp
+	}
+	services, err := discovery.Discover(tharsisHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to discovery TFE services: %w", err)
 	}
