@@ -221,26 +221,53 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 
 func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,
 	input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error) {
-	var target struct {
-		Workspace *struct {
-			ManagedIdentities []GraphQLManagedIdentity `graphql:"assignedManagedIdentities"`
-		} `graphql:"workspace(fullPath: $fullPath)"`
-	}
+	switch {
+	case input.Path != nil:
+		// Workspace query by path.
 
-	variables := map[string]interface{}{
-		"fullPath": graphql.String(input.Path),
-	}
+		var target struct {
+			Workspace *struct {
+				ManagedIdentities []GraphQLManagedIdentity `graphql:"assignedManagedIdentities"`
+			} `graphql:"workspace(fullPath: $fullPath)"`
+		}
+		variables := map[string]interface{}{
+			"fullPath": graphql.String(*input.Path),
+		}
 
-	err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
-	if err != nil {
-		return nil, err
-	}
+		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Workspace == nil {
+			return nil, errors.NewError(types.ErrNotFound, "workspace with path %s not found", *input.Path)
+		}
 
-	if target.Workspace == nil {
-		return nil, nil
-	}
+		return sliceManagedIdentitiesFromGraphQL(target.Workspace.ManagedIdentities), nil
+	case input.ID != nil:
+		// Node query by ID.
 
-	return sliceManagedIdentitiesFromGraphQL(target.Workspace.ManagedIdentities), nil
+		var target struct {
+			Node *struct {
+				Workspace *struct {
+					ManagedIdentities []GraphQLManagedIdentity `graphql:"assignedManagedIdentities"`
+				} `graphql:"...on Workspace"`
+			} `graphql:"node(id: $id)"`
+		}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+
+		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		if target.Node == nil {
+			return nil, errors.NewError(types.ErrNotFound, "workspace with id %s not found", *input.ID)
+		}
+
+		return sliceManagedIdentitiesFromGraphQL(target.Node.Workspace.ManagedIdentities), nil
+	default:
+		return nil, errors.NewError(types.ErrBadRequest, "must specify path or ID when calling GetAssignedManagedIdentities")
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////

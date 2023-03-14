@@ -66,7 +66,8 @@ type GetWorkspaceInput struct {
 // GetAssignedManagedIdentitiesInput is the input for retrieving
 // assigned managed identities for a workspace.
 type GetAssignedManagedIdentitiesInput struct {
-	Path string
+	Path *string
+	ID   *string
 }
 
 // CreateWorkspaceInput is the input for creating a new workspace.
