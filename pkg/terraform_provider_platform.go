@@ -83,7 +83,7 @@ func (p *providerPlatform) UploadProviderPlatformBinary(ctx context.Context, pro
 		providerPlatformID,
 	)
 
-	req, err := http.NewRequest("PUT", url, reader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, reader)
 	if err != nil {
 		return err
 	}

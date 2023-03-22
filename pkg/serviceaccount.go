@@ -159,11 +159,7 @@ func (m *serviceAccount) DeleteServiceAccount(ctx context.Context,
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteServiceAccount.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteServiceAccount.Problems)
 }
 
 // CreateToken  logs in to a service account.

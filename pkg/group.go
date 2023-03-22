@@ -107,7 +107,7 @@ func (g *group) GetGroups(ctx context.Context,
 	}, nil
 }
 
-func (g *group) GetGroupPaginator(ctx context.Context,
+func (g *group) GetGroupPaginator(_ context.Context,
 	input *types.GetGroupsInput) (*GroupPaginator, error) {
 
 	paginator := newGroupPaginator(*g.client, input)
@@ -197,11 +197,7 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems)
 }
 
 //////////////////////////////////////////////////////////////////////////////

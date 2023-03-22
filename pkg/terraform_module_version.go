@@ -161,16 +161,12 @@ func (p *moduleVersion) DeleteModuleVersion(ctx context.Context, input *types.De
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleVersion.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModuleVersion.Problems)
 }
 
 func (p *moduleVersion) UploadModuleVersion(ctx context.Context, moduleVersionID string, reader io.Reader) error {
 	url := fmt.Sprintf("%s/v1/module-registry/versions/%s/upload", p.client.cfg.Endpoint, moduleVersionID)
-	req, err := http.NewRequest("PUT", url, reader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, reader)
 	if err != nil {
 		return err
 	}

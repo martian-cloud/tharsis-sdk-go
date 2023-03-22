@@ -81,21 +81,21 @@ func (p *providerVersion) CreateProviderVersion(ctx context.Context, input *type
 
 func (p *providerVersion) UploadProviderReadme(ctx context.Context, providerVersionID string, reader io.Reader) error {
 	url := fmt.Sprintf("%s/v1/provider-registry/versions/%s/readme/upload", p.client.cfg.Endpoint, providerVersionID)
-	return p.uploadProviderFile(ctx, providerVersionID, reader, url)
+	return p.uploadProviderFile(ctx, reader, url)
 }
 
 func (p *providerVersion) UploadProviderChecksums(ctx context.Context, providerVersionID string, reader io.Reader) error {
 	url := fmt.Sprintf("%s/v1/provider-registry/versions/%s/checksums/upload", p.client.cfg.Endpoint, providerVersionID)
-	return p.uploadProviderFile(ctx, providerVersionID, reader, url)
+	return p.uploadProviderFile(ctx, reader, url)
 }
 
 func (p *providerVersion) UploadProviderChecksumSignature(ctx context.Context, providerVersionID string, reader io.Reader) error {
 	url := fmt.Sprintf("%s/v1/provider-registry/versions/%s/signature/upload", p.client.cfg.Endpoint, providerVersionID)
-	return p.uploadProviderFile(ctx, providerVersionID, reader, url)
+	return p.uploadProviderFile(ctx, reader, url)
 }
 
-func (p *providerVersion) uploadProviderFile(ctx context.Context, providerVersionID string, reader io.Reader, url string) error {
-	req, err := http.NewRequest("PUT", url, reader)
+func (p *providerVersion) uploadProviderFile(ctx context.Context, reader io.Reader, url string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, reader)
 	if err != nil {
 		return err
 	}

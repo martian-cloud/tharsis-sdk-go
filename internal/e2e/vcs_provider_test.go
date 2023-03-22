@@ -22,7 +22,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	// Values for various fields.  Cannot verify CreatedBy.
 	name := "vcs-provider-name-1"
 	description := "vcs-provider-description-1"
-	hostname := "vcs-provider-hostname-1"
+	providerURL := "http://api.github.com"
 	clientID := "vcs-provider-client-id-1"
 	clientSecret := "vcs-provider-client-secret-1"
 	resourcePath := topGroupName + "/" + name
@@ -38,7 +38,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 		Name:               name,
 		Description:        description,
 		GroupPath:          topGroupName,
-		Hostname:           &hostname,
+		URL:                &providerURL,
 		OAuthClientID:      clientID,
 		OAuthClientSecret:  clientSecret,
 		Type:               vcsProviderType,
@@ -51,7 +51,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.NotNil(t, createdVCSProvider)
 	assert.Equal(t, name, createdVCSProvider.Name)
 	assert.Equal(t, description, createdVCSProvider.Description)
-	assert.Equal(t, hostname, createdVCSProvider.Hostname)
+	assert.Equal(t, providerURL, createdVCSProvider.URL)
 	assert.Equal(t, resourcePath, createdVCSProvider.ResourcePath)
 	assert.Equal(t, vcsProviderType, createdVCSProvider.Type)
 	assert.Equal(t, autoCreateWebhooks, createdVCSProvider.AutoCreateWebhooks)
@@ -69,7 +69,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.Equal(t, createdVCSProvider.CreatedBy, gotVCSProvider.CreatedBy)
 	assert.Equal(t, name, gotVCSProvider.Name)
 	assert.Equal(t, description, gotVCSProvider.Description)
-	assert.Equal(t, hostname, gotVCSProvider.Hostname)
+	assert.Equal(t, providerURL, gotVCSProvider.URL)
 	assert.Equal(t, resourcePath, gotVCSProvider.ResourcePath)
 	assert.Equal(t, vcsProviderType, gotVCSProvider.Type)
 	assert.Equal(t, autoCreateWebhooks, gotVCSProvider.AutoCreateWebhooks)
@@ -86,7 +86,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.NotNil(t, updatedVCSProvider)
 	assert.Equal(t, name, updatedVCSProvider.Name)
 	assert.Equal(t, updatedDescription, updatedVCSProvider.Description)
-	assert.Equal(t, hostname, updatedVCSProvider.Hostname)
+	assert.Equal(t, providerURL, updatedVCSProvider.URL)
 	// We don't get back the client ID and client secret, so we cannot check them.
 	assert.Equal(t, resourcePath, updatedVCSProvider.ResourcePath)
 	assert.Equal(t, vcsProviderType, updatedVCSProvider.Type)
@@ -102,7 +102,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.Equal(t, createdVCSProvider.CreatedBy, gotUpdated.CreatedBy)
 	assert.Equal(t, name, gotUpdated.Name)
 	assert.Equal(t, updatedDescription, gotUpdated.Description)
-	assert.Equal(t, hostname, gotUpdated.Hostname)
+	assert.Equal(t, providerURL, gotUpdated.URL)
 	// We don't get back the client ID and client secret, so we cannot check them.
 	assert.Equal(t, resourcePath, gotUpdated.ResourcePath)
 	assert.Equal(t, vcsProviderType, gotUpdated.Type)
@@ -118,7 +118,7 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.Equal(t, createdVCSProvider.CreatedBy, deletedVCSProvider.CreatedBy)
 	assert.Equal(t, name, deletedVCSProvider.Name)
 	assert.Equal(t, updatedDescription, deletedVCSProvider.Description)
-	assert.Equal(t, hostname, deletedVCSProvider.Hostname)
+	assert.Equal(t, providerURL, deletedVCSProvider.URL)
 	assert.Equal(t, resourcePath, deletedVCSProvider.ResourcePath)
 	assert.Equal(t, vcsProviderType, deletedVCSProvider.Type)
 	assert.Equal(t, autoCreateWebhooks, deletedVCSProvider.AutoCreateWebhooks)

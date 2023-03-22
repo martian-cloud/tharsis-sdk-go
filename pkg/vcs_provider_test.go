@@ -23,7 +23,7 @@ func TestGetVCSProvider(t *testing.T) {
 	vpCreatedBy := "vcs-provider-created-by"
 	vpName := "vcs-provider-name-1"
 	vpDescription := "vcs-provider-description-1"
-	vpHostname := "vcs-provider-hostname"
+	vpURL := "http://api.github.com"
 	vpGroupPath := parentGroupName
 	vpResourcePath := parentGroupName + "/" + vpName
 	vpType := types.VCSProviderTypeGitlab
@@ -62,7 +62,7 @@ func TestGetVCSProvider(t *testing.T) {
 						CreatedBy:          graphql.String(vpCreatedBy),
 						Name:               graphql.String(vpName),
 						Description:        graphql.String(vpDescription),
-						Hostname:           graphql.String(vpHostname),
+						URL:                graphql.String(vpURL),
 						GroupPath:          graphql.String(vpGroupPath),
 						ResourcePath:       graphql.String(vpResourcePath),
 						Type:               graphql.String(vpType),
@@ -80,7 +80,7 @@ func TestGetVCSProvider(t *testing.T) {
 				CreatedBy:          vpCreatedBy,
 				Name:               vpName,
 				Description:        vpDescription,
-				Hostname:           vpHostname,
+				URL:                vpURL,
 				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
@@ -154,7 +154,7 @@ func TestCreateVCSProvider(t *testing.T) {
 	vpName := "vcs-provider-name-1"
 	vpDescription := "vcs-provider-description-1"
 	vpGroupPath := parentGroupName
-	vpHostname := "vcs-provider-hostname-1"
+	vpURL := "https://api.github.com"
 	vpOAuthClientID := "vcs-provider-client-id-1"
 	vpOAuthClientSecret := "vcs-provider-client-secret-1"
 	vpResourcePath := vpGroupPath + "/" + vpName
@@ -190,7 +190,7 @@ func TestCreateVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				GroupPath:          vpGroupPath,
-				Hostname:           &vpHostname,
+				URL:                &vpURL,
 				OAuthClientID:      vpOAuthClientID,
 				OAuthClientSecret:  vpOAuthClientSecret,
 				Type:               vpType,
@@ -209,7 +209,7 @@ func TestCreateVCSProvider(t *testing.T) {
 							CreatedBy:          graphql.String(vpCreatedBy),
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
-							Hostname:           graphql.String(vpHostname),
+							URL:                graphql.String(vpURL),
 							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
@@ -229,7 +229,7 @@ func TestCreateVCSProvider(t *testing.T) {
 				CreatedBy:          vpCreatedBy,
 				Name:               vpName,
 				Description:        vpDescription,
-				Hostname:           vpHostname,
+				URL:                vpURL,
 				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
@@ -242,7 +242,7 @@ func TestCreateVCSProvider(t *testing.T) {
 				Name:               vpName,
 				Description:        vpDescription,
 				GroupPath:          vpGroupPath,
-				Hostname:           &vpHostname,
+				URL:                &vpURL,
 				OAuthClientID:      vpOAuthClientID,
 				OAuthClientSecret:  vpOAuthClientSecret,
 				Type:               vpType,
@@ -304,7 +304,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 	vpName := "vcs-provider-name-1"
 	vpDescription := "vcs-provider-updated-description-1"
 	vpGroupPath := parentGroupName
-	vpHostname := "vcs-provider-hostname-1"
+	vpURL := "https://api.github.com"
 	vpOAuthClientID := "vcs-provider-updated-client-id-1"
 	vpOAuthClientSecret := "vcs-provider-updated-client-secret-1"
 	vpResourcePath := vpGroupPath + "/" + vpName
@@ -353,7 +353,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 							CreatedBy:          graphql.String(vpCreatedBy),
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
-							Hostname:           graphql.String(vpHostname),
+							URL:                graphql.String(vpURL),
 							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
@@ -372,7 +372,7 @@ func TestUpdateVCSProvider(t *testing.T) {
 				CreatedBy:          vpCreatedBy,
 				Name:               vpName,
 				Description:        vpDescription,
-				Hostname:           vpHostname,
+				URL:                vpURL,
 				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,
@@ -439,7 +439,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 	vpName := "vcs-provider-name-1"
 	vpDescription := "vcs-provider-updated-description-1"
 	vpGroupPath := parentGroupName
-	vpHostname := "vcs-provider-hostname-1"
+	vpURL := "https://api.github.com"
 	vpResourcePath := vpGroupPath + "/" + vpName
 	vpType := types.VCSProviderTypeGitlab
 	vpAutoCreateWebhooks := true
@@ -483,7 +483,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 							CreatedBy:          graphql.String(vpCreatedBy),
 							Name:               graphql.String(vpName),
 							Description:        graphql.String(vpDescription),
-							Hostname:           graphql.String(vpHostname),
+							URL:                graphql.String(vpURL),
 							GroupPath:          graphql.String(vpGroupPath),
 							ResourcePath:       graphql.String(vpResourcePath),
 							Type:               graphql.String(vpType),
@@ -502,7 +502,7 @@ func TestDeleteVCSProvider(t *testing.T) {
 				CreatedBy:          vpCreatedBy,
 				Name:               vpName,
 				Description:        vpDescription,
-				Hostname:           vpHostname,
+				URL:                vpURL,
 				GroupPath:          vpGroupPath,
 				ResourcePath:       vpResourcePath,
 				Type:               vpType,

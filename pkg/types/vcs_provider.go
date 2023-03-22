@@ -16,7 +16,7 @@ type VCSProvider struct {
 	CreatedBy          string
 	Name               string
 	Description        string
-	Hostname           string
+	URL                string
 	GroupPath          string
 	ResourcePath       string
 	Type               VCSProviderType
@@ -33,7 +33,7 @@ type CreateVCSProviderInput struct {
 	Name               string          `json:"name"`
 	Description        string          `json:"description"`
 	GroupPath          string          `json:"groupPath"`
-	Hostname           *string         `json:"hostname"`
+	URL                *string         `json:"url"`
 	OAuthClientID      string          `json:"oAuthClientId"`
 	OAuthClientSecret  string          `json:"oAuthClientSecret"`
 	Type               VCSProviderType `json:"type"`
