@@ -153,11 +153,7 @@ func (m *variable) DeleteVariable(ctx context.Context,
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteNamespaceVariable.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteNamespaceVariable.Problems)
 }
 
 func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVariablesInput) error {
@@ -178,11 +174,7 @@ func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVa
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems)
 }
 
 //////////////////////////////////////////////////////////////////////////////

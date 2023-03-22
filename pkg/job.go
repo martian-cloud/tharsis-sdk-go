@@ -78,7 +78,7 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 }
 
 // SubscribeToJobCancellationEvent queries for a job cancellation event returns its content.
-func (j *job) SubscribeToJobCancellationEvent(ctx context.Context, input *types.JobCancellationEventSubscriptionInput) (<-chan *types.CancellationEvent, error) {
+func (j *job) SubscribeToJobCancellationEvent(_ context.Context, input *types.JobCancellationEventSubscriptionInput) (<-chan *types.CancellationEvent, error) {
 
 	eventChannel := make(chan *types.CancellationEvent)
 
@@ -139,11 +139,7 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedSave.SaveLogs.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedSave.SaveLogs.Problems)
 }
 
 func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscriptionInput) (<-chan *types.JobLogsEvent, error) {
@@ -249,7 +245,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 	return logChan, nil
 }
 
-func (j *job) subscribeToJobLogEvents(ctx context.Context, input *JobLogSubscriptionInput) (<-chan *jobLogEvent, error) {
+func (j *job) subscribeToJobLogEvents(_ context.Context, input *JobLogSubscriptionInput) (<-chan *jobLogEvent, error) {
 	eventChannel := make(chan *jobLogEvent)
 
 	var target struct {

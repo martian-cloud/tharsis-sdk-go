@@ -168,11 +168,7 @@ func (p *module) DeleteModule(ctx context.Context, input *types.DeleteTerraformM
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModule.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformModule.Problems)
 }
 
 // getTerraformModules runs the query and returns the results.

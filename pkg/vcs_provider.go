@@ -144,7 +144,7 @@ type graphQLVCSProvider struct {
 	CreatedBy          graphql.String
 	Name               graphql.String
 	Description        graphql.String
-	Hostname           graphql.String
+	URL                graphql.String
 	GroupPath          graphql.String
 	ResourcePath       graphql.String
 	Type               graphql.String
@@ -158,7 +158,7 @@ func vcsProviderFromGraphQL(gvp graphQLVCSProvider) types.VCSProvider {
 		CreatedBy:          string(gvp.CreatedBy),
 		Name:               string(gvp.Name),
 		Description:        string(gvp.Description),
-		Hostname:           string(gvp.Hostname),
+		URL:                string(gvp.URL),
 		GroupPath:          string(gvp.GroupPath),
 		ResourcePath:       string(gvp.ResourcePath),
 		Type:               types.VCSProviderType(gvp.Type),

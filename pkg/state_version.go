@@ -72,7 +72,7 @@ func (s *stateVersion) DownloadStateVersion(ctx context.Context,
 
 	// Create the URL and request.
 	url := tfeV2Endpoint.String() + strings.Join([]string{"state-versions", input.ID, "content"}, "/")
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}

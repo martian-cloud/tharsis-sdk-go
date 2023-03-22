@@ -111,7 +111,7 @@ func (ws *workspaces) GetWorkspaces(ctx context.Context,
 	}, nil
 }
 
-func (ws *workspaces) GetWorkspacePaginator(ctx context.Context,
+func (ws *workspaces) GetWorkspacePaginator(_ context.Context,
 	input *types.GetWorkspacesInput) (*GetWorkspacesPaginator, error) {
 
 	paginator := newWorkspacePaginator(*ws.client, input)
@@ -212,11 +212,7 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 		return err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems)
 }
 
 func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,

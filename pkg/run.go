@@ -118,7 +118,7 @@ func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]
 	return variablesResult, nil
 }
 
-func (r *run) GetRunPaginator(ctx context.Context,
+func (r *run) GetRunPaginator(_ context.Context,
 	input *types.GetRunsInput) (*RunPaginator, error) {
 
 	paginator := newRunPaginator(*r.client, input)
@@ -210,7 +210,7 @@ func (r *run) CancelRun(ctx context.Context, input *types.CancelRunInput) (*type
 	return &canceled, nil
 }
 
-func (r *run) SubscribeToWorkspaceRunEvents(ctx context.Context, input *types.RunSubscriptionInput) (<-chan *types.Run, error) {
+func (r *run) SubscribeToWorkspaceRunEvents(_ context.Context, input *types.RunSubscriptionInput) (<-chan *types.Run, error) {
 	eventChannel := make(chan *types.Run)
 
 	var target struct {
