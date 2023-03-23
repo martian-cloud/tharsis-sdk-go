@@ -244,7 +244,7 @@ func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,
 
 		var target struct {
 			Node *struct {
-				Workspace *struct {
+				Workspace struct {
 					ManagedIdentities []GraphQLManagedIdentity `graphql:"assignedManagedIdentities"`
 				} `graphql:"...on Workspace"`
 			} `graphql:"node(id: $id)"`
