@@ -349,6 +349,7 @@ type graphQLJob struct {
 	}
 	Workspace struct {
 		FullPath graphql.String
+		ID       graphql.String
 	}
 	CancelRequested graphql.Boolean
 	LogSize         graphql.Int
@@ -367,6 +368,7 @@ func jobFromGraphQL(r graphQLJob) types.Job {
 		Type:            types.JobType(r.Type),
 		RunID:           string(r.Run.ID),
 		WorkspacePath:   string(r.Workspace.FullPath),
+		WorkspaceID:     string(r.Workspace.ID),
 		CancelRequested: bool(r.CancelRequested),
 		LogSize:         int(r.LogSize),
 		MaxJobDuration:  int32(r.MaxJobDuration),

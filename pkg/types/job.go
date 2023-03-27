@@ -43,6 +43,7 @@ type Job struct {
 	Type            JobType
 	RunID           string
 	WorkspacePath   string
+	WorkspaceID     string
 	LogSize         int
 	MaxJobDuration  int32
 	CancelRequested bool
