@@ -355,6 +355,183 @@ func TestUpdateGroup(t *testing.T) {
 	}
 }
 
+func TestMigrateGroup(t *testing.T) {
+	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
+
+	groupID := "group-id-1"
+	groupVersion := "group-version-1"
+	groupName := "group-name-1"
+	groupGroupPath := "parent-group-1"
+	groupFullPath := groupGroupPath + "/" + groupName
+
+	parentPath1 := "some-top-level/parent-1-name"
+
+	type graphqlMigrateGroupMutation struct {
+		Group    graphQLGroup                 `json:"group"`
+		Problems []fakeGraphqlResponseProblem `json:"problems"`
+	}
+
+	type graphqlMigrateGroupPayload struct {
+		MigrateGroup graphqlMigrateGroupMutation `json:"migrateGroup"`
+	}
+
+	// test cases
+	type testCase struct {
+		name            string
+		input           *types.MigrateGroupInput
+		responsePayload interface{}
+		expectGroup     *types.Group
+		expectErrorCode types.ErrorCode
+	}
+
+	/*
+		Test case template:
+
+		name            string
+		input           *types.MigrateGroupInput
+		responsePayload interface{}
+		expectGroup     *types.Group
+		expectErrorCode types.ErrorCode
+	*/
+
+	testCases := []testCase{
+		{
+			name: "Successfully migrate group by ID",
+			input: &types.MigrateGroupInput{
+				GroupPath:     groupFullPath,
+				NewParentPath: &parentPath1,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlMigrateGroupPayload{
+					MigrateGroup: graphqlMigrateGroupMutation{
+						Group: graphQLGroup{
+							ID: graphql.String(groupID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+								Version:   graphql.String(groupVersion),
+							},
+							Name:        "nm01",
+							FullPath:    "fp01",
+							Description: "de01",
+						},
+					},
+				},
+			},
+			expectGroup: &types.Group{
+				Metadata: types.ResourceMetadata{
+					ID:                   groupID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              groupVersion,
+				},
+				Name:        "nm01",
+				FullPath:    "fp01",
+				Description: "de01",
+			},
+		},
+		{
+			name: "Successfully migrate group by path",
+			input: &types.MigrateGroupInput{
+				GroupPath:     groupFullPath,
+				NewParentPath: &parentPath1,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlMigrateGroupPayload{
+					MigrateGroup: graphqlMigrateGroupMutation{
+						Group: graphQLGroup{
+							ID: graphql.String(groupID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+								Version:   graphql.String(groupVersion),
+							},
+							Name:        "nm01",
+							FullPath:    "fp01",
+							Description: "de01",
+						},
+					},
+				},
+			},
+			expectGroup: &types.Group{
+				Metadata: types.ResourceMetadata{
+					ID:                   groupID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              groupVersion,
+				},
+				Name:        "nm01",
+				FullPath:    "fp01",
+				Description: "de01",
+			},
+		},
+		{
+			name: "verify that correct error is returned",
+			input: &types.MigrateGroupInput{
+				GroupPath: "invalid",
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlMigrateGroupPayload{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "an error occurred",
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "INTERNAL_SERVER_ERROR",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrInternal,
+		},
+
+		// query returns nil group, as if the specified group does not exist.
+		{
+			name: "query returns nil group, as if the specified group does not exist",
+			input: &types.MigrateGroupInput{
+				GroupPath: groupFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlMigrateGroupPayload{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "group not found",
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "NOT_FOUND",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.Group = NewGroup(client)
+
+			// Call the method being tested.
+			actualGroup, actualError := client.Group.MigrateGroup(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			checkGroup(t, test.expectGroup, actualGroup)
+		})
+	}
+}
+
 // Utility functions:
 
 func checkGroup(t *testing.T, expectGroup, actualGroup *types.Group) {
