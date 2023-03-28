@@ -80,4 +80,12 @@ type DeleteGroupInput struct {
 	ID        *string `json:"id"`
 }
 
+// MigrateGroupInput is the input for migrating a group.
+// One (and only one) of ID and GroupPath finds the group to migrate.
+// If NewParentPath is nil, that means move the group to top-level.
+type MigrateGroupInput struct {
+	NewParentPath *string `json:"newParentPath"`
+	GroupPath     string  `json:"groupPath"`
+}
+
 // The End.

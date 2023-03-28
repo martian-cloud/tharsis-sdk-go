@@ -18,6 +18,7 @@ type Group interface {
 	CreateGroup(ctx context.Context, input *types.CreateGroupInput) (*types.Group, error)
 	UpdateGroup(ctx context.Context, input *types.UpdateGroupInput) (*types.Group, error)
 	DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) error
+	MigrateGroup(ctx context.Context, input *types.MigrateGroupInput) (*types.Group, error)
 }
 
 type group struct {
@@ -198,6 +199,33 @@ func (g *group) DeleteGroup(ctx context.Context, input *types.DeleteGroupInput) 
 	}
 
 	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteGroup.Problems)
+}
+
+// MigrateGroup migrates a group and returns its content.
+func (g *group) MigrateGroup(ctx context.Context, input *types.MigrateGroupInput) (*types.Group, error) {
+
+	var wrappedMigrate struct {
+		MigrateGroup struct {
+			Group    graphQLGroup
+			Problems []internal.GraphQLProblem
+		} `graphql:"migrateGroup(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := g.client.graphqlClient.Mutate(ctx, true, &wrappedMigrate, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errors.ErrorFromGraphqlProblems(wrappedMigrate.MigrateGroup.Problems); err != nil {
+		return nil, err
+	}
+
+	migrated := groupFromGraphQL(wrappedMigrate.MigrateGroup.Group)
+	return &migrated, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////
