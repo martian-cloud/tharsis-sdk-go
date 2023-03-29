@@ -52,7 +52,9 @@ func ExampleGetGroups() error {
 	serviceAccountPath := "==insert-service-account-path-here=="
 	serviceAccountToken := "==insert-service-account-token-here=="
 	serviceAccountTokenProvider, err := auth.NewServiceAccountTokenProvider(
-		endpointURL, serviceAccountPath, serviceAccountToken)
+		endpointURL, serviceAccountPath, func() (string, error) {
+			return serviceAccountToken, nil
+		})
 	if err != nil {
 		return err
 	}

@@ -63,7 +63,9 @@ func Load(optFns ...func(*LoadOptions) error) (*Config, error) {
 		// next preference: a service account provider from environment variables
 		if (serviceAccountName != "") && (serviceAccountToken != "") {
 			serviceAccountProvider, err := auth.NewServiceAccountTokenProvider(c.Endpoint,
-				serviceAccountName, serviceAccountToken)
+				serviceAccountName, func() (string, error) {
+					return serviceAccountToken, nil
+				})
 			if err != nil {
 				return nil, fmt.Errorf("failed to obtain a token provider for service account %s: %v",
 					serviceAccountName, err)

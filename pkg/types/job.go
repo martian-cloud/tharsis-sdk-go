@@ -54,6 +54,17 @@ type CancellationEvent struct {
 	Job Job
 }
 
+// ClaimJobInput is the input for claiming a job
+type ClaimJobInput struct {
+	RunnerPath string `json:"runnerPath"`
+}
+
+// ClaimJobResponse is the response when claiming a job
+type ClaimJobResponse struct {
+	Token string
+	JobID string
+}
+
 // JobLogsEvent is the output for subscribing to job logs.
 type JobLogsEvent struct {
 	Error error

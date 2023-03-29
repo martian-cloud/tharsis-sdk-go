@@ -24,6 +24,9 @@ const (
 	expirationGuardband = 30 * time.Second // seconds of guardband for expiration time
 )
 
+// OIDCTokenGetter is a callback for returning the OIDC token that is used to login to the service account
+type OIDCTokenGetter func() (string, error)
+
 // createTokenBody is returned by the raw GraphQL mutation.
 // For some API server error conditions, Errors is populated and Data is null.
 type createTokenBody struct {
@@ -49,17 +52,13 @@ type createTokenBody struct {
 
 // serviceAccountTokenProvider implements Provider.
 type serviceAccountTokenProvider struct {
-	options *options
+	serviceAccountPath string
+	oidcTokenGetter    OIDCTokenGetter
 	// The temporary/dynamic service account token, with expiration.
 	// For thread safety, the token and its expiration with a mutex are protected by a mutex.
 	token       *tokenInfo
 	endpointURL string
 	// The permanent/static values from constructor arguments, environment variables, etc.
-}
-
-type options struct {
-	serviceAccountPath string
-	firstTokenValue    string
 }
 
 type tokenInfo struct {
@@ -72,24 +71,18 @@ type tokenInfo struct {
 //
 // Constructor arguments for options service account path and token values take
 // priority over the environment variables.  For now,
-func NewServiceAccountTokenProvider(endpointURL, accountPath, token string) (TokenProvider, error) {
+func NewServiceAccountTokenProvider(endpointURL string, accountPath string, oidcTokenGetter OIDCTokenGetter) (TokenProvider, error) {
 
 	if accountPath == "" {
 		return nil, fmt.Errorf("service account path was empty")
 	}
 
-	if token == "" {
-		return nil, fmt.Errorf("service account first token was empty")
-	}
-
 	serviceAccountProvider := serviceAccountTokenProvider{
 		// For the create token URL, do not use path.Join to combine the URL and the path.  It corrupts "//" to "/".
-		endpointURL: endpointURL,
-		options: &options{
-			serviceAccountPath: accountPath,
-			firstTokenValue:    token,
-		},
-		token: &tokenInfo{},
+		endpointURL:        endpointURL,
+		serviceAccountPath: accountPath,
+		oidcTokenGetter:    oidcTokenGetter,
+		token:              &tokenInfo{},
 	}
 
 	return &serviceAccountProvider, nil
@@ -134,6 +127,11 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	graphQLEndpoint.Path = path.Join(graphQLEndpoint.Path, graphQLSuffix)
 
+	oidcToken, err := p.oidcTokenGetter()
+	if err != nil {
+		return fmt.Errorf("failed to get oidc token: %v", err)
+	}
+
 	mutationCore := fmt.Sprintf(
 		`mutation {
 			serviceAccountCreateToken(
@@ -150,7 +148,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 				}
 			}
 		}`,
-		p.options.serviceAccountPath, p.options.firstTokenValue)
+		p.serviceAccountPath, oidcToken)
 
 	type reqType struct {
 		Query string `json:"query"`
