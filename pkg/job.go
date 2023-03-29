@@ -42,6 +42,7 @@ type getJobLogsOutput struct {
 // Job implements functions related to Tharsis jobs.
 type Job interface {
 	GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job, error)
+	ClaimJob(ctx context.Context, input *types.ClaimJobInput) (*types.ClaimJobResponse, error)
 	SubscribeToJobCancellationEvent(ctx context.Context, input *types.JobCancellationEventSubscriptionInput) (<-chan *types.CancellationEvent, error)
 	SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) error
 	SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscriptionInput) (<-chan *types.JobLogsEvent, error)
@@ -75,6 +76,38 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 
 	result := jobFromGraphQL(*target.Job)
 	return &result, nil
+}
+
+func (j *job) ClaimJob(ctx context.Context, input *types.ClaimJobInput) (*types.ClaimJobResponse, error) {
+	var req struct {
+		ClaimJob struct {
+			JobID    *string
+			Token    *string
+			Problems []internal.GraphQLProblem
+		} `graphql:"claimJob(input: $input)"`
+	}
+
+	// Creating a new object requires the wrapped object above
+	// but with all the contents in a struct in the variables.
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := j.client.graphqlClient.Mutate(ctx, true, &req, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errors.ErrorFromGraphqlProblems(req.ClaimJob.Problems); err != nil {
+		return nil, err
+	}
+
+	response := types.ClaimJobResponse{
+		Token: *req.ClaimJob.Token,
+		JobID: *req.ClaimJob.JobID,
+	}
+
+	return &response, nil
 }
 
 // SubscribeToJobCancellationEvent queries for a job cancellation event returns its content.

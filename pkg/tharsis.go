@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"time"
 
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
@@ -70,6 +71,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		}
 	}
 	retryClient.Logger = nil
+	retryClient.RetryWaitMin = 10 * time.Second
+	retryClient.RetryWaitMax = 60 * time.Second
 
 	httpClient := retryClient.StandardClient()
 
