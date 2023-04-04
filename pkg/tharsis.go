@@ -95,7 +95,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	// so we can workaround this if the Tharsis API is only http by
 	// setting the DialTLSContext to the DialContext
 	if graphQLEndpoint.Scheme == "http" {
-		tp := cleanhttp.DefaultPooledTransport()
+		tp := cleanhttp.DefaultTransport()
 		tp.DialTLSContext = tp.DialContext
 		discovery.Transport = tp
 	}
