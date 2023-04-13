@@ -52,6 +52,7 @@ type Client struct {
 	TerraformCLIVersions       TerraformCLIVersion
 	VCSProvider                VCSProvider
 	WorkspaceVCSProviderLink   WorkspaceVCSProviderLink
+	RunnerAgent                RunnerAgent
 }
 
 // NewClient returns a TharsisClient.
@@ -136,6 +137,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.TerraformCLIVersions = NewTerraformCLIVersion(client)
 	client.VCSProvider = NewVCSProvider(client)
 	client.WorkspaceVCSProviderLink = NewWorkspaceVCSProviderLink(client)
+	client.RunnerAgent = NewRunnerAgent(client)
 
 	return client, nil
 }
