@@ -16,10 +16,11 @@ type GetJobInput struct {
 
 // JobLogsSubscriptionInput is the input for subscribing to job logs.
 type JobLogsSubscriptionInput struct {
-	Limit         *int32
-	RunID         string
-	WorkspacePath string
-	JobID         string `json:"jobId"`
+	Limit           *int32
+	LastSeenLogSize *int32
+	RunID           string
+	WorkspacePath   string
+	JobID           string `json:"jobId"`
 }
 
 // JobCancellationEventSubscriptionInput is the input for Job cancellation event subscription
