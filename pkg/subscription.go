@@ -150,7 +150,7 @@ func (wh *websocketHandler) Close() error {
 }
 
 func (wh *websocketHandler) startKeepalive() func() {
-	stop := make(chan bool)
+	stop := make(chan bool, 1)
 
 	go func() {
 		for {

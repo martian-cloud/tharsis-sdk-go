@@ -3,6 +3,7 @@ package tharsis
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -17,7 +18,8 @@ const (
 
 // JobLogSubscriptionInput is the input for subscribing to job log events.
 type JobLogSubscriptionInput struct {
-	JobID string `json:"jobId"`
+	LastSeenLogSize *int32 `json:"lastSeenLogSize"`
+	JobID           string `json:"jobId"`
 }
 
 // jobLogEvent represents a job log event.
@@ -188,7 +190,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 	}
 
 	// Subscribe to the job log events so we can fetch logs only when new ones are available.
-	logEvents, err := j.subscribeToJobLogEvents(ctx, &JobLogSubscriptionInput{JobID: input.JobID})
+	logEvents, err := j.subscribeToJobLogEvents(ctx, &JobLogSubscriptionInput{JobID: input.JobID, LastSeenLogSize: input.LastSeenLogSize})
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +236,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 			// Update the offset to the new log size.
 			currentOffset += int32(len(output.logs))
 
-			if output.logSize > 0 {
+			if len(output.logs) > 0 {
 				// Send the logs on the channel.
 				logChan <- toJobLogsEvent(output.logs, nil)
 			}
@@ -254,6 +256,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 				logChan <- toJobLogsEvent("", ctx.Err())
 				return
 			case <-logEvents:
+			case <-time.After(time.Minute * 5): // This is a failsafe in case an event is missed due to a network issue
 			case eventRun := <-runEvents:
 				switch eventRun.Status {
 				case types.RunApplied,
