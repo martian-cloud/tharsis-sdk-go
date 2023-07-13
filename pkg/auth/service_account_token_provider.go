@@ -62,9 +62,9 @@ type serviceAccountTokenProvider struct {
 }
 
 type tokenInfo struct {
-	mutex   sync.RWMutex
 	expires *time.Time
 	token   string
+	mutex   sync.RWMutex
 }
 
 // NewServiceAccountTokenProvider returns a new instance of this provider.

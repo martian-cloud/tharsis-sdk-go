@@ -21,13 +21,13 @@ type graphqlClient interface {
 
 // The two GraphQL clients are initialized in a lazy manner.  The mutex protects the two GraphQL clients.
 type graphqlClientWrapper struct {
-	mutex          sync.Mutex
 	tokenProvider  auth.TokenProvider
 	httpClient     *http.Client
 	logger         *log.Logger
 	noAuthClient   *graphql.Client
 	withAuthClient *graphql.Client
 	endpoint       string
+	mutex          sync.Mutex
 }
 
 // Ensure graphqlClientWrapper implements the graphqlClient interface.
