@@ -25,34 +25,36 @@ const (
 // Client provides access for the client/user to access the SDK functions.
 // Note: When adding a new field here, make sure to assign the field near the end of the NewClient function.
 type Client struct {
-	cfg                        *config.Config // not currently essential but could become so
-	logger                     *log.Logger
-	httpClient                 *http.Client
-	graphqlClient              graphqlClient
-	graphqlSubscriptionClient  subscriptionClient
-	services                   *disco.Host
-	ConfigurationVersion       ConfigurationVersion
-	GPGKey                     GPGKey
-	Group                      Group
-	Job                        Job
-	ManagedIdentity            ManagedIdentity
-	Plan                       Plan
-	Apply                      Apply
-	Run                        Run
-	ServiceAccount             ServiceAccount
-	StateVersion               StateVersion
-	Variable                   Variable
-	Workspaces                 Workspaces
-	TerraformProvider          TerraformProvider
-	TerraformProviderVersion   TerraformProviderVersion
-	TerraformModule            TerraformModule
-	TerraformModuleVersion     TerraformModuleVersion
-	TerraformModuleAttestation TerraformModuleAttestation
-	TerraformProviderPlatform  TerraformProviderPlatform
-	TerraformCLIVersions       TerraformCLIVersion
-	VCSProvider                VCSProvider
-	WorkspaceVCSProviderLink   WorkspaceVCSProviderLink
-	RunnerAgent                RunnerAgent
+	cfg                             *config.Config // not currently essential but could become so
+	logger                          *log.Logger
+	httpClient                      *http.Client
+	graphqlClient                   graphqlClient
+	graphqlSubscriptionClient       subscriptionClient
+	services                        *disco.Host
+	ConfigurationVersion            ConfigurationVersion
+	GPGKey                          GPGKey
+	Group                           Group
+	Job                             Job
+	ManagedIdentity                 ManagedIdentity
+	Plan                            Plan
+	Apply                           Apply
+	Run                             Run
+	ServiceAccount                  ServiceAccount
+	StateVersion                    StateVersion
+	Variable                        Variable
+	Workspaces                      Workspaces
+	TerraformProvider               TerraformProvider
+	TerraformProviderVersion        TerraformProviderVersion
+	TerraformModule                 TerraformModule
+	TerraformModuleVersion          TerraformModuleVersion
+	TerraformModuleAttestation      TerraformModuleAttestation
+	TerraformProviderPlatform       TerraformProviderPlatform
+	TerraformCLIVersions            TerraformCLIVersion
+	VCSProvider                     VCSProvider
+	WorkspaceVCSProviderLink        WorkspaceVCSProviderLink
+	RunnerAgent                     RunnerAgent
+	TerraformProviderVersionMirror  TerraformProviderVersionMirror
+	TerraformProviderPlatformMirror TerraformProviderPlatformMirror
 }
 
 // NewClient returns a TharsisClient.
@@ -102,7 +104,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	}
 	services, err := discovery.Discover(tharsisHost)
 	if err != nil {
-		return nil, fmt.Errorf("failed to discovery TFE services: %w", err)
+		return nil, fmt.Errorf("failed to discover TFE services: %w", err)
 	}
 	// Restore default logger
 	log.Default().SetOutput(os.Stderr)
@@ -138,6 +140,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.VCSProvider = NewVCSProvider(client)
 	client.WorkspaceVCSProviderLink = NewWorkspaceVCSProviderLink(client)
 	client.RunnerAgent = NewRunnerAgent(client)
+	client.TerraformProviderVersionMirror = NewTerraformProviderVersionMirror(client)
+	client.TerraformProviderPlatformMirror = NewTerraformProviderPlatformMirror(client)
 
 	return client, nil
 }

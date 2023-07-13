@@ -20,7 +20,7 @@ workflow:
     - when: never
 
 variables:
-  GO_VERSION: "1.18.2"
+  GO_VERSION: "1.20"
   CGO_ENABLED: "0"
   GOPATH_RELATIVE_PATH: .go
   GOPATH: "$CI_PROJECT_DIR/$GOPATH_RELATIVE_PATH"
@@ -104,8 +104,8 @@ lint:
     - go install github.com/mgechev/revive@latest
   script:
     - |
-        go mod download
-        revive -set_exit_status $(go list ./... | grep -v /vendor/)
+      go mod download
+      revive -set_exit_status $(go list ./... | grep -v /vendor/)
   cache:
     <<: *cache-template
 
@@ -153,17 +153,17 @@ license_scanning:
     - go install github.com/uw-labs/lichen@latest
   script:
     - |
-        export PACKAGE=$(go list -m)
-        export BINARY=$(echo $PACKAGE | rev | cut -d'/' -f1 | rev)
+      export PACKAGE=$(go list -m)
+      export BINARY=$(echo $PACKAGE | rev | cut -d'/' -f1 | rev)
 
-        # Since this is a SDK package and not a CLI, create a fake binary
-        echo -e "package main\n\nimport _ \"$PACKAGE/pkg\"\n\nfunc main() { }\n" > main.go
+      # Since this is a SDK package and not a CLI, create a fake binary
+      echo -e "package main\n\nimport _ \"$PACKAGE/pkg\"\n\nfunc main() { }\n" > main.go
 
-        go build -a -o $BINARY $PACKAGE
+      go build -a -o $BINARY $PACKAGE
 
     - lichen -j lichen.json $BINARY
     - >
-        jq '{"version": "2.1","licenses": [ . | .Modules[] | .Licenses[] | {"id": .Name,"name": .Name, "url": ("https://opensource.org/licenses/" + .Name) } ] | unique,"dependencies":[ . | .Modules[] | {"name": .Path, "version": .Version, "package_manager": "go","path": "go.sum","licenses": [ .Licenses[] | .Name]}]}' lichen.json > gl-license-scanning-report.json
+      jq '{"version": "2.1","licenses": [ . | .Modules[] | .Licenses[] | {"id": .Name,"name": .Name, "url": ("https://opensource.org/licenses/" + .Name) } ] | unique,"dependencies":[ . | .Modules[] | {"name": .Path, "version": .Version, "package_manager": "go","path": "go.sum","licenses": [ .Licenses[] | .Name]}]}' lichen.json > gl-license-scanning-report.json
   cache:
     <<: *cache-template
   artifacts:

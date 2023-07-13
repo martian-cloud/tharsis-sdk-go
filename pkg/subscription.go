@@ -27,11 +27,11 @@ type subscriptionClient interface {
 }
 
 type lazySubscriptionClient struct {
-	mutex         sync.Mutex
 	tokenProvider auth.TokenProvider
 	client        *graphql.SubscriptionClient
 	logger        *log.Logger
 	isRunning     int64
+	mutex         sync.Mutex
 }
 
 func newLazySubscriptionClient(cfg *config.Config, httpClient *http.Client, graphQLEndpoint string) (*lazySubscriptionClient, error) {
