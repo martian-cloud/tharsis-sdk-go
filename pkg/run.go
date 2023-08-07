@@ -406,6 +406,7 @@ type graphQLRun struct {
 		ID       graphql.String
 		FullPath graphql.String
 	}
+	TargetAddresses  []graphql.String
 	CreatedBy        graphql.String
 	Status           graphql.String
 	ID               graphql.String
@@ -413,6 +414,7 @@ type graphQLRun struct {
 	Plan             graphQLPlan
 	IsDestroy        graphql.Boolean
 	ForceCanceled    graphql.Boolean
+	Refresh          graphql.Boolean
 }
 
 type graphQLRunVariable struct {
@@ -439,6 +441,7 @@ func runFromGraphQL(g graphQLRun) types.Run {
 		ForceCancelAvailableAt: timeFromGraphQL(g.ForceCancelAvailableAt),
 		ForceCanceled:          bool(g.ForceCanceled),
 		TerraformVersion:       string(g.TerraformVersion),
+		Refresh:                bool(g.Refresh),
 	}
 	result.Plan = planFromGraphQL(g.Plan)
 	if a := g.Apply; a != nil {
@@ -448,6 +451,13 @@ func runFromGraphQL(g graphQLRun) types.Run {
 	if g.ConfigurationVersion != nil {
 		cvID := string(g.ConfigurationVersion.ID)
 		result.ConfigurationVersionID = &cvID
+	}
+
+	if g.TargetAddresses != nil {
+		result.TargetAddresses = make([]string, len(g.TargetAddresses))
+		for i, v := range g.TargetAddresses {
+			result.TargetAddresses[i] = string(v)
+		}
 	}
 
 	return result
