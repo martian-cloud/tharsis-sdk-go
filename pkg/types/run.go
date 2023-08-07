@@ -79,8 +79,10 @@ type Run struct {
 	Status                 RunStatus
 	CreatedBy              string
 	TerraformVersion       string
+	TargetAddresses        []string
 	IsDestroy              bool
 	ForceCanceled          bool
+	Refresh                bool
 }
 
 // RunVariable holds information about a run variable
@@ -111,7 +113,9 @@ type CreateRunInput struct {
 	TerraformVersion       *string       `json:"terraformVersion"`
 	WorkspacePath          string        `json:"workspacePath"`
 	Variables              []RunVariable `json:"variables"`
+	TargetAddresses        []string      `json:"targetAddresses"`
 	IsDestroy              bool          `json:"isDestroy"`
+	Refresh                bool          `json:"refresh"`
 }
 
 // ApplyRunInput is the input for applying a run.
