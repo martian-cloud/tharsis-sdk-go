@@ -256,7 +256,8 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 				logChan <- toJobLogsEvent("", ctx.Err())
 				return
 			case <-logEvents:
-			case <-time.After(time.Minute * 5): // This is a failsafe in case an event is missed due to a network issue
+			// This is a failsafe in case the subscription connection is closed due to a network issue
+			case <-time.After(time.Second * 30):
 			case eventRun := <-runEvents:
 				switch eventRun.Status {
 				case types.RunApplied,
@@ -266,10 +267,6 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 					types.RunErrored:
 
 					runCompleted = true
-					if currentOffset == output.logSize {
-						// All logs have been sent.
-						return
-					}
 				}
 			}
 		}
