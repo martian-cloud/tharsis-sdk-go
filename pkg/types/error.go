@@ -10,16 +10,17 @@ type ErrorCode string
 
 // Error code constants
 const (
-	ErrInternal        ErrorCode = "internal error"
-	ErrNotImplemented  ErrorCode = "not implemented"
-	ErrNotFound        ErrorCode = "not found"
-	ErrConflict        ErrorCode = "conflict"
-	ErrOptimisticLock  ErrorCode = "optimistic lock"
-	ErrForbidden       ErrorCode = "forbidden"
-	ErrTooManyRequests ErrorCode = "too many requests"
-	ErrUnauthorized    ErrorCode = "unauthorized"
-	ErrTooLarge        ErrorCode = "request too large"
-	ErrBadRequest      ErrorCode = "bad request"
+	ErrInternal           ErrorCode = "internal error"
+	ErrNotImplemented     ErrorCode = "not implemented"
+	ErrNotFound           ErrorCode = "not found"
+	ErrConflict           ErrorCode = "conflict"
+	ErrOptimisticLock     ErrorCode = "optimistic lock"
+	ErrForbidden          ErrorCode = "forbidden"
+	ErrTooManyRequests    ErrorCode = "too many requests"
+	ErrUnauthorized       ErrorCode = "unauthorized"
+	ErrTooLarge           ErrorCode = "request too large"
+	ErrBadRequest         ErrorCode = "bad request"
+	ErrServiceUnavailable ErrorCode = "service unavailable"
 )
 
 // Error represents an error returned by the Tharsis API
