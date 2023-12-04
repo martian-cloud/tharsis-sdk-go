@@ -11,10 +11,11 @@ type GraphQLProblemType graphql.String
 
 // Problem constants
 const (
-	Conflict   GraphQLProblemType = "CONFLICT"
-	BadRequest GraphQLProblemType = "BAD_REQUEST"
-	NotFound   GraphQLProblemType = "NOT_FOUND"
-	Forbidden  GraphQLProblemType = "FORBIDDEN"
+	Conflict           GraphQLProblemType = "CONFLICT"
+	BadRequest         GraphQLProblemType = "BAD_REQUEST"
+	NotFound           GraphQLProblemType = "NOT_FOUND"
+	Forbidden          GraphQLProblemType = "FORBIDDEN"
+	ServiceUnavailable GraphQLProblemType = "SERVICE_UNAVAILABLE"
 )
 
 // GraphQLProblem is used to represent a user facing issue

@@ -25,13 +25,15 @@ var graphqlErrorCodeToSDKErrorCode = map[string]types.ErrorCode{
 	"RATE_LIMIT_EXCEEDED":   types.ErrTooManyRequests,
 	"UNAUTHENTICATED":       types.ErrUnauthorized,
 	"UNAUTHORIZED":          types.ErrUnauthorized,
+	"SERVICE_UNAVAILABLE":   types.ErrServiceUnavailable,
 }
 
 var graphqlProblemTypeToSDKErrorCode = map[internal.GraphQLProblemType]types.ErrorCode{
-	internal.Conflict:   types.ErrConflict,
-	internal.BadRequest: types.ErrBadRequest,
-	internal.NotFound:   types.ErrNotFound,
-	internal.Forbidden:  types.ErrForbidden,
+	internal.Conflict:           types.ErrConflict,
+	internal.BadRequest:         types.ErrBadRequest,
+	internal.NotFound:           types.ErrNotFound,
+	internal.Forbidden:          types.ErrForbidden,
+	internal.ServiceUnavailable: types.ErrServiceUnavailable,
 }
 
 var httpStatusCodeToSDKErrorCode = map[int]types.ErrorCode{
@@ -44,6 +46,7 @@ var httpStatusCodeToSDKErrorCode = map[int]types.ErrorCode{
 	http.StatusTooManyRequests:       types.ErrTooManyRequests,
 	http.StatusUnauthorized:          types.ErrUnauthorized,
 	http.StatusRequestEntityTooLarge: types.ErrTooLarge,
+	http.StatusServiceUnavailable:    types.ErrServiceUnavailable,
 }
 
 // NewError returns a new Error.
