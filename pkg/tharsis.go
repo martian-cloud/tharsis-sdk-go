@@ -55,7 +55,6 @@ type Client struct {
 	RunnerAgent                     RunnerAgent
 	TerraformProviderVersionMirror  TerraformProviderVersionMirror
 	TerraformProviderPlatformMirror TerraformProviderPlatformMirror
-	RunnerSession                   RunnerSession
 }
 
 // NewClient returns a TharsisClient.
@@ -143,7 +142,6 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.RunnerAgent = NewRunnerAgent(client)
 	client.TerraformProviderVersionMirror = NewTerraformProviderVersionMirror(client)
 	client.TerraformProviderPlatformMirror = NewTerraformProviderPlatformMirror(client)
-	client.RunnerSession = NewRunnerSession(client)
 
 	return client, nil
 }
