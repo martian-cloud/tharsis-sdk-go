@@ -203,25 +203,25 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 			runCompleted  bool
 		)
 
-		run, err := j.client.Run.GetRun(ctx, &types.GetRunInput{ID: input.RunID})
-		if err != nil {
-			logChan <- toJobLogsEvent("", err)
-			return
-		}
-
-		// Make sure the run hasn't already finished.
-		// In which case the for loop will fetch all the pending logs and
-		// close the channel once finished.
-		switch run.Status {
-		case types.RunApplied,
-			types.RunCanceled,
-			types.RunPlanned,
-			types.RunPlannedAndFinished,
-			types.RunErrored:
-			runCompleted = true
-		}
-
 		for {
+			run, err := j.client.Run.GetRun(ctx, &types.GetRunInput{ID: input.RunID})
+			if err != nil {
+				logChan <- toJobLogsEvent("", err)
+				return
+			}
+
+			// Make sure the run hasn't already finished.
+			// In which case the for loop will fetch all the pending logs and
+			// close the channel once finished.
+			switch run.Status {
+			case types.RunApplied,
+				types.RunCanceled,
+				types.RunPlanned,
+				types.RunPlannedAndFinished,
+				types.RunErrored:
+				runCompleted = true
+			}
+
 			// Retrieve the plan logs.
 			output, err := j.getJobLogs(ctx, &getJobLogsInput{
 				id:          input.JobID,
@@ -258,16 +258,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 			case <-logEvents:
 			// This is a failsafe in case the subscription connection is closed due to a network issue
 			case <-time.After(time.Second * 30):
-			case eventRun := <-runEvents:
-				switch eventRun.Status {
-				case types.RunApplied,
-					types.RunCanceled,
-					types.RunPlanned,
-					types.RunPlannedAndFinished,
-					types.RunErrored:
-
-					runCompleted = true
-				}
+			case <-runEvents:
 			}
 		}
 	}
