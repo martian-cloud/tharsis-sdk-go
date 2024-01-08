@@ -1,14 +1,5 @@
 package types
 
-// RunnerType indicates the type of runner
-type RunnerType string
-
-// Runner Types Constants (currently lowercase to match the API and the API's model)
-const (
-	RunnerTypeShared RunnerType = "shared"
-	RunnerTypeGroup  RunnerType = "group"
-)
-
 // RunnerAgent represents a Tharsis Runner
 type RunnerAgent struct {
 	Metadata     ResourceMetadata
@@ -17,7 +8,7 @@ type RunnerAgent struct {
 	GroupPath    string
 	ResourcePath string
 	CreatedBy    string
-	Type         RunnerType
+	Type         string
 }
 
 // GetRunnerInput is the input for retrieving a runner agent
