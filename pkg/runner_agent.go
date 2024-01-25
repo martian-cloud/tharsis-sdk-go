@@ -158,7 +158,7 @@ type graphQLRunnerAgent struct {
 	GroupPath    string                   `json:"groupPath"`
 	ResourcePath string                   `json:"resourcePath"`
 	CreatedBy    string                   `json:"createdBy"`
-	Type         string                   `json:"type"`
+	Type         graphql.String           `json:"type"`
 }
 
 // runnerAgentFromGraphQL converts a GraphQL Runner to an external Runner
@@ -170,6 +170,6 @@ func runnerAgentFromGraphQL(r graphQLRunnerAgent) *types.RunnerAgent {
 		GroupPath:    r.GroupPath,
 		ResourcePath: r.ResourcePath,
 		CreatedBy:    r.CreatedBy,
-		Type:         r.Type,
+		Type:         types.RunnerType(r.Type),
 	}
 }
