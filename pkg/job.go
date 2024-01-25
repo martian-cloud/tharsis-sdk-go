@@ -16,16 +16,16 @@ const (
 	defaultLogLimit int32 = 1024 * 1024
 )
 
-// JobLogSubscriptionInput is the input for subscribing to job log events.
-type JobLogSubscriptionInput struct {
+// JobLogStreamSubscriptionInput is the input for subscribing to job log events.
+type JobLogStreamSubscriptionInput struct {
 	LastSeenLogSize *int32 `json:"lastSeenLogSize"`
 	JobID           string `json:"jobId"`
 }
 
-// jobLogEvent represents a job log event.
-type jobLogEvent struct {
-	Action string `json:"action"`
-	Size   int32  `json:"size"`
+// jobLogStreamEvent represents a job log event.
+type jobLogStreamEvent struct {
+	Completed bool  `json:"completed"`
+	Size      int32 `json:"size"`
 }
 
 // getJobLogsInput is the input to query a chunk of job logs
@@ -190,7 +190,10 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 	}
 
 	// Subscribe to the job log events so we can fetch logs only when new ones are available.
-	logEvents, err := j.subscribeToJobLogEvents(ctx, &JobLogSubscriptionInput{JobID: input.JobID, LastSeenLogSize: input.LastSeenLogSize})
+	logEvents, err := j.subscribeToJobLogStreamEvents(ctx, &JobLogStreamSubscriptionInput{
+		JobID:           input.JobID,
+		LastSeenLogSize: input.LastSeenLogSize,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -269,11 +272,12 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 	return logChan, nil
 }
 
-func (j *job) subscribeToJobLogEvents(_ context.Context, input *JobLogSubscriptionInput) (<-chan *jobLogEvent, error) {
-	eventChannel := make(chan *jobLogEvent)
+func (j *job) subscribeToJobLogStreamEvents(_ context.Context,
+	input *JobLogStreamSubscriptionInput) (<-chan *jobLogStreamEvent, error) {
+	eventChannel := make(chan *jobLogStreamEvent)
 
 	var target struct {
-		JobLogEvent jobLogEvent `graphql:"jobLogEvents(input: $input)"`
+		JobLogStreamEvent jobLogStreamEvent `graphql:"jobLogStreamEvents(input: $input)"`
 	}
 
 	variables := map[string]interface{}{
@@ -281,7 +285,7 @@ func (j *job) subscribeToJobLogEvents(_ context.Context, input *JobLogSubscripti
 	}
 
 	// The embedded job log event callback function.
-	jobLogEventCallback := func(message []byte, err error) error {
+	jobLogStreamEventCallback := func(message []byte, err error) error {
 		// Detect any incoming error.
 		if err != nil {
 			// close channel
@@ -290,7 +294,7 @@ func (j *job) subscribeToJobLogEvents(_ context.Context, input *JobLogSubscripti
 		}
 
 		var event struct {
-			JobLogEvent jobLogEvent `json:"jobLogEvents"`
+			JobLogStreamEvent jobLogStreamEvent `json:"jobLogStreamEvents"`
 		}
 
 		if message != nil {
@@ -298,14 +302,14 @@ func (j *job) subscribeToJobLogEvents(_ context.Context, input *JobLogSubscripti
 				return err
 			}
 
-			eventChannel <- &event.JobLogEvent
+			eventChannel <- &event.JobLogStreamEvent
 		}
 
 		return nil
 	}
 
 	// Create the subscription.
-	_, err := j.client.graphqlSubscriptionClient.Subscribe(&target, variables, jobLogEventCallback)
+	_, err := j.client.graphqlSubscriptionClient.Subscribe(&target, variables, jobLogStreamEventCallback)
 	if err != nil {
 		return nil, err
 	}
