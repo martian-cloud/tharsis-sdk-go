@@ -2,9 +2,9 @@ package types
 
 import "github.com/zclconf/go-cty/cty"
 
-// GetStateVersionInput is the input for retrieving a State Version for a workspace.
+// GetStateVersionInput is the input for retrieving a State Version.
 type GetStateVersionInput struct {
-	WorkspacePath string
+	ID string
 }
 
 // CreateStateVersionInput is the input for creating a state version.

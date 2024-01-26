@@ -12,11 +12,6 @@ import (
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
-const (
-	jobFinished      = "finished" // see Tharsis API job model
-	jobLogQuerySleep = 5 * time.Second
-)
-
 // Run implements functions related to Tharsis runs.
 type Run interface {
 	GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run, error)
@@ -402,6 +397,7 @@ type graphQLRun struct {
 	ModuleDigest           *graphql.String
 	ForceCanceledBy        *graphql.String
 	ForceCancelAvailableAt *graphql.String
+	StateVersion           *struct{ ID graphql.String }
 	Workspace              struct {
 		ID       graphql.String
 		FullPath graphql.String
@@ -458,6 +454,11 @@ func runFromGraphQL(g graphQLRun) types.Run {
 		for i, v := range g.TargetAddresses {
 			result.TargetAddresses[i] = string(v)
 		}
+	}
+
+	if g.StateVersion != nil {
+		svID := string(g.StateVersion.ID)
+		result.StateVersionID = &svID
 	}
 
 	return result

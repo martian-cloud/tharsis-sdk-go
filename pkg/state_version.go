@@ -16,6 +16,7 @@ import (
 
 // StateVersion implements functions related to a Tharsis state version.
 type StateVersion interface {
+	GetStateVersion(ctx context.Context, input *types.GetStateVersionInput) (*types.StateVersion, error)
 	CreateStateVersion(ctx context.Context, input *types.CreateStateVersionInput) (*types.StateVersion, error)
 	DownloadStateVersion(ctx context.Context, input *types.DownloadStateVersionInput, writer io.WriterAt) error
 }
@@ -27,6 +28,28 @@ type stateVersion struct {
 // NewStateVersion returns a StateVersion.
 func NewStateVersion(client *Client) StateVersion {
 	return &stateVersion{client: client}
+}
+
+// GetStateVersion returns a state version.
+func (s *stateVersion) GetStateVersion(ctx context.Context, input *types.GetStateVersionInput) (*types.StateVersion, error) {
+	var target struct {
+		Node *struct {
+			StateVersion GraphQLStateVersion `graphql:"...on StateVersion"`
+		} `graphql:"node(id: $id)"`
+	}
+
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+
+	err := s.client.graphqlClient.Query(ctx, true, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if target.Node == nil {
+		return nil, errors.NewError(types.ErrNotFound, "state version not found")
+	}
+
+	return stateVersionFromGraphQL(&target.Node.StateVersion)
 }
 
 // CreateStateVersion creates a State Version and returns its contents.
