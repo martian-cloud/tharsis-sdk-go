@@ -70,6 +70,7 @@ type Run struct {
 	ForceCanceledBy        *string
 	ModuleVersion          *string
 	ModuleDigest           *string
+	StateVersionID         *string
 	Plan                   *Plan
 	Apply                  *Apply
 	ForceCancelAvailableAt *time.Time
