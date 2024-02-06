@@ -593,5 +593,3 @@ func checkNamespaceVariable(t *testing.T, expectNamespaceVariable, actualNamespa
 		assert.Equal(t, (*types.NamespaceVariable)(nil), actualNamespaceVariable)
 	}
 }
-
-// The End.

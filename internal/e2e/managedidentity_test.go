@@ -68,11 +68,26 @@ func TestGetManagedIdentity(t *testing.T) {
 	// Verify data IAM role matches.
 	assert.Equal(t, getManagedIdentityIAMRole, d.Role)
 
-	// Get the managed identity.
+	// Get the managed identity by ID.
 	gotIdentity, err := client.ManagedIdentity.GetManagedIdentity(ctx, &types.GetManagedIdentityInput{
-		ID: createdIdentity.Metadata.ID,
+		ID: &createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
+	assert.NotNil(t, gotIdentity)
+
+	// Verify the returned contents are what they should be.
+	assert.Equal(t, toCreate.Name, gotIdentity.Name)
+	assert.Equal(t, toCreate.Type, gotIdentity.Type)
+	assert.Equal(t, toCreate.Description, gotIdentity.Description)
+	assert.Equal(t, toCreate.GroupPath+"/"+toCreate.Name, gotIdentity.ResourcePath)
+	// The Data field has a subject added to it, so it's not practical to verify it here.
+
+	// Get the managed identity by path.
+	gotIdentity, err = client.ManagedIdentity.GetManagedIdentity(ctx, &types.GetManagedIdentityInput{
+		Path: &createdIdentity.ResourcePath,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, gotIdentity)
 
 	// Verify the returned contents are what they should be.
 	assert.Equal(t, toCreate.Name, gotIdentity.Name)
@@ -147,7 +162,7 @@ func TestUpdateManagedIdentity(t *testing.T) {
 
 	// Get the access rules.
 	accessRules, err := client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
-		ID: createdIdentity.Metadata.ID,
+		ID: &createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(accessRules))
@@ -247,7 +262,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 
 	// Get/read the access rules.
 	accessRules, err := client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
-		ID: createdIdentity.Metadata.ID,
+		ID: &createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(accessRules))
@@ -278,7 +293,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 
 	// Retrieve the updated access rules to make sure they persisted.
 	accessRules, err = client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
-		ID: createdIdentity.Metadata.ID,
+		ID: &createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(accessRules))
@@ -296,7 +311,7 @@ func TestCRUDManagedIdentityAccessRule(t *testing.T) {
 
 	// Verify the access rule is gone.
 	accessRules, err = client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, &types.GetManagedIdentityInput{
-		ID: createdIdentity.Metadata.ID,
+		ID: &createdIdentity.Metadata.ID,
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(accessRules))
@@ -374,7 +389,7 @@ func TestCreateDeleteManagedIdentityAlias(t *testing.T) {
 	assert.Nil(t, err)
 
 	managedIdentity, err := client.ManagedIdentity.GetManagedIdentity(ctx, &types.GetManagedIdentityInput{
-		ID: createdAlias.Metadata.ID,
+		ID: &createdAlias.Metadata.ID,
 	})
 	assert.Nil(t, managedIdentity)
 	assert.NotNil(t, err) // Expect an error here.

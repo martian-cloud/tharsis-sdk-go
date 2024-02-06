@@ -50,5 +50,3 @@ func clearEnvVars() {
 	os.Unsetenv("THARSIS_SERVICE_ACCOUNT_PATH")
 	os.Unsetenv("THARSIS_SERVICE_ACCOUNT_TOKEN")
 }
-
-// The End.

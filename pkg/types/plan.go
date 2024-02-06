@@ -34,5 +34,3 @@ type UpdatePlanInput struct {
 	ResourceChanges      int        `json:"resourceChanges"`
 	ResourceDestructions int        `json:"resourceDestructions"`
 }
-
-// The End.

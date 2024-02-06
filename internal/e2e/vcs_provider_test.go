@@ -123,5 +123,3 @@ func TestVCSProviderCRUD(t *testing.T) {
 	assert.Equal(t, vcsProviderType, deletedVCSProvider.Type)
 	assert.Equal(t, autoCreateWebhooks, deletedVCSProvider.AutoCreateWebhooks)
 }
-
-// The End.

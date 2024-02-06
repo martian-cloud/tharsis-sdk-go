@@ -71,5 +71,3 @@ func applyFromGraphQL(a *graphQLApply) *types.Apply {
 	}
 	return result
 }
-
-// The End.

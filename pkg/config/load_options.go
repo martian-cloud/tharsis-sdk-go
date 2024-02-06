@@ -39,5 +39,3 @@ func WithEndpoint(endpoint string) LoadOptionsFunc {
 		return nil
 	}
 }
-
-// The End.

@@ -489,5 +489,3 @@ func timeFromGraphQL(s *graphql.String) *time.Time {
 	}
 	return &result
 }
-
-// The End.

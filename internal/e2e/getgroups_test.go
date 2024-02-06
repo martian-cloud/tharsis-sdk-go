@@ -125,5 +125,3 @@ func teardownFromGetGroups(ctx context.Context, client *tharsis.Client, t *testi
 		assert.Nil(t, err)
 	}
 }
-
-// The End.

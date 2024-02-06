@@ -250,5 +250,3 @@ func ExampleDeleteGroup(groupPath string) error {
 
 	return nil
 }
-
-// The End.

@@ -139,5 +139,3 @@ func teardownFromGetGroupsPaginator(ctx context.Context, client *tharsis.Client,
 		assert.Nil(t, err)
 	}
 }
-
-// The End.

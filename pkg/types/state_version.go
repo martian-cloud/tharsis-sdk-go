@@ -36,5 +36,3 @@ type StateVersionOutput struct {
 	Name      string
 	Sensitive bool
 }
-
-// The End.

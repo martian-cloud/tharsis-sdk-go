@@ -140,5 +140,3 @@ func teardownFromGetWorkspacesPaginator(ctx context.Context, client *tharsis.Cli
 		assert.Nil(t, err)
 	}
 }
-
-// The End.

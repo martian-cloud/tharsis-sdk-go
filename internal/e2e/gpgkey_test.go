@@ -108,5 +108,3 @@ lNBLBcAMCdEMd4qgt0YvzKzE3GbQoiAkBKJ2qoqun2MXM60324j01B/x/r3E+p15
 	assert.Equal(t, groupPath, deletedGPGKey.GroupPath)
 	assert.Equal(t, resourcePath, deletedGPGKey.ResourcePath)
 }
-
-// The End.

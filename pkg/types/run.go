@@ -131,5 +131,3 @@ type CancelRunInput struct {
 	Force   *bool   `json:"force"`
 	RunID   string  `json:"runId"`
 }
-
-// The End.

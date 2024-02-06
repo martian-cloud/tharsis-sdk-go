@@ -5,5 +5,3 @@ package auth
 type TokenProvider interface {
 	GetToken() (string, error)
 }
-
-// The End.

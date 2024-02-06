@@ -132,5 +132,3 @@ func gpgKeyFromGraphQL(ggk graphQLGPGKey) types.GPGKey {
 	}
 	return result
 }
-
-// The End.

@@ -127,5 +127,3 @@ func teardownFromGetWorkspaces(ctx context.Context, client *tharsis.Client, t *t
 		assert.Nil(t, err)
 	}
 }
-
-// The End.

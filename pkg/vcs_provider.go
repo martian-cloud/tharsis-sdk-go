@@ -166,5 +166,3 @@ func vcsProviderFromGraphQL(gvp graphQLVCSProvider) types.VCSProvider {
 	}
 	return result
 }
-
-// The End.

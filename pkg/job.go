@@ -413,5 +413,3 @@ func cancellationEventFromGraphQL(r graphQLCancellationEvent) *types.Cancellatio
 
 	return result
 }
-
-// The End.

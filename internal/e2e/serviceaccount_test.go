@@ -107,5 +107,3 @@ func TestCRUDServiceAccount(t *testing.T) {
 	})
 	assert.True(t, tharsis.IsNotFoundError(err))
 }
-
-// The End.

@@ -16,5 +16,3 @@ type PageInfo struct {
 	TotalCount  int
 	HasNextPage bool
 }
-
-// The End.

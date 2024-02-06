@@ -225,5 +225,3 @@ func variableFromGraphQL(v graphQLNamespaceVariable) types.NamespaceVariable {
 		NamespacePath: string(v.NamespacePath),
 	}
 }
-
-// The End.

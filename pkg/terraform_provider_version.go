@@ -153,5 +153,3 @@ func providerVersionFromGraphQL(p graphQLTerraformProviderVersion) types.Terrafo
 	}
 	return result
 }
-
-// The End.

@@ -35,5 +35,3 @@ func MetadataToGraphQL(m types.ResourceMetadata) (GraphQLMetadata, graphql.Strin
 		UpdatedAt: m.LastUpdatedTimestamp,
 	}, graphql.String(m.ID)
 }
-
-// The End.

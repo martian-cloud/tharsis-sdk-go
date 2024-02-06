@@ -8,5 +8,3 @@ const (
 	pageLimit20  = int32(20)
 	pageLimit100 = int32(100)
 )
-
-// The End.

@@ -191,5 +191,3 @@ func workspaceVCSProviderLinkFromGraphQL(g graphQLWorkspaceVCSProviderLink) type
 	}
 	return result
 }
-
-// The End.

@@ -395,5 +395,3 @@ func checkWorkspace(t *testing.T, expectWorkspace, actualWorkspace *types.Worksp
 		assert.Equal(t, (*types.Workspace)(nil), actualWorkspace)
 	}
 }
-
-// The End.

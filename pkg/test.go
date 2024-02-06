@@ -126,5 +126,3 @@ func checkError(t *testing.T, expectCode types.ErrorCode, actualError error) {
 		}
 	}
 }
-
-// The End.

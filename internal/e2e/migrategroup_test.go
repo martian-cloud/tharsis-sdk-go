@@ -125,5 +125,3 @@ func buildPath(parentPath *string, childName string) string {
 
 	return *parentPath + "/" + childName
 }
-
-// The End.

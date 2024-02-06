@@ -137,5 +137,3 @@ func providerPlatformFromGraphQL(p graphQLTerraformProviderPlatform) types.Terra
 	}
 	return result
 }
-
-// The End.

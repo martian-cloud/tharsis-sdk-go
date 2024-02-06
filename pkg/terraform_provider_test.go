@@ -529,5 +529,3 @@ func checkTerraformProvider(t *testing.T, expectTerraformProvider, actualTerrafo
 		assert.Equal(t, (*types.TerraformProvider)(nil), actualTerraformProvider)
 	}
 }
-
-// The End.

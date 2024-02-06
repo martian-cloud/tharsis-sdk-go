@@ -59,5 +59,3 @@ type CreateWorkspaceVCSProviderLinkResponse struct {
 	WebhookURL      *string                  `json:"webhookUrl"`
 	VCSProviderLink WorkspaceVCSProviderLink `json:"vcsProviderLink"`
 }
-
-// The End.

@@ -91,5 +91,3 @@ func TestCRUDNamespaceVariable(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), "not found"))
 	assert.Equal(t, (*types.NamespaceVariable)(nil), read3NamespaceVariable)
 }
-
-// The End.

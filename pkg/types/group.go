@@ -87,5 +87,3 @@ type MigrateGroupInput struct {
 	NewParentPath *string `json:"newParentPath"`
 	GroupPath     string  `json:"groupPath"`
 }
-
-// The End.

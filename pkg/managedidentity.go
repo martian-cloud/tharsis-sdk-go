@@ -89,25 +89,49 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 	input *types.GetManagedIdentityInput) (*types.ManagedIdentity, error) {
 
-	var target struct {
-		ManagedIdentity *GraphQLManagedIdentity `graphql:"managedIdentity(id: $id)"`
-	}
+	switch {
+	case input.ID != nil:
 
-	variables := map[string]interface{}{
-		"id": graphql.String(input.ID),
-	}
+		var targetID struct {
+			Node *struct {
+				ManagedIdentity GraphQLManagedIdentity `graphql:"...on ManagedIdentity"`
+			} `graphql:"node(id: $id)"`
+		}
 
-	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
-	if err != nil {
-		return nil, err
-	}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
 
-	if target.ManagedIdentity == nil {
-		return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", input.ID)
-	}
+		err := m.client.graphqlClient.Query(ctx, true, &targetID, variables)
+		if err != nil {
+			return nil, err
+		}
 
-	identity := identityFromGraphQL(*target.ManagedIdentity)
-	return &identity, nil
+		if targetID.Node == nil {
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", *input.ID)
+		}
+
+		identity := identityFromGraphQL(targetID.Node.ManagedIdentity)
+
+		return &identity, nil
+	case input.Path != nil:
+
+		var targetPath struct {
+			ManagedIdentity *GraphQLManagedIdentity `graphql:"managedIdentity(path: $path)"`
+		}
+		variables := map[string]interface{}{"path": graphql.String(*input.Path)}
+		err := m.client.graphqlClient.Query(ctx, true, &targetPath, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		if targetPath.ManagedIdentity == nil {
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with path %s not found", *input.Path)
+		}
+
+		identity := identityFromGraphQL(*targetPath.ManagedIdentity)
+		return &identity, nil
+	default:
+		return nil, errors.NewError(types.ErrNotFound, "GetManagedIdentity requires either ID or path to be set")
+	}
 }
 
 // UpdateManagedIdentity updates a managed identity.
@@ -259,26 +283,50 @@ func (m *managedIdentity) UnassignManagedIdentityFromWorkspace(ctx context.Conte
 // GetManagedIdentityAccessRules returns the access rules that are tied to the specified managed identity.
 func (m *managedIdentity) GetManagedIdentityAccessRules(ctx context.Context,
 	input *types.GetManagedIdentityInput) ([]types.ManagedIdentityAccessRule, error) {
-	var target struct {
-		ManagedIdentity *struct {
-			AccessRules []graphQLManagedIdentityAccessRule `graphql:"accessRules"`
-		} `graphql:"managedIdentity(id: $id)"`
-	}
 
-	variables := map[string]interface{}{
-		"id": graphql.String(input.ID),
-	}
+	switch {
+	case input.ID != nil:
 
-	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
-	if err != nil {
-		return nil, err
-	}
+		var targetID struct {
+			Node *struct {
+				ManagedIdentity struct {
+					AccessRules []graphQLManagedIdentityAccessRule `graphql:"accessRules"`
+				} `graphql:"...on ManagedIdentity"`
+			} `graphql:"node(id: $id)"`
+		}
 
-	if target.ManagedIdentity == nil {
-		return nil, nil
-	}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
 
-	return accessRulesFromGraphQL(target.ManagedIdentity.AccessRules), nil
+		err := m.client.graphqlClient.Query(ctx, true, &targetID, variables)
+		if err != nil {
+			return nil, err
+		}
+		if targetID.Node == nil {
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", *input.ID)
+		}
+
+		return accessRulesFromGraphQL(targetID.Node.ManagedIdentity.AccessRules), nil
+	case input.Path != nil:
+
+		var targetPath struct {
+			ManagedIdentity *struct {
+				AccessRules []graphQLManagedIdentityAccessRule `graphql:"accessRules"`
+			} `graphql:"managedIdentity(path: $path)"`
+		}
+		variables := map[string]interface{}{"path": graphql.String(*input.Path)}
+		err := m.client.graphqlClient.Query(ctx, true, &targetPath, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		if targetPath.ManagedIdentity == nil {
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with path %s not found", *input.Path)
+		}
+
+		return accessRulesFromGraphQL(targetPath.ManagedIdentity.AccessRules), nil
+	default:
+		return nil, errors.NewError(types.ErrNotFound, "GetManagedIdentityAccessRules requires either ID or path to be set")
+	}
 }
 
 func (m *managedIdentity) CreateManagedIdentityAccessRule(ctx context.Context,
@@ -568,5 +616,3 @@ func accessRuleFromGraphQL(g graphQLManagedIdentityAccessRule) types.ManagedIden
 		ModuleAttestationPolicies: attestationPolicies,
 	}
 }
-
-// The End.

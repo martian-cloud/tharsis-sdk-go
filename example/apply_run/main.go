@@ -310,5 +310,3 @@ func ExampleApplyModule(workspacePath, moduleSource, moduleVersion string) error
 
 	return nil
 }
-
-// The End.

@@ -274,5 +274,3 @@ func modifyTrustPolicies(input []types.OIDCTrustPolicy) []internal.ServiceAccoun
 
 	return result
 }
-
-// The End.

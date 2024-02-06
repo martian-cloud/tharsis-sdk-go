@@ -93,5 +93,3 @@ func Load(optFns ...func(*LoadOptions) error) (*Config, error) {
 
 	return &c, nil
 }
-
-// The End.

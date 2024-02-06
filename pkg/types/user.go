@@ -9,5 +9,3 @@ type User struct {
 	Admin          bool
 	Active         bool
 }
-
-// The End.

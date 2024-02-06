@@ -120,5 +120,3 @@ func (g *graphqlClientWrapper) getClient(withAuth bool) (*graphql.Client, error)
 
 	return result, nil
 }
-
-// The End.
