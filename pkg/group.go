@@ -373,5 +373,3 @@ func groupFromGraphQL(g graphQLGroup) types.Group {
 	}
 	return result
 }
-
-// The End.

@@ -410,5 +410,3 @@ func checkGPGKey(t *testing.T, expectGPGKey, actualGPGKey *types.GPGKey) {
 		assert.Equal(t, (*types.GPGKey)(nil), actualGPGKey)
 	}
 }
-
-// The End.

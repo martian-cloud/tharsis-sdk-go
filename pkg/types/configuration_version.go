@@ -30,5 +30,3 @@ type UploadConfigurationVersionInput struct {
 	ConfigurationVersionID string `json:"configurationVersionId"`
 	DirectoryPath          string `json:"directoryPath"`
 }
-
-// The End.

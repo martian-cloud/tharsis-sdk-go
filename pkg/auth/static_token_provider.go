@@ -27,5 +27,3 @@ func NewStaticTokenProvider(token string) (TokenProvider, error) {
 func (p *staticTokenProvider) GetToken() (string, error) {
 	return p.token, nil
 }
-
-// The End.

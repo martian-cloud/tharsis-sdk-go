@@ -14,5 +14,3 @@ import (
 type PaginatedResponse interface {
 	GetPageInfo() *types.PageInfo
 }
-
-// The End.

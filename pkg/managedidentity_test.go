@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/hasura/go-graphql-client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,9 +23,13 @@ func TestGetManagedIdentity(t *testing.T) {
 
 	managedIdentityID := "managed-identity-id-1"
 	managedIdentityVersion := "managed-identity-version-1"
+	managedIdentityPath := "gp01/nm01"
 
-	// Field name taken from GraphiQL.
-	type graphqlManagedIdentityPayload struct {
+	type graphqlManagedIdentityPayloadByID struct {
+		Node *GraphQLManagedIdentity `json:"node"`
+	}
+
+	type graphqlManagedIdentityPayloadByPath struct {
 		ManagedIdentity *GraphQLManagedIdentity `json:"managedIdentity"`
 	}
 
@@ -33,6 +38,7 @@ func TestGetManagedIdentity(t *testing.T) {
 		responsePayload       interface{}
 		expectManagedIdentity *types.ManagedIdentity
 		name                  string
+		input                 *types.GetManagedIdentityInput
 		expectErrorCode       types.ErrorCode
 	}
 
@@ -41,8 +47,51 @@ func TestGetManagedIdentity(t *testing.T) {
 		// positive
 		{
 			name: "Successfully return managed identity by ID",
+			input: &types.GetManagedIdentityInput{
+				ID: &managedIdentityID,
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlManagedIdentityPayload{
+				Data: graphqlManagedIdentityPayloadByID{
+					Node: &GraphQLManagedIdentity{
+						ID: graphql.String(managedIdentityID),
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   graphql.String(managedIdentityVersion),
+						},
+						Type:         "t01",
+						GroupPath:    "gp01",
+						ResourcePath: "rp01",
+						Name:         "nm01",
+						Description:  "de01",
+						Data:         "da01",
+						CreatedBy:    "cr01",
+					},
+				},
+			},
+			expectManagedIdentity: &types.ManagedIdentity{
+				Metadata: types.ResourceMetadata{
+					ID:                   managedIdentityID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              managedIdentityVersion,
+				},
+				Type:         "t01",
+				GroupPath:    "gp01",
+				ResourcePath: "rp01",
+				Name:         "nm01",
+				Description:  "de01",
+				Data:         "da01",
+				CreatedBy:    "cr01",
+			},
+		},
+		{
+			name: "Successfully return managed identity by resource path",
+			input: &types.GetManagedIdentityInput{
+				Path: &managedIdentityPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlManagedIdentityPayloadByPath{
 					ManagedIdentity: &GraphQLManagedIdentity{
 						ID: graphql.String(managedIdentityID),
 						Metadata: internal.GraphQLMetadata{
@@ -80,8 +129,11 @@ func TestGetManagedIdentity(t *testing.T) {
 		// query returns error as if the ID is invalid
 		{
 			name: "query returns error as if the ID is invalid",
+			input: &types.GetManagedIdentityInput{
+				ID: ptr.String("invalid-ID"),
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlManagedIdentityPayload{},
+				Data: graphqlManagedIdentityPayloadByID{},
 				Errors: []fakeGraphqlResponseError{
 					{
 						Message: "ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02)",
@@ -100,8 +152,11 @@ func TestGetManagedIdentity(t *testing.T) {
 		// query returns nil managed identity, as if the specified managed identity does not exist.
 		{
 			name: "query returns nil managed identity, as if the specified managed identity does not exist",
+			input: &types.GetManagedIdentityInput{
+				ID: ptr.String("not-found-ID"),
+			},
 			responsePayload: fakeGraphqlResponsePayload{
-				Data: graphqlManagedIdentityPayload{},
+				Data: graphqlManagedIdentityPayloadByID{},
 			},
 			expectErrorCode: types.ErrNotFound,
 		},
@@ -126,13 +181,187 @@ func TestGetManagedIdentity(t *testing.T) {
 			client.ManagedIdentity = NewManagedIdentity(client)
 
 			// Call the method being tested.
-			actualIdentity, actualError := client.ManagedIdentity.GetManagedIdentity(
-				ctx,
-				&types.GetManagedIdentityInput{ID: managedIdentityID},
-			)
+			actualIdentity, actualError := client.ManagedIdentity.GetManagedIdentity(ctx, test.input)
 
 			checkError(t, test.expectErrorCode, actualError)
 			checkIdentity(t, test.expectManagedIdentity, actualIdentity)
+		})
+	}
+}
+
+func TestGetManagedIdentityAccessRules(t *testing.T) {
+	managedIdentityID := "managed-identity-id-1"
+	managedIdentityPath := "gp01/nm01"
+
+	// graphqlManagedIdentityWithAccessRules has access rules but no other fields.
+	// The regular GraphQLManagedIdentity does not have access rules, because it would be a circular reference.
+	type graphqlManagedIdentityWithAccessRules struct {
+		AccessRules []graphQLManagedIdentityAccessRule `json:"accessRules"`
+	}
+
+	type graphqlManagedIdentityPayloadByID struct {
+		Node *graphqlManagedIdentityWithAccessRules `json:"node"`
+	}
+
+	type graphqlManagedIdentityPayloadByPath struct {
+		ManagedIdentity *struct {
+			AccessRules []graphQLManagedIdentityAccessRule `json:"accessRules"`
+		} `json:"managedIdentity"`
+	}
+
+	// test cases
+	type testCase struct {
+		responsePayload interface{}
+		input           *types.GetManagedIdentityInput
+		name            string
+		expectErrorCode types.ErrorCode
+		expectRules     []types.ManagedIdentityAccessRule
+	}
+
+	testCases := []testCase{
+		// positive
+		{
+			name: "Successfully return managed identity rules by managed identity ID",
+			input: &types.GetManagedIdentityInput{
+				ID: &managedIdentityID,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: &graphqlManagedIdentityPayloadByID{
+					Node: &graphqlManagedIdentityWithAccessRules{
+						AccessRules: []graphQLManagedIdentityAccessRule{
+							{
+								ID: "ar01",
+							},
+							{
+								ID: "ar02",
+							},
+						},
+					},
+				},
+			},
+			expectRules: []types.ManagedIdentityAccessRule{
+				{
+					Metadata: types.ResourceMetadata{
+						ID: "ar01",
+					},
+					AllowedUsers:              []types.User{},
+					AllowedServiceAccounts:    []types.ServiceAccount{},
+					AllowedTeams:              []types.Team{},
+					ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				},
+				{
+					Metadata: types.ResourceMetadata{
+						ID: "ar02",
+					},
+					AllowedUsers:              []types.User{},
+					AllowedServiceAccounts:    []types.ServiceAccount{},
+					AllowedTeams:              []types.Team{},
+					ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				},
+			},
+		},
+		{
+			name: "Successfully return managed identity access rules by managed identity resource path",
+			input: &types.GetManagedIdentityInput{
+				Path: &managedIdentityPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlManagedIdentityPayloadByPath{
+					ManagedIdentity: &struct {
+						AccessRules []graphQLManagedIdentityAccessRule `json:"accessRules"`
+					}{
+						AccessRules: []graphQLManagedIdentityAccessRule{
+							{
+								ID: "ar01",
+							},
+							{
+								ID: "ar02",
+							},
+						},
+					},
+				},
+			},
+			expectRules: []types.ManagedIdentityAccessRule{
+				{
+					Metadata: types.ResourceMetadata{
+						ID: "ar01",
+					},
+					AllowedUsers:              []types.User{},
+					AllowedServiceAccounts:    []types.ServiceAccount{},
+					AllowedTeams:              []types.Team{},
+					ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				},
+				{
+					Metadata: types.ResourceMetadata{
+						ID: "ar02",
+					},
+					AllowedUsers:              []types.User{},
+					AllowedServiceAccounts:    []types.ServiceAccount{},
+					AllowedTeams:              []types.Team{},
+					ModuleAttestationPolicies: []types.ManagedIdentityAccessRuleModuleAttestationPolicy{},
+				},
+			},
+		},
+
+		// query returns error as if the ID is invalid
+		{
+			name: "query returns error as if the ID is invalid",
+			input: &types.GetManagedIdentityInput{
+				ID: ptr.String("invalid-ID"),
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlManagedIdentityPayloadByID{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "ERROR: invalid input syntax for type uuid: \"invalid\n\" (SQLSTATE 22P02)",
+						Path: []string{
+							"managedIdentity",
+						},
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "INTERNAL_SERVER_ERROR",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrInternal,
+		},
+
+		// query returns nil managed identity, as if the specified managed identity does not exist.
+		{
+			name: "query returns nil managed identity, as if the specified managed identity does not exist",
+			input: &types.GetManagedIdentityInput{
+				ID: ptr.String("not-found-ID"),
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlManagedIdentityPayloadByID{},
+			},
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.ManagedIdentity = NewManagedIdentity(client)
+
+			// Call the method being tested.
+			actualRules, actualError := client.ManagedIdentity.GetManagedIdentityAccessRules(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			assert.ElementsMatch(t, test.expectRules, actualRules)
 		})
 	}
 }
@@ -912,5 +1141,3 @@ func checkAccessRule(t *testing.T, expectRule, actualRule *types.ManagedIdentity
 		assert.Equal(t, (*types.ManagedIdentityAccessRule)(nil), actualRule)
 	}
 }
-
-// The End.

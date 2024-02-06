@@ -60,5 +60,3 @@ type SetNamespaceVariablesInput struct {
 	Category      VariableCategory                `json:"category"`
 	Variables     []SetNamespaceVariablesVariable `json:"variables"`
 }
-
-// The End.

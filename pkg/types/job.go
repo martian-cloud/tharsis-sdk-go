@@ -71,5 +71,3 @@ type JobLogsEvent struct {
 	Error error
 	Logs  string
 }
-
-// The End.

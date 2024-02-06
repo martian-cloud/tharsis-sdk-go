@@ -587,5 +587,3 @@ func checkVCSProvider(t *testing.T, expectVCSProvider, actualVCSProvider *types.
 		assert.Equal(t, (*types.VCSProvider)(nil), actualVCSProvider)
 	}
 }
-
-// The End.

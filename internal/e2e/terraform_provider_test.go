@@ -103,5 +103,3 @@ func TestTerraformProviderCRUD(t *testing.T) {
 	assert.Equal(t, tfpRepositoryURL, deletedTerraformProvider.RepositoryURL)
 	assert.Equal(t, tfpPrivate, deletedTerraformProvider.Private)
 }
-
-// The End.

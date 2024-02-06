@@ -59,5 +59,3 @@ type CreateVCSProviderResponse struct {
 	VCSProvider           *VCSProvider
 	OAuthAuthorizationURL string
 }
-
-// The End.

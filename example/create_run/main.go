@@ -139,5 +139,3 @@ func ExampleCreateRun(workspacePath, directoryPath string) error {
 
 	return nil
 }
-
-// The End.

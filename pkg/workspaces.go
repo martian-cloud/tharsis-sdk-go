@@ -421,5 +421,3 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 		PreventDestroyPlan:  bool(g.PreventDestroyPlan),
 	}, nil
 }
-
-// The End.

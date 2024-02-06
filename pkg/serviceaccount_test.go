@@ -836,5 +836,3 @@ func checkServiceAccount(t *testing.T, expectServiceAccount, actualServiceAccoun
 		assert.Equal(t, (*types.ServiceAccount)(nil), actualServiceAccount)
 	}
 }
-
-// The End.

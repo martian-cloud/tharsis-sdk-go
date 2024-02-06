@@ -62,5 +62,3 @@ func TestUpdateGroup(t *testing.T) {
 	assert.Nil(t, err)
 
 }
-
-// The End.

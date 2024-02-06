@@ -28,7 +28,7 @@ type GetWorkspacesInput struct {
 	Filter *WorkspaceFilter
 }
 
-// GetWorkspacesOutput is the output when listing groups
+// GetWorkspacesOutput is the output when listing workspaces
 type GetWorkspacesOutput struct {
 	PageInfo   *PageInfo
 	Workspaces []Workspace
@@ -98,5 +98,3 @@ type DeleteWorkspaceInput struct {
 	WorkspacePath *string `json:"workspacePath"`
 	ID            *string `json:"id"`
 }
-
-// The End.

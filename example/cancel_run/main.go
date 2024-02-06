@@ -46,5 +46,3 @@ func ExampleCancelRun(runID string, force bool) error {
 
 	return nil
 }
-
-// The End.

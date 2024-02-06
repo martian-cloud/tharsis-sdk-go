@@ -74,5 +74,3 @@ func ExampleCreateUploadConfigurationVersion(workspacePath, directoryPath string
 
 	return nil
 }
-
-// The End.

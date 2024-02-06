@@ -14,5 +14,3 @@ type ResourceMetadata struct {
 	ID                   string     `json:"id"`
 	Version              string     `json:"version"`
 }
-
-// The End.

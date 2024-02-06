@@ -27,5 +27,3 @@ type UpdateApplyInput struct {
 	ID     string      `json:"id"`
 	Status ApplyStatus `json:"status"`
 }
-
-// The End.

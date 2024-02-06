@@ -22,7 +22,8 @@ const (
 // GetManagedIdentityInput is the input for retrieving
 // a managed identity and/or its access rules.
 type GetManagedIdentityInput struct {
-	ID string `json:"id"`
+	ID   *string `json:"id"`
+	Path *string `json:"path"`
 }
 
 // ManagedIdentityAccessRuleModuleAttestationPolicy is used in access rules to verify that a
@@ -151,5 +152,3 @@ type DeleteManagedIdentityAliasInput struct {
 	ID    string `json:"id"`
 	Force bool   `json:"force"`
 }
-
-// The End.

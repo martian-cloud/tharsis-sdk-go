@@ -27,5 +27,3 @@ type CreateGPGKeyInput struct {
 type DeleteGPGKeyInput struct {
 	ID string `json:"id"`
 }
-
-// The End.

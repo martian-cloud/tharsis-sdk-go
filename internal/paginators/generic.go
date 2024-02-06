@@ -65,5 +65,3 @@ func (p *Paginator) Next(ctx context.Context) (interface{}, error) {
 
 	return response, nil
 }
-
-// The End.

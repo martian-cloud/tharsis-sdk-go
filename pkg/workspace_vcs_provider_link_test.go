@@ -669,5 +669,3 @@ func graphqlStringSliceFromStrings(arg []string) []graphql.String {
 	}
 	return result
 }
-
-// The End.

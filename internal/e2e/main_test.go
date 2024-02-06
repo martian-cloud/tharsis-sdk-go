@@ -99,5 +99,3 @@ func teardown(ctx context.Context, client *tharsis.Client) error {
 	log.Println("Finished tearing down from Tharsis SDK integration tests.")
 	return nil
 }
-
-// The End.

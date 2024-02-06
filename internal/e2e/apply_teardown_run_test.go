@@ -80,5 +80,3 @@ func teardownFromApplyTeardownRun(ctx context.Context, client *tharsis.Client,
 
 	return nil
 }
-
-// The End.

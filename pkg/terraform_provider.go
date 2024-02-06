@@ -155,5 +155,3 @@ func providerFromGraphQL(p graphQLTerraformProvider) types.TerraformProvider {
 	}
 	return result
 }
-
-// The End.

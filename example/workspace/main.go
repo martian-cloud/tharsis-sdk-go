@@ -246,5 +246,3 @@ func ExampleDeleteWorkspace(workspacePath string) error {
 
 	return nil
 }
-
-// The End.

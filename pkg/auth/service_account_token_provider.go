@@ -227,5 +227,3 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	return nil
 }
-
-// The End.

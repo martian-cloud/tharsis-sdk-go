@@ -543,5 +543,3 @@ func checkGroup(t *testing.T, expectGroup, actualGroup *types.Group) {
 		assert.Equal(t, (*types.Group)(nil), actualGroup)
 	}
 }
-
-// The End.

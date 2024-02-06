@@ -7,5 +7,3 @@ type Team struct {
 	SCIMExternalID string
 	Metadata       ResourceMetadata
 }
-
-// The End.
