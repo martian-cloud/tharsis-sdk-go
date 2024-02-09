@@ -84,6 +84,7 @@ type Run struct {
 	IsDestroy              bool
 	ForceCanceled          bool
 	Refresh                bool
+	Speculative            bool
 }
 
 // RunVariable holds information about a run variable
@@ -112,6 +113,7 @@ type CreateRunInput struct {
 	ModuleSource           *string       `json:"moduleSource"`
 	ModuleVersion          *string       `json:"moduleVersion"`
 	TerraformVersion       *string       `json:"terraformVersion"`
+	Speculative            *bool         `json:"speculative"`
 	WorkspacePath          string        `json:"workspacePath"`
 	Variables              []RunVariable `json:"variables"`
 	TargetAddresses        []string      `json:"targetAddresses"`

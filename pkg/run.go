@@ -411,6 +411,7 @@ type graphQLRun struct {
 	IsDestroy        graphql.Boolean
 	ForceCanceled    graphql.Boolean
 	Refresh          graphql.Boolean
+	Speculative      graphql.Boolean
 }
 
 type graphQLRunVariable struct {
@@ -438,6 +439,7 @@ func runFromGraphQL(g graphQLRun) types.Run {
 		ForceCanceled:          bool(g.ForceCanceled),
 		TerraformVersion:       string(g.TerraformVersion),
 		Refresh:                bool(g.Refresh),
+		Speculative:            bool(g.Speculative),
 	}
 	result.Plan = planFromGraphQL(g.Plan)
 	if a := g.Apply; a != nil {
