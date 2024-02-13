@@ -503,6 +503,7 @@ type graphQLManagedIdentityAccessRule struct {
 	AllowedUsers              []graphQLUser
 	AllowedServiceAccounts    []graphQLServiceAccount
 	AllowedTeams              []graphQLTeam
+	VerifyStateLineage        bool
 }
 
 // GraphQLManagedIdentity represents the insides of the query structure,
@@ -533,7 +534,7 @@ func sliceManagedIdentitiesFromGraphQL(inputs []GraphQLManagedIdentity) []types.
 	return result
 }
 
-// accessRulesFromGraphQL converts a managed identity access rule to external access rule.
+// accessRulesFromGraphQL converts a slice of managed identity access rules to a slice of external access rules.
 func accessRulesFromGraphQL(g []graphQLManagedIdentityAccessRule) []types.ManagedIdentityAccessRule {
 	accessRules := []types.ManagedIdentityAccessRule{}
 	for _, accessRule := range g {
@@ -614,5 +615,6 @@ func accessRuleFromGraphQL(g graphQLManagedIdentityAccessRule) types.ManagedIden
 		ManagedIdentityID:         string(g.ManagedIdentity.ID),
 		Type:                      types.ManagedIdentityAccessRuleType(g.Type),
 		ModuleAttestationPolicies: attestationPolicies,
+		VerifyStateLineage:        g.VerifyStateLineage,
 	}
 }

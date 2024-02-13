@@ -40,6 +40,7 @@ type ManagedIdentityAccessRuleInput struct {
 	Type                      ManagedIdentityAccessRuleType                      `json:"type"`
 	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
 	RunStage                  JobType                                            `json:"runStage"`
+	VerifyStateLineage        *bool                                              `json:"verifyStateLineage"`
 	AllowedUsers              []string                                           `json:"allowedUsers"`
 	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
 	AllowedTeams              []string                                           `json:"allowedTeams"`
@@ -106,6 +107,7 @@ type ManagedIdentityAccessRule struct {
 	AllowedTeams              []Team
 	Type                      ManagedIdentityAccessRuleType
 	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy
+	VerifyStateLineage        bool
 }
 
 // GetManagedIdentityAccessRuleInput is the input for retrieving a managed identity access rule.
@@ -119,6 +121,7 @@ type CreateManagedIdentityAccessRuleInput struct {
 	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
 	ManagedIdentityID         string                                             `json:"managedIdentityId"`
 	RunStage                  JobType                                            `json:"runStage"`
+	VerifyStateLineage        *bool                                              `json:"verifyStateLineage"`
 	AllowedUsers              []string                                           `json:"allowedUsers"`
 	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
 	AllowedTeams              []string                                           `json:"allowedTeams"`
@@ -129,6 +132,7 @@ type UpdateManagedIdentityAccessRuleInput struct {
 	ID                        string                                             `json:"id"`
 	ModuleAttestationPolicies []ManagedIdentityAccessRuleModuleAttestationPolicy `json:"moduleAttestationPolicies"`
 	RunStage                  JobType                                            `json:"runStage"`
+	VerifyStateLineage        *bool                                              `json:"verifyStateLineage"`
 	AllowedUsers              []string                                           `json:"allowedUsers"`
 	AllowedServiceAccounts    []string                                           `json:"allowedServiceAccounts"`
 	AllowedTeams              []string                                           `json:"allowedTeams"`
