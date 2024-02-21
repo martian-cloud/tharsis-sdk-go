@@ -23,6 +23,13 @@ type JobLogsSubscriptionInput struct {
 	JobID           string `json:"jobId"`
 }
 
+// GetJobLogsInput is the input to query a chunk of job logs
+type GetJobLogsInput struct {
+	Limit *int32
+	JobID string
+	Start int32
+}
+
 // JobCancellationEventSubscriptionInput is the input for Job cancellation event subscription
 type JobCancellationEventSubscriptionInput struct {
 	JobID string `json:"jobId"`
@@ -70,4 +77,10 @@ type ClaimJobResponse struct {
 type JobLogsEvent struct {
 	Error error
 	Logs  string
+}
+
+// JobLogs is the output for getting job logs after a job has finished.
+type JobLogs struct {
+	Logs string
+	Size int32
 }

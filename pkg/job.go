@@ -28,19 +28,6 @@ type jobLogStreamEvent struct {
 	Size      int32 `json:"size"`
 }
 
-// getJobLogsInput is the input to query a chunk of job logs
-type getJobLogsInput struct {
-	limit       *int32
-	id          string
-	startOffset int32
-}
-
-// getJobLogsOutput is the output for retrieving job logs.
-type getJobLogsOutput struct {
-	logs    string
-	logSize int32
-}
-
 // Job implements functions related to Tharsis jobs.
 type Job interface {
 	GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job, error)
@@ -48,6 +35,7 @@ type Job interface {
 	SubscribeToJobCancellationEvent(ctx context.Context, input *types.JobCancellationEventSubscriptionInput) (<-chan *types.CancellationEvent, error)
 	SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) error
 	SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscriptionInput) (<-chan *types.JobLogsEvent, error)
+	GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (*types.JobLogs, error)
 }
 
 type job struct {
@@ -226,10 +214,10 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 			}
 
 			// Retrieve the plan logs.
-			output, err := j.getJobLogs(ctx, &getJobLogsInput{
-				id:          input.JobID,
-				startOffset: currentOffset,
-				limit:       input.Limit,
+			output, err := j.GetJobLogs(ctx, &types.GetJobLogsInput{
+				JobID: input.JobID,
+				Start: currentOffset,
+				Limit: input.Limit,
 			})
 			if err != nil {
 				logChan <- toJobLogsEvent("", err)
@@ -237,15 +225,15 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 			}
 
 			// Update the offset to the new log size.
-			currentOffset += int32(len(output.logs))
+			currentOffset += int32(len(output.Logs))
 
-			if len(output.logs) > 0 {
+			if len(output.Logs) > 0 {
 				// Send the logs on the channel.
-				logChan <- toJobLogsEvent(output.logs, nil)
+				logChan <- toJobLogsEvent(output.Logs, nil)
 			}
 
 			if runCompleted {
-				if currentOffset < output.logSize {
+				if currentOffset < output.Size {
 					// Since all the logs haven't been sent, keep looping.
 					continue
 				}
@@ -317,16 +305,16 @@ func (j *job) subscribeToJobLogStreamEvents(_ context.Context,
 	return eventChannel, nil
 }
 
-func (j *job) getJobLogs(ctx context.Context, input *getJobLogsInput) (*getJobLogsOutput, error) {
+func (j *job) GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (*types.JobLogs, error) {
 	// Use default value for log limit if nil.
 	limit := defaultLogLimit
-	if input.limit != nil {
-		limit = *input.limit
+	if input.Limit != nil {
+		limit = *input.Limit
 	}
 
 	variables := map[string]interface{}{
-		"id":          graphql.String(input.id),
-		"startOffset": graphql.Int(input.startOffset),
+		"id":          graphql.String(input.JobID),
+		"startOffset": graphql.Int(input.Start),
 		"limit":       graphql.Int(limit),
 	}
 
@@ -343,12 +331,12 @@ func (j *job) getJobLogs(ctx context.Context, input *getJobLogsInput) (*getJobLo
 	}
 
 	if target.Job == nil {
-		return nil, errors.NewError(types.ErrNotFound, "Job with id %s not found", input.id)
+		return nil, errors.NewError(types.ErrNotFound, "Job with id %s not found", input.JobID)
 	}
 
-	return &getJobLogsOutput{
-		logs:    string(target.Job.Logs),
-		logSize: int32(target.Job.LogSize),
+	return &types.JobLogs{
+		Logs: string(target.Job.Logs),
+		Size: int32(target.Job.LogSize),
 	}, nil
 }
 
