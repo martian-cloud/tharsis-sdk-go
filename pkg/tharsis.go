@@ -3,18 +3,14 @@ package tharsis
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
 	"time"
 
-	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
-	svchost "github.com/hashicorp/terraform-svchost"
-	"github.com/hashicorp/terraform-svchost/disco"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 )
 
@@ -30,7 +26,7 @@ type Client struct {
 	httpClient                      *http.Client
 	graphqlClient                   graphqlClient
 	graphqlSubscriptionClient       subscriptionClient
-	services                        *disco.Host
+	services                        *internal.TFEServiceDiscovery
 	ConfigurationVersion            ConfigurationVersion
 	GPGKey                          GPGKey
 	Group                           Group
@@ -87,28 +83,11 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to initialize graphql subscription client %w", err)
 	}
 
-	tharsisHost, err := svchost.ForComparison(graphQLEndpoint.Host)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse host for TFE discovery: %w", err)
-	}
-
-	// Disable noise from disco package
-	log.Default().SetOutput(io.Discard)
-	discovery := disco.New()
-	// The `disco` package doesn't support http and forces 'https',
-	// so we can workaround this if the Tharsis API is only http by
-	// setting the DialTLSContext to the DialContext
-	if graphQLEndpoint.Scheme == "http" {
-		tp := cleanhttp.DefaultTransport()
-		tp.DialTLSContext = tp.DialContext
-		discovery.Transport = tp
-	}
-	services, err := discovery.Discover(tharsisHost)
+	// Get and process the TFE discovery document.
+	services, err := internal.DiscoverTFEServices(httpClient, graphQLEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to discover TFE services: %w", err)
 	}
-	// Restore default logger
-	log.Default().SetOutput(os.Stderr)
 
 	client := &Client{
 		cfg:                       cfg,
