@@ -88,7 +88,7 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 func (s *stateVersion) DownloadStateVersion(ctx context.Context,
 	input *types.DownloadStateVersionInput, writer io.WriterAt,
 ) error {
-	tfeV2Endpoint, err := s.client.services.ServiceURL("tfe.v2")
+	tfeV2Endpoint, err := s.client.services.GetServiceURL("tfe.v2")
 	if err != nil {
 		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
 	}

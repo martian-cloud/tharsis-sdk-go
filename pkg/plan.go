@@ -57,7 +57,7 @@ func (p *plan) UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*t
 
 // DownloadPlanCache downloads a plan cache and returns the response.
 func (p *plan) DownloadPlanCache(ctx context.Context, id string, writer io.WriterAt) error {
-	tfeV2Endpoint, err := p.client.services.ServiceURL("tfe.v2")
+	tfeV2Endpoint, err := p.client.services.GetServiceURL("tfe.v2")
 	if err != nil {
 		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
 	}

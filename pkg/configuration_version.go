@@ -126,7 +126,7 @@ func configurationVersionFromGraphQL(g graphQLConfigurationVersion) types.Config
 func (cv configurationVersion) DownloadConfigurationVersion(ctx context.Context,
 	input *types.GetConfigurationVersionInput, writer io.WriterAt,
 ) error {
-	tfeV2Endpoint, err := cv.client.services.ServiceURL("tfe.v2")
+	tfeV2Endpoint, err := cv.client.services.GetServiceURL("tfe.v2")
 	if err != nil {
 		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
 	}
@@ -214,7 +214,7 @@ func (cv *configurationVersion) uploadTarfile(ctx context.Context,
 		return err
 	}
 
-	tfeV2Endpoint, err := cv.client.services.ServiceURL("tfe.v2")
+	tfeV2Endpoint, err := cv.client.services.GetServiceURL("tfe.v2")
 	if err != nil {
 		return fmt.Errorf("failed to discover tfe.v2 endpoint: %w", err)
 	}
