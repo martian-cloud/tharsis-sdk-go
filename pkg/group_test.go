@@ -182,8 +182,7 @@ func TestUpdateGroup(t *testing.T) {
 	groupID := "group-id-1"
 	groupVersion := "group-version-1"
 	groupName := "group-name-1"
-	groupGroupPath := "parent-group-1"
-	groupFullPath := groupGroupPath + "/" + groupName
+	groupFullPath := "parent-group-1/" + groupName
 	groupDescription := "group-description-1"
 
 	type graphqlUpdateGroupMutation struct {
@@ -361,8 +360,7 @@ func TestMigrateGroup(t *testing.T) {
 	groupID := "group-id-1"
 	groupVersion := "group-version-1"
 	groupName := "group-name-1"
-	groupGroupPath := "parent-group-1"
-	groupFullPath := groupGroupPath + "/" + groupName
+	groupFullPath := "parent-group-1/" + groupName
 
 	parentPath1 := "some-top-level/parent-1-name"
 
