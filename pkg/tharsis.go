@@ -52,6 +52,8 @@ type Client struct {
 	TerraformProviderVersionMirror  TerraformProviderVersionMirror
 	TerraformProviderPlatformMirror TerraformProviderPlatformMirror
 	RunnerSession                   RunnerSession
+	Team                            Team
+	NamespaceMembership             NamespaceMembership
 }
 
 // NewClient returns a TharsisClient.
@@ -123,6 +125,8 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.TerraformProviderVersionMirror = NewTerraformProviderVersionMirror(client)
 	client.TerraformProviderPlatformMirror = NewTerraformProviderPlatformMirror(client)
 	client.RunnerSession = NewRunnerSession(client)
+	client.Team = NewTeam(client)
+	client.NamespaceMembership = NewNamespaceMembership(client)
 
 	return client, nil
 }
