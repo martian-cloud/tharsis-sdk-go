@@ -12,6 +12,7 @@ import (
 
 // NamespaceMembership implements functions related to Tharsis groups.
 type NamespaceMembership interface {
+	GetMemberships(ctx context.Context, input *types.GetNamespaceMembershipsInput) ([]types.NamespaceMembership, error)
 	AddMembership(ctx context.Context, input *types.CreateNamespaceMembershipInput) (*types.NamespaceMembership, error)
 	UpdateMembership(ctx context.Context, input *types.UpdateNamespaceMembershipInput) (*types.NamespaceMembership, error)
 	DeleteMembership(ctx context.Context, input *types.DeleteNamespaceMembershipInput) (*types.NamespaceMembership, error)
@@ -24,6 +25,34 @@ type namespaceMembership struct {
 // NewNamespaceMembership returns a NamespaceMembership.
 func NewNamespaceMembership(client *Client) NamespaceMembership {
 	return &namespaceMembership{client: client}
+}
+
+func (m *namespaceMembership) GetMemberships(ctx context.Context, input *types.GetNamespaceMembershipsInput) ([]types.NamespaceMembership, error) {
+
+	// Override the regular graphQLNamespace type in order to get memberships.
+	type graphQLNamespace struct {
+		Memberships []graphQLNamespaceMembership
+	}
+
+	var target struct {
+		Namespace *graphQLNamespace `graphql:"namespace(fullPath: $fullPath)"`
+	}
+	variables := map[string]interface{}{"fullPath": graphql.String(input.NamespacePath)}
+
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+	if target.Namespace == nil {
+		return nil, errors.NewError(types.ErrNotFound, "namespace with path %s not found", input.NamespacePath)
+	}
+
+	result := []types.NamespaceMembership{}
+	for _, g := range target.Namespace.Memberships {
+		result = append(result, namespaceMembershipFromGraphQL(g))
+	}
+
+	return result, nil
 }
 
 func (m *namespaceMembership) AddMembership(ctx context.Context, input *types.CreateNamespaceMembershipInput) (*types.NamespaceMembership, error) {

@@ -14,6 +14,213 @@ import (
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
+func TestGetNamespaceMemberships(t *testing.T) {
+	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
+
+	namespaceID := "group-or-workspace-id-1"
+	namespaceName := "group-or-workspace-name-1"
+	namespaceFullPath := "parent-group-1/" + namespaceName
+	namespaceMembershipVersion := "membership-namespace-version-1"
+	userID := "user-id"
+	serviceAccountID := "service-account-id"
+	teamID := "team-id"
+
+	type testGraphQLMember struct {
+		Typename  string         `json:"__typename"`
+		GroupPath graphql.String // from graphQLServiceAccount
+		ID        graphql.String // common among the three below
+		graphQLUser
+		graphQLServiceAccount
+		graphQLTeam
+	}
+
+	type testGraphQLNamespaceMembership struct {
+		ID           graphql.String
+		Metadata     internal.GraphQLMetadata
+		ResourcePath graphql.String
+		Member       testGraphQLMember
+		Role         graphQLRole
+	}
+
+	type testGraphQLNamespace struct {
+		Memberships []testGraphQLNamespaceMembership `json:"memberships"`
+	}
+
+	type testGraphqlNamespacePayload struct {
+		Namespace *testGraphQLNamespace `json:"namespace"`
+	}
+
+	// test cases
+	type testCase struct {
+		name              string
+		input             *types.GetNamespaceMembershipsInput
+		responsePayload   interface{}
+		expectMemberships []types.NamespaceMembership
+		expectErrorCode   types.ErrorCode
+	}
+
+	/*
+		Test case template:
+
+		name              string
+		input             *types.GetNamespaceMembershipsInput
+		responsePayload   interface{}
+		expectMemberships []types.NamespaceMembership
+		expectErrorCode   types.ErrorCode
+	*/
+
+	testCases := []testCase{
+		{
+			name: "list three memberships",
+			input: &types.GetNamespaceMembershipsInput{
+				NamespacePath: namespaceFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: testGraphqlNamespacePayload{
+					Namespace: &testGraphQLNamespace{
+						Memberships: []testGraphQLNamespaceMembership{
+							{
+								ID: graphql.String(namespaceID),
+								Metadata: internal.GraphQLMetadata{
+									CreatedAt: &now,
+									UpdatedAt: &now,
+									Version:   graphql.String(namespaceMembershipVersion),
+								},
+								Member: testGraphQLMember{
+									Typename: "User",
+									ID:       graphql.String(userID),
+								},
+								Role: graphQLRole{
+									Name: graphql.String("viewer"),
+								},
+							},
+							{
+								ID: graphql.String(namespaceID),
+								Metadata: internal.GraphQLMetadata{
+									CreatedAt: &now,
+									UpdatedAt: &now,
+									Version:   graphql.String(namespaceMembershipVersion),
+								},
+								Member: testGraphQLMember{
+									Typename:  "ServiceAccount",
+									ID:        graphql.String(serviceAccountID),
+									GroupPath: graphql.String(namespaceFullPath),
+								},
+								Role: graphQLRole{
+									Name: graphql.String("deployer"),
+								},
+							},
+							{
+								ID: graphql.String(namespaceID),
+								Metadata: internal.GraphQLMetadata{
+									CreatedAt: &now,
+									UpdatedAt: &now,
+									Version:   graphql.String(namespaceMembershipVersion),
+								},
+								Member: testGraphQLMember{
+									Typename: "Team",
+									ID:       graphql.String(teamID),
+								},
+								Role: graphQLRole{
+									Name: graphql.String("owner"),
+								},
+							},
+						},
+					},
+				},
+			},
+			expectMemberships: []types.NamespaceMembership{
+				{
+					Metadata: types.ResourceMetadata{
+						ID:                   namespaceID,
+						CreationTimestamp:    &now,
+						LastUpdatedTimestamp: &now,
+						Version:              namespaceMembershipVersion,
+					},
+					UserID: &userID,
+					Role:   "viewer",
+				},
+				{
+					Metadata: types.ResourceMetadata{
+						ID:                   namespaceID,
+						CreationTimestamp:    &now,
+						LastUpdatedTimestamp: &now,
+						Version:              namespaceMembershipVersion,
+					},
+					ServiceAccountID: &serviceAccountID,
+					Role:             "deployer",
+				},
+				{
+					Metadata: types.ResourceMetadata{
+						ID:                   namespaceID,
+						CreationTimestamp:    &now,
+						LastUpdatedTimestamp: &now,
+						Version:              namespaceMembershipVersion,
+					},
+					TeamID: &teamID,
+					Role:   "owner",
+				},
+			},
+		},
+		{
+			name: "empty list but no error",
+			input: &types.GetNamespaceMembershipsInput{
+				NamespacePath: namespaceFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: testGraphqlNamespacePayload{
+					Namespace: &testGraphQLNamespace{
+						Memberships: []testGraphQLNamespaceMembership{},
+					},
+				},
+			},
+			expectMemberships: []types.NamespaceMembership{},
+		},
+		{
+			name: "namespace not found",
+			input: &types.GetNamespaceMembershipsInput{
+				NamespacePath: namespaceFullPath + "/bogus",
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: testGraphqlNamespacePayload{},
+			},
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.NamespaceMembership = NewNamespaceMembership(client)
+
+			// Call the method being tested.
+			actualMemberships, actualError := client.NamespaceMembership.GetMemberships(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			assert.Equal(t, test.expectMemberships == nil, actualMemberships == nil)
+			assert.Equal(t, len(test.expectMemberships), len(actualMemberships))
+			if test.expectMemberships != nil {
+				for i := 0; i < len(test.expectMemberships); i++ {
+					checkMembership(t, &test.expectMemberships[i], &actualMemberships[i])
+				}
+			}
+		})
+	}
+}
+
 func TestAddGroupMembership(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
