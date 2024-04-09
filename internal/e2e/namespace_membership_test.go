@@ -36,6 +36,14 @@ func TestGroupMembershipOperations(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotNil(t, hostGroup)
 
+	// Capture the number of pre-existing memberships for later use.
+	listed, err := client.NamespaceMembership.GetMemberships(ctx, &types.GetNamespaceMembershipsInput{
+		NamespacePath: testGroupPath,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, listed)
+	preExistingMembershipLen := len(listed)
+
 	// Creating a service account is a necessary prerequisite for creating a membership.
 	serviceAccount, err := client.ServiceAccount.CreateServiceAccount(ctx, &types.CreateServiceAccountInput{
 		Name:      serviceAccountName,
@@ -58,6 +66,7 @@ func TestGroupMembershipOperations(t *testing.T) {
 	assert.NotNil(t, team)
 
 	// Create two memberships to cover service account and team members with deployer and owner roles.
+	membershipsToCreate := 2
 	membership2, err := client.NamespaceMembership.AddMembership(ctx, &types.CreateNamespaceMembershipInput{
 		NamespacePath:    testGroupPath,
 		ServiceAccountID: &serviceAccount.Metadata.ID,
@@ -88,6 +97,14 @@ func TestGroupMembershipOperations(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.NotNil(t, updated3)
+
+	// List the memberships.
+	listed, err = client.NamespaceMembership.GetMemberships(ctx, &types.GetNamespaceMembershipsInput{
+		NamespacePath: testGroupPath,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, listed)
+	assert.Equal(t, preExistingMembershipLen+membershipsToCreate, len(listed))
 
 	// Delete the memberships.
 	deleted2, err := client.NamespaceMembership.DeleteMembership(ctx, &types.DeleteNamespaceMembershipInput{
@@ -156,6 +173,14 @@ func TestWorkspaceMembershipOperations(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotNil(t, hostWorkspace)
 
+	// Capture the number of pre-existing memberships for later use.
+	listed, err := client.NamespaceMembership.GetMemberships(ctx, &types.GetNamespaceMembershipsInput{
+		NamespacePath: testWorkspacePath,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, listed)
+	preExistingMembershipLen := len(listed)
+
 	// Creating a service account in the parent group is a necessary prerequisite for creating a membership.
 	serviceAccount, err := client.ServiceAccount.CreateServiceAccount(ctx, &types.CreateServiceAccountInput{
 		Name:      serviceAccountName,
@@ -177,7 +202,8 @@ func TestWorkspaceMembershipOperations(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotNil(t, team)
 
-	// Create three memberships to cover service account and team members with deployer and owner roles.
+	// Create two memberships to cover service account and team members with deployer and owner roles.
+	membershipsToCreate := 2
 	membership2, err := client.NamespaceMembership.AddMembership(ctx, &types.CreateNamespaceMembershipInput{
 		NamespacePath:    testWorkspacePath,
 		ServiceAccountID: &serviceAccount.Metadata.ID,
@@ -208,6 +234,14 @@ func TestWorkspaceMembershipOperations(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.NotNil(t, updated3)
+
+	// List the memberships.
+	listed, err = client.NamespaceMembership.GetMemberships(ctx, &types.GetNamespaceMembershipsInput{
+		NamespacePath: testWorkspacePath,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, listed)
+	assert.Equal(t, preExistingMembershipLen+membershipsToCreate, len(listed))
 
 	// Delete the memberships.
 	deleted2, err := client.NamespaceMembership.DeleteMembership(ctx, &types.DeleteNamespaceMembershipInput{

@@ -10,6 +10,11 @@ type NamespaceMembership struct {
 	Role             string
 }
 
+// GetNamespaceMembershipsInput is the input for listing a group's or workspace's memberships.
+type GetNamespaceMembershipsInput struct {
+	NamespacePath string // required
+}
+
 // CreateNamespaceMembershipInput is the input for adding a membership to a group or workspace.
 type CreateNamespaceMembershipInput struct {
 	NamespacePath    string  `json:"namespacePath"`
