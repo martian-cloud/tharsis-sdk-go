@@ -14,6 +14,130 @@ import (
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
+func TestGetTeam(t *testing.T) {
+	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
+
+	teamName := "team-1"
+	teamID := "team-id"
+	teamExternalSCIMID := "team-external-SCIM-id"
+	description := "a team description"
+	teamVersion := "team-version-1"
+
+	type graphqlTeamPayload struct {
+		Team *graphQLTeam `json:"team"`
+	}
+
+	// test cases
+	type testCase struct {
+		name            string
+		input           *types.GetTeamInput
+		responsePayload interface{}
+		expectTeam      *types.Team
+		expectErrorCode types.ErrorCode
+	}
+
+	/*
+		Test case template:
+
+		name            string
+		input           *types.GetTeamInput
+		responsePayload interface{}
+		expectTeam      *types.Team
+		expectErrorCode types.ErrorCode
+	*/
+
+	testCases := []testCase{
+		{
+			name: "successfully get a team by name",
+			input: &types.GetTeamInput{
+				Name: &teamName,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlTeamPayload{
+					Team: &graphQLTeam{
+						ID: graphql.String(teamID),
+						Metadata: internal.GraphQLMetadata{
+							CreatedAt: &now,
+							UpdatedAt: &now,
+							Version:   graphql.String(teamVersion),
+						},
+						Name:           graphql.String(teamName),
+						Description:    graphql.String(description),
+						SCIMExternalID: graphql.String(teamExternalSCIMID),
+					},
+				},
+			},
+			expectTeam: &types.Team{
+				Metadata: types.ResourceMetadata{
+					ID:                   teamID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+					Version:              teamVersion,
+				},
+				Name:           teamName,
+				Description:    description,
+				SCIMExternalID: teamExternalSCIMID,
+			},
+		},
+		{
+			name: "verify that correct error is returned",
+			input: &types.GetTeamInput{
+				Name: &teamName,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlTeamPayload{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "an error occurred",
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "INTERNAL_SERVER_ERROR",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrInternal,
+		},
+
+		// query returns nil team, as if the specified team does not exist.
+		{
+			name: "query returns nil team, as if the specified team does not exist",
+			input: &types.GetTeamInput{
+				Name: &teamName,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlTeamPayload{},
+			},
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.Team = NewTeam(client)
+
+			// Call the method being tested.
+			actualTeam, actualError := client.Team.GetTeam(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			checkTeam(t, test.expectTeam, actualTeam)
+		})
+	}
+}
+
 func TestCreateTeam(t *testing.T) {
 	now := time.Now().UTC() // Getting rid of local timezone makes equality checks work better.
 
@@ -383,7 +507,7 @@ func checkTeam(t *testing.T, expectTeam, actualTeam *types.Team) {
 		require.NotNil(t, actualTeam)
 		assert.Equal(t, expectTeam, actualTeam)
 	} else {
-		// Plain assert.Nil reports expected <nil>, but got (*types.Group)(nil)
+		// Plain assert.Nil reports expected <nil>, but got (*types.Team)(nil)
 		assert.Equal(t, (*types.Team)(nil), actualTeam)
 	}
 }
@@ -393,7 +517,7 @@ func checkTeamMember(t *testing.T, expectTeamMember, actualTeamMember *types.Tea
 		require.NotNil(t, actualTeamMember)
 		assert.Equal(t, expectTeamMember, actualTeamMember)
 	} else {
-		// Plain assert.Nil reports expected <nil>, but got (*types.Group)(nil)
+		// Plain assert.Nil reports expected <nil>, but got (*types.Team)(nil)
 		assert.Equal(t, (*types.TeamMember)(nil), actualTeamMember)
 	}
 }
