@@ -27,6 +27,11 @@ func TestTeamOperations(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotNil(t, team)
 
+	// Get the team by name.
+	gotTeam, err := client.Team.GetTeam(ctx, &types.GetTeamInput{Name: &teamName})
+	require.Nil(t, err)
+	assert.NotNil(t, gotTeam)
+
 	// Cannot test AddTeamMember, because that requires a user.
 
 	// Delete the team.

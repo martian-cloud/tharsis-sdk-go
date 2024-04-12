@@ -18,6 +18,11 @@ type TeamMember struct {
 	IsMaintainer bool
 }
 
+// GetTeamInput is the input for getting a specific team.
+type GetTeamInput struct {
+	Name *string `json:"name"`
+}
+
 // CreateTeamInput is the input for creating a new team.
 type CreateTeamInput struct {
 	Name        string `json:"name"`

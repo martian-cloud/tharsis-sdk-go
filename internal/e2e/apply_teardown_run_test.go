@@ -50,7 +50,7 @@ func TestApplyTeardownRun(t *testing.T) {
 
 // So far, this returns only the workspace ID.
 func setupForApplyTeardownRun(ctx context.Context, client *tharsis.Client,
-	t *testing.T, wsName, wsPath string) (string, error) {
+	t *testing.T, wsName, _ string) (string, error) {
 
 	// Create the workspace that will be used for the run.
 	createdWorkspace, err := client.Workspaces.CreateWorkspace(ctx, &types.CreateWorkspaceInput{

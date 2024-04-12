@@ -11,6 +11,7 @@ import (
 
 // Team implements functions related to Tharsis teams.
 type Team interface {
+	GetTeam(ctx context.Context, input *types.GetTeamInput) (*types.Team, error)
 	CreateTeam(ctx context.Context, input *types.CreateTeamInput) (*types.Team, error)
 	DeleteTeam(ctx context.Context, input *types.DeleteTeamInput) error
 	AddTeamMember(ctx context.Context, input *types.AddUserToTeamInput) (*types.TeamMember, error)
@@ -23,6 +24,32 @@ type team struct {
 // NewTeam returns a Team.
 func NewTeam(client *Client) Team {
 	return &team{client: client}
+}
+
+// GetTeam gets the specified team.
+func (t *team) GetTeam(ctx context.Context, input *types.GetTeamInput) (*types.Team, error) {
+	switch {
+	case input.Name != nil:
+		// Team query by name.
+
+		var target struct {
+			Team *graphQLTeam `graphql:"team(name: $name)"`
+		}
+		variables := map[string]interface{}{"name": graphql.String(*input.Name)}
+
+		err := t.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if target.Team == nil {
+			return nil, errors.NewError(types.ErrNotFound, "team with name %s not found", *input.Name)
+		}
+
+		result := teamFromGraphQL(*target.Team)
+		return &result, nil
+	default:
+		return nil, errors.NewError(types.ErrBadRequest, "must specify name when calling GetTeam")
+	}
 }
 
 // CreateTeam creates a new team and returns its content.

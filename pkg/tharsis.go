@@ -54,6 +54,7 @@ type Client struct {
 	RunnerSession                   RunnerSession
 	Team                            Team
 	NamespaceMembership             NamespaceMembership
+	User                            User
 }
 
 // NewClient returns a TharsisClient.
@@ -127,6 +128,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.RunnerSession = NewRunnerSession(client)
 	client.Team = NewTeam(client)
 	client.NamespaceMembership = NewNamespaceMembership(client)
+	client.User = NewUser(client)
 
 	return client, nil
 }
