@@ -140,7 +140,7 @@ func getUsers(ctx context.Context, client graphqlClient,
 
 	// Make sure to pass the expected types for these variables.
 	var search *graphql.String
-	if input.Filter != nil {
+	if (input.Filter != nil) && (input.Filter.Search != nil) {
 		searchString := graphql.String(*input.Filter.Search)
 		search = &searchString
 	} else {
@@ -148,8 +148,10 @@ func getUsers(ctx context.Context, client graphqlClient,
 	}
 	variables["search"] = search
 
-	type UserSort string
-	variables["sort"] = UserSort(*input.Sort)
+	if input.Sort != nil {
+		type UserSort string
+		variables["sort"] = UserSort(*input.Sort)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)
