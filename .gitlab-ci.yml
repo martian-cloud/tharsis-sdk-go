@@ -6,10 +6,8 @@ include:
   - component: gitlab.com/infor-cloud/gitlab-components/software-bill-of-materials/generate-sbom-go@5f420f7c2b28c287a23fedbdb98e050776dfa9d8
     inputs:
       stage: build
-      module_path: .
       assert_licenses: true
       std: true
-      packages: true
       generate_for_modules: true
       go_arch_os:
         - GO_ARCH: "386"
