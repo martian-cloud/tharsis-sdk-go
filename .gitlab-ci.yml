@@ -10,6 +10,7 @@ include:
       assert_licenses: true
       std: true
       packages: true
+      generate_for_modules: true
       go_arch_os:
         - GO_ARCH: "386"
           GO_OS: [freebsd, linux, openbsd, windows]
