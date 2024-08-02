@@ -3,7 +3,7 @@ include:
   - template: Jobs/SAST.gitlab-ci.yml
   - template: Jobs/SAST-IaC.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
-  - component: gitlab.com/infor-cloud/gitlab-components/software-bill-of-materials/generate-sbom-go@1.0.1
+  - component: gitlab.com/infor-cloud/gitlab-components/software-bill-of-materials/generate-sbom-go@5f420f7c2b28c287a23fedbdb98e050776dfa9d8
     inputs:
       stage: build
       module_path: .
@@ -23,7 +23,7 @@ include:
       verbose: true
     rules:
       - if: $CI_COMMIT_TAG
-  - component: gitlab.com/infor-cloud/gitlab-components/software-bill-of-materials/merge-sboms@1.0.1
+  - component: gitlab.com/infor-cloud/gitlab-components/software-bill-of-materials/merge-sboms@5f420f7c2b28c287a23fedbdb98e050776dfa9d8
     inputs:
       stage: merge-sboms
       hierarchical: true
