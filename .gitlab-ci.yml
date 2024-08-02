@@ -46,6 +46,8 @@ workflow:
       when: always
     - if: $CI_MERGE_REQUEST_IID
       when: always
+    - if: $CI_COMMIT_TAG
+      when: always
     - when: never
 
 variables:
