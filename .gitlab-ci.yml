@@ -9,6 +9,7 @@ include:
       module_path: .
       assert_licenses: true
       std: true
+      packages: true
       go_arch_os:
         - GO_ARCH: "386"
           GO_OS: [freebsd, linux, openbsd, windows]
