@@ -30,7 +30,4 @@ type UpdatePlanInput struct {
 	ID                   string     `json:"id"`
 	Status               PlanStatus `json:"status"`
 	HasChanges           bool       `json:"hasChanges"`
-	ResourceAdditions    int        `json:"resourceAdditions"`
-	ResourceChanges      int        `json:"resourceChanges"`
-	ResourceDestructions int        `json:"resourceDestructions"`
 }

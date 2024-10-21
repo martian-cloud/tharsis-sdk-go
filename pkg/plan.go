@@ -1,23 +1,34 @@
 package tharsis
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
+	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
+// planWithProviderSchemasPayload is a struct that contains the plan and provider schemas for uploading to the API
+type planWithProviderSchemasPayload struct {
+	Plan            *tfjson.Plan            `json:"plan"`
+	ProviderSchemas *tfjson.ProviderSchemas `json:"provider_schemas"`
+}
+
 // Plan implements functions related to Tharsis Plan.
 type Plan interface {
 	UpdatePlan(ctx context.Context, input *types.UpdatePlanInput) (*types.Plan, error)
 	DownloadPlanCache(ctx context.Context, id string, writer io.WriterAt) error
 	UploadPlanCache(ctx context.Context, id string, body io.Reader) error
+	UploadPlanData(ctx context.Context, id string, tfPlan *tfjson.Plan, tfProviderSchemas *tfjson.ProviderSchemas) error
 }
 
 type plan struct {
@@ -84,15 +95,50 @@ func (p *plan) UploadPlanCache(ctx context.Context, id string, body io.Reader) e
 	return nil
 }
 
-// do prepares, makes a request with appropriate headers and returns the response.
-func (p *plan) do(ctx context.Context,
-	method string, url string, body io.Reader,
-) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, method, url, body)
-	if err != nil {
-		return nil, err
+// UploadPlanData uploads plan data such as the plan json and provider schemas
+func (p *plan) UploadPlanData(ctx context.Context, id string, tfPlan *tfjson.Plan, tfProviderSchemas *tfjson.ProviderSchemas) error {
+	planWithSchemas := &planWithProviderSchemasPayload{
+		Plan:            tfPlan,
+		ProviderSchemas: tfProviderSchemas,
 	}
 
+	planData, err := json.Marshal(planWithSchemas)
+	if err != nil {
+		return fmt.Errorf("failed to marshal plan json: %w", err)
+	}
+
+	// Compress the data using gzip
+	var buf bytes.Buffer
+	writer := gzip.NewWriter(&buf)
+	if _, err = writer.Write(planData); err != nil {
+		return fmt.Errorf("failed to compress plan data: %w", err)
+	}
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close gzip writer: %w", err)
+	}
+
+	// Create the PUT request
+	url := strings.Join([]string{p.client.cfg.Endpoint, "v1", "plans", id, "content.json"}, "/")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, &buf)
+	if err != nil {
+		return fmt.Errorf("failed to create http request for uploading plan data: %w", err)
+	}
+
+	// Set the Content-Encoding header to gzip
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/octet-stream")
+
+	_, err = p.doRequest(req)
+	if err != nil {
+		return fmt.Errorf("failed to upload plan data: %w", err)
+	}
+
+	return nil
+}
+
+// do prepares, makes a request with appropriate headers and returns the response.
+func (p *plan) doRequest(req *http.Request) (*http.Response, error) {
 	// Get the authentication token.
 	authToken, err := p.client.cfg.TokenProvider.GetToken()
 	if err != nil {
@@ -101,11 +147,6 @@ func (p *plan) do(ctx context.Context,
 
 	req.Header.Set("Authorization", "Bearer "+authToken)
 	req.Header.Set("Accept", "application/json")
-
-	// Set appropriate request headers.
-	if method == http.MethodPut {
-		req.Header.Set("Content-Type", "application/octet-stream")
-	}
 
 	// Make the request.
 	resp, err := p.client.httpClient.Do(req)
@@ -118,6 +159,22 @@ func (p *plan) do(ctx context.Context,
 	}
 
 	return resp, nil
+}
+
+func (p *plan) do(ctx context.Context,
+	method string, url string, body io.Reader,
+) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set appropriate request headers.
+	if req.Method == http.MethodPut {
+		req.Header.Set("Content-Type", "application/octet-stream")
+	}
+
+	return p.doRequest(req)
 }
 
 // graphQLPlan represents a Tharsis plan with GraphQL types.
