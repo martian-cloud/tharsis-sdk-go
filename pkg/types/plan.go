@@ -23,11 +23,13 @@ type Plan struct {
 	ResourceChanges      int
 	ResourceDestructions int
 	HasChanges           bool
+	ErrorMessage         *string
 }
 
 // UpdatePlanInput is the input for updating a plan
 type UpdatePlanInput struct {
-	ID                   string     `json:"id"`
-	Status               PlanStatus `json:"status"`
-	HasChanges           bool       `json:"hasChanges"`
+	ID           string     `json:"id"`
+	Status       PlanStatus `json:"status"`
+	HasChanges   bool       `json:"hasChanges"`
+	ErrorMessage *string    `json:"errorMessage"`
 }

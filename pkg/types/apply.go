@@ -20,10 +20,12 @@ type Apply struct {
 	Metadata     ResourceMetadata
 	CurrentJobID *string
 	Status       ApplyStatus
+	ErrorMessage *string
 }
 
 // UpdateApplyInput is the input for updating an apply.
 type UpdateApplyInput struct {
-	ID     string      `json:"id"`
-	Status ApplyStatus `json:"status"`
+	ID           string      `json:"id"`
+	Status       ApplyStatus `json:"status"`
+	ErrorMessage *string     `json:"errorMessage"`
 }
