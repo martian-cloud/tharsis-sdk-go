@@ -84,6 +84,7 @@ type Run struct {
 	IsDestroy              bool
 	ForceCanceled          bool
 	Refresh                bool
+	RefreshOnly            bool
 	Speculative            bool
 }
 
@@ -119,6 +120,7 @@ type CreateRunInput struct {
 	TargetAddresses        []string      `json:"targetAddresses"`
 	IsDestroy              bool          `json:"isDestroy"`
 	Refresh                bool          `json:"refresh"`
+	RefreshOnly            bool          `json:"refreshOnly"`
 }
 
 // ApplyRunInput is the input for applying a run.
