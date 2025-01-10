@@ -370,6 +370,7 @@ type graphQLJob struct {
 	CancelRequested graphql.Boolean
 	LogSize         graphql.Int
 	MaxJobDuration  graphql.Int
+	Tags            []graphql.String
 }
 
 type graphQLCancellationEvent struct {
@@ -389,6 +390,11 @@ func jobFromGraphQL(r graphQLJob) types.Job {
 		LogSize:         int(r.LogSize),
 		MaxJobDuration:  int32(r.MaxJobDuration),
 	}
+
+	for _, tag := range r.Tags {
+		result.Tags = append(result.Tags, string(tag))
+	}
+
 	return result
 }
 

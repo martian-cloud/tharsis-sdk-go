@@ -47,7 +47,7 @@ func ExampleGetGroup() error {
 // ExampleGetGroups demonstrates GetGroups:
 func ExampleGetGroups() error {
 
-	// For authentication, this example uses an explicitly specified service account token provicer.
+	// For authentication, this example uses an explicitly specified service account token provider.
 	endpointURL := "https://insert.tharsis.endpoint.here"
 	serviceAccountPath := "==insert-service-account-path-here=="
 	serviceAccountToken := "==insert-service-account-token-here=="
