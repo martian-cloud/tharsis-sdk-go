@@ -11,13 +11,15 @@ const (
 
 // RunnerAgent represents a Tharsis Runner
 type RunnerAgent struct {
-	Metadata     ResourceMetadata
-	Name         string
-	Description  string
-	GroupPath    string
-	ResourcePath string
-	CreatedBy    string
-	Type         RunnerType
+	Metadata        ResourceMetadata
+	Name            string
+	Description     string
+	GroupPath       string
+	ResourcePath    string
+	CreatedBy       string
+	Type            RunnerType
+	Tags            []string
+	RunUntaggedJobs bool
 }
 
 // GetRunnerInput is the input for retrieving a runner agent
@@ -27,15 +29,19 @@ type GetRunnerInput struct {
 
 // CreateRunnerInput is the input for creating a runner agent
 type CreateRunnerInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	GroupPath   string `json:"groupPath"`
+	Name            string   `json:"name"`
+	Description     string   `json:"description"`
+	GroupPath       string   `json:"groupPath"`
+	Tags            []string `json:"tags"`
+	RunUntaggedJobs bool     `json:"runUntaggedJobs"`
 }
 
 // UpdateRunnerInput is the input for updating a runner agent
 type UpdateRunnerInput struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
+	Tags            *[]string `json:"tags"`
+	RunUntaggedJobs *bool     `json:"runUntaggedJobs"`
+	ID              string    `json:"id"`
+	Description     string    `json:"description"`
 }
 
 // DeleteRunnerInput is the input for deleting a runner agent

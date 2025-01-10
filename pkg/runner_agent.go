@@ -151,25 +151,34 @@ func (r *runnerAgent) UnassignServiceAccountFromRunnerAgent(ctx context.Context,
 
 // graphQLRunnerAgent is RunnerAgent with GraphQL types
 type graphQLRunnerAgent struct {
-	ID           graphql.String           `json:"id"`
-	Metadata     internal.GraphQLMetadata `json:"metadata"`
-	Name         string                   `json:"name"`
-	Description  string                   `json:"description"`
-	GroupPath    string                   `json:"groupPath"`
-	ResourcePath string                   `json:"resourcePath"`
-	CreatedBy    string                   `json:"createdBy"`
-	Type         graphql.String           `json:"type"`
+	ID              graphql.String           `json:"id"`
+	Metadata        internal.GraphQLMetadata `json:"metadata"`
+	Name            string                   `json:"name"`
+	Description     string                   `json:"description"`
+	GroupPath       string                   `json:"groupPath"`
+	ResourcePath    string                   `json:"resourcePath"`
+	CreatedBy       string                   `json:"createdBy"`
+	Type            graphql.String           `json:"type"`
+	Tags            []graphql.String         `json:"tags"`
+	RunUntaggedJobs graphql.Boolean          `json:"runUntaggedJobs"`
 }
 
 // runnerAgentFromGraphQL converts a GraphQL Runner to an external Runner
 func runnerAgentFromGraphQL(r graphQLRunnerAgent) *types.RunnerAgent {
-	return &types.RunnerAgent{
-		Metadata:     internal.MetadataFromGraphQL(r.Metadata, r.ID),
-		Name:         r.Name,
-		Description:  r.Description,
-		GroupPath:    r.GroupPath,
-		ResourcePath: r.ResourcePath,
-		CreatedBy:    r.CreatedBy,
-		Type:         types.RunnerType(r.Type),
+	result := types.RunnerAgent{
+		Metadata:        internal.MetadataFromGraphQL(r.Metadata, r.ID),
+		Name:            r.Name,
+		Description:     r.Description,
+		GroupPath:       r.GroupPath,
+		ResourcePath:    r.ResourcePath,
+		CreatedBy:       r.CreatedBy,
+		Type:            types.RunnerType(r.Type),
+		RunUntaggedJobs: bool(r.RunUntaggedJobs),
 	}
+
+	for _, tag := range r.Tags {
+		result.Tags = append(result.Tags, string(tag))
+	}
+
+	return &result
 }
