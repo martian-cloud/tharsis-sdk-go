@@ -195,7 +195,6 @@ type graphQLNamespaceVariable struct {
 	NamespacePath graphql.String
 	Key           graphql.String
 	Category      graphql.String
-	HCL           graphql.Boolean
 }
 
 // variableFromGraphQLNamespace finds the specified variable in the namespace object
@@ -221,7 +220,6 @@ func variableFromGraphQL(v graphQLNamespaceVariable) types.NamespaceVariable {
 		Key:           string(v.Key),
 		Value:         (*string)(v.Value),
 		Category:      types.VariableCategory(v.Category),
-		HCL:           bool(v.HCL),
 		NamespacePath: string(v.NamespacePath),
 	}
 }

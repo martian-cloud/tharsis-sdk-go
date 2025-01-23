@@ -17,7 +17,6 @@ type NamespaceVariable struct {
 	NamespacePath string
 	Category      VariableCategory
 	Key           string
-	HCL           bool
 }
 
 // CreateNamespaceVariableInput is the input for creating a namespace variable.
@@ -26,14 +25,12 @@ type CreateNamespaceVariableInput struct {
 	Category      VariableCategory `json:"category"`
 	Key           string           `json:"key"`
 	Value         string           `json:"value"` // The value is required, not optional.
-	HCL           bool             `json:"hcl"`
 }
 
 // SetNamespaceVariablesVariable is the input for setting ALL variables in a namespace.
 type SetNamespaceVariablesVariable struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
-	HCL   bool   `json:"hcl"`
 }
 
 // UpdateNamespaceVariableInput is the input for updating a namespace variable.
@@ -41,7 +38,6 @@ type UpdateNamespaceVariableInput struct {
 	ID    string `json:"id"`
 	Key   string `json:"key"`
 	Value string `json:"value"`
-	HCL   bool   `json:"hcl"`
 }
 
 // GetNamespaceVariableInput is the input for retrieving a namespace variable.

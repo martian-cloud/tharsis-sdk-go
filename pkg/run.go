@@ -420,7 +420,6 @@ type graphQLRunVariable struct {
 	NamespacePath *graphql.String
 	Key           graphql.String
 	Category      graphql.String
-	Hcl           graphql.Boolean
 }
 
 // runFromGraphQL converts a GraphQL Run to an external Run.
@@ -474,7 +473,6 @@ func runVariableFromGraphQL(v graphQLRunVariable) types.RunVariable {
 		Key:           string(v.Key),
 		Value:         (*string)(v.Value),
 		Category:      types.VariableCategory(v.Category),
-		HCL:           bool(v.Hcl),
 		NamespacePath: (*string)(v.NamespacePath),
 	}
 	return result
