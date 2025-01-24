@@ -21,11 +21,9 @@ func TestCRUDNamespaceVariable(t *testing.T) {
 	assert.NotNil(t, client)
 
 	namespaceVariableCategory := types.TerraformVariableCategory
-	namespaceVariableHCL := true
 	namespaceVariableKey := "variable-key"
 	namespaceVariableValue := "variable-value"
 
-	updatedNamespaceVariableHCL := false
 	updatedNamespaceVariableKey := "updated-variable-key"
 	updatedNamespaceVariableValue := "updated-variable-value"
 
@@ -33,7 +31,6 @@ func TestCRUDNamespaceVariable(t *testing.T) {
 	createdNamespaceVariable, err := client.Variable.CreateVariable(ctx, &types.CreateNamespaceVariableInput{
 		NamespacePath: topGroupName,
 		Category:      namespaceVariableCategory,
-		HCL:           namespaceVariableHCL,
 		Key:           namespaceVariableKey,
 		Value:         namespaceVariableValue,
 	})
@@ -43,7 +40,6 @@ func TestCRUDNamespaceVariable(t *testing.T) {
 	// Verify all the fields except metadata.
 	assert.Equal(t, topGroupName, createdNamespaceVariable.NamespacePath)
 	assert.Equal(t, namespaceVariableCategory, createdNamespaceVariable.Category)
-	assert.Equal(t, namespaceVariableHCL, createdNamespaceVariable.HCL)
 	assert.Equal(t, namespaceVariableKey, createdNamespaceVariable.Key)
 	assert.Equal(t, namespaceVariableValue, *createdNamespaceVariable.Value)
 
@@ -58,14 +54,12 @@ func TestCRUDNamespaceVariable(t *testing.T) {
 	updatedNamespaceVariable, err := client.Variable.UpdateVariable(ctx,
 		&types.UpdateNamespaceVariableInput{
 			ID:    createdNamespaceVariable.Metadata.ID,
-			HCL:   updatedNamespaceVariableHCL,
 			Key:   updatedNamespaceVariableKey,
 			Value: updatedNamespaceVariableValue,
 		})
 	assert.Nil(t, err)
 
 	// Verify the claimed update.
-	assert.Equal(t, updatedNamespaceVariableHCL, updatedNamespaceVariable.HCL)
 	assert.Equal(t, updatedNamespaceVariableKey, updatedNamespaceVariable.Key)
 	assert.Equal(t, updatedNamespaceVariableValue, *updatedNamespaceVariable.Value)
 

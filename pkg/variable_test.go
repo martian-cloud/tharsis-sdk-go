@@ -49,13 +49,12 @@ func TestCreateNamespaceVariable(t *testing.T) {
 
 	testCases := []testCase{
 
-		// positive, Terraform HCL
+		// positive, Terraform
 		{
-			name: "Successfully created a Terraform HCL namespace variable",
+			name: "Successfully created a Terraform namespace variable",
 			input: &types.CreateNamespaceVariableInput{
 				NamespacePath: namespacePath,
 				Category:      types.TerraformVariableCategory,
-				HCL:           true,
 				Key:           namespaceVariable1Key,
 				Value:         namespaceVariable1Value,
 			},
@@ -73,7 +72,6 @@ func TestCreateNamespaceVariable(t *testing.T) {
 									},
 									NamespacePath: graphql.String(namespacePath),
 									Category:      graphql.String(types.TerraformVariableCategory),
-									HCL:           true,
 									Key:           graphql.String(namespaceVariable1Key),
 									Value:         (*graphql.String)(&namespaceVariable1Value),
 								},
@@ -91,7 +89,6 @@ func TestCreateNamespaceVariable(t *testing.T) {
 				},
 				NamespacePath: namespacePath,
 				Category:      types.TerraformVariableCategory,
-				HCL:           true,
 				Key:           namespaceVariable1Key,
 				Value:         &namespaceVariable1Value,
 			},
@@ -99,11 +96,10 @@ func TestCreateNamespaceVariable(t *testing.T) {
 
 		// positive, environment, string
 		{
-			name: "Successfully created an environment non-HCL namespace variable",
+			name: "Successfully created an environment namespace variable",
 			input: &types.CreateNamespaceVariableInput{
 				NamespacePath: namespacePath,
 				Category:      types.EnvironmentVariableCategory,
-				HCL:           false,
 				Key:           namespaceVariable2Key,
 				Value:         namespaceVariable2Value,
 			},
@@ -121,7 +117,6 @@ func TestCreateNamespaceVariable(t *testing.T) {
 									},
 									NamespacePath: graphql.String(namespacePath),
 									Category:      graphql.String(types.EnvironmentVariableCategory),
-									HCL:           false,
 									Key:           graphql.String(namespaceVariable2Key),
 									Value:         (*graphql.String)(&namespaceVariable2Value),
 								},
@@ -139,7 +134,6 @@ func TestCreateNamespaceVariable(t *testing.T) {
 				},
 				NamespacePath: namespacePath,
 				Category:      types.EnvironmentVariableCategory,
-				HCL:           false,
 				Key:           namespaceVariable2Key,
 				Value:         &namespaceVariable2Value,
 			},
@@ -231,7 +225,6 @@ func TestGetNamespaceVariable(t *testing.T) {
 						},
 						NamespacePath: graphql.String(namespacePath),
 						Category:      graphql.String(types.TerraformVariableCategory),
-						HCL:           true,
 						Key:           graphql.String(namespaceVariableKey),
 						Value:         (*graphql.String)(&namespaceVariableValue),
 					},
@@ -246,7 +239,6 @@ func TestGetNamespaceVariable(t *testing.T) {
 				},
 				NamespacePath: namespacePath,
 				Category:      types.TerraformVariableCategory,
-				HCL:           true,
 				Key:           namespaceVariableKey,
 				Value:         &namespaceVariableValue,
 			},
@@ -370,7 +362,6 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 			name: "Successfully updated namespace variable",
 			input: &types.UpdateNamespaceVariableInput{
 				ID:    namespaceVariableID,
-				HCL:   true,
 				Key:   namespaceVariableKey,
 				Value: namespaceVariableValue,
 			},
@@ -388,7 +379,6 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 									},
 									NamespacePath: graphql.String(namespacePath),
 									Category:      graphql.String(types.TerraformVariableCategory),
-									HCL:           true,
 									Key:           graphql.String(namespaceVariableKey),
 									Value:         (*graphql.String)(&namespaceVariableValue),
 								},
@@ -406,7 +396,6 @@ func TestUpdateNamespaceVariable(t *testing.T) {
 				},
 				NamespacePath: namespacePath,
 				Category:      types.TerraformVariableCategory,
-				HCL:           true,
 				Key:           namespaceVariableKey,
 				Value:         &namespaceVariableValue,
 			},
