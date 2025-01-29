@@ -17,6 +17,7 @@ type Run interface {
 	GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run, error)
 	GetRuns(ctx context.Context, input *types.GetRunsInput) (*types.GetRunsOutput, error)
 	GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]types.RunVariable, error)
+	SetVariablesIncludedInTFConfig(ctx context.Context, input *types.SetVariablesIncludedInTFConfigInput) error
 	GetRunPaginator(ctx context.Context, input *types.GetRunsInput) (*RunPaginator, error)
 	CreateRun(ctx context.Context, input *types.CreateRunInput) (*types.Run, error)
 	ApplyRun(ctx context.Context, input *types.ApplyRunInput) (*types.Run, error)
@@ -118,6 +119,25 @@ func (r *run) GetRunPaginator(_ context.Context,
 
 	paginator := newRunPaginator(*r.client, input)
 	return &paginator, nil
+}
+
+// SetVariablesIncludedInTFConfig sets variables that are included in the Terraform config.
+func (r *run) SetVariablesIncludedInTFConfig(ctx context.Context, input *types.SetVariablesIncludedInTFConfigInput) error {
+	var wrappedUpdate struct {
+		SetVariablesIncludedInTFConfig struct {
+			Problems []internal.GraphQLProblem
+		} `graphql:"setVariablesIncludedInTFConfig(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	if err := r.client.graphqlClient.Mutate(ctx, true, &wrappedUpdate, variables); err != nil {
+		return err
+	}
+
+	return errors.ErrorFromGraphqlProblems(wrappedUpdate.SetVariablesIncludedInTFConfig.Problems)
 }
 
 // CreateRun creates a new run and returns its content.
@@ -416,10 +436,11 @@ type graphQLRun struct {
 }
 
 type graphQLRunVariable struct {
-	Value         *graphql.String
-	NamespacePath *graphql.String
-	Key           graphql.String
-	Category      graphql.String
+	Value              *string
+	NamespacePath      *string
+	Key                string
+	Category           string
+	IncludedInTFConfig *bool
 }
 
 // runFromGraphQL converts a GraphQL Run to an external Run.
@@ -470,10 +491,11 @@ func runFromGraphQL(g graphQLRun) types.Run {
 // runVariableFromGraphQL
 func runVariableFromGraphQL(v graphQLRunVariable) types.RunVariable {
 	result := types.RunVariable{
-		Key:           string(v.Key),
-		Value:         (*string)(v.Value),
-		Category:      types.VariableCategory(v.Category),
-		NamespacePath: (*string)(v.NamespacePath),
+		Key:                v.Key,
+		Value:              v.Value,
+		Category:           types.VariableCategory(v.Category),
+		NamespacePath:      v.NamespacePath,
+		IncludedInTFConfig: v.IncludedInTFConfig,
 	}
 	return result
 }

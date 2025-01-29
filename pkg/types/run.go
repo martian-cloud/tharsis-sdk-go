@@ -90,10 +90,18 @@ type Run struct {
 
 // RunVariable holds information about a run variable
 type RunVariable struct {
-	Value         *string          `json:"value"`
-	NamespacePath *string          `json:"namespacePath"`
-	Key           string           `json:"key"`
-	Category      VariableCategory `json:"category"`
+	Value              *string          `json:"value"`
+	NamespacePath      *string          `json:"namespacePath"`
+	Key                string           `json:"key"`
+	Category           VariableCategory `json:"category"`
+	IncludedInTFConfig *bool            `json:"includedInTfConfig"`
+}
+
+// SetVariablesIncludedInTFConfigInput is the input for setting
+// variables that are included in the Terraform config.
+type SetVariablesIncludedInTFConfigInput struct {
+	RunID        string   `json:"runId"`
+	VariableKeys []string `json:"variableKeys"`
 }
 
 // GetRunInput is the input to specify a single run to fetch.
