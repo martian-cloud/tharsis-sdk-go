@@ -384,6 +384,153 @@ func TestUpdateWorkspace(t *testing.T) {
 	}
 }
 
+func TestDestroyWorkspace(t *testing.T) {
+	now := time.Now().UTC()
+
+	runID := "run-id-1"
+	workspaceFullPath := "parent-group-1/workspace-name-1"
+
+	type graphqlDestroyWorkspaceMutation struct {
+		Run      graphQLRun                   `json:"run"`
+		Problems []fakeGraphqlResponseProblem `json:"problems"`
+	}
+
+	type graphqlDestroyWorkspacePayload struct {
+		DestroyWorkspace graphqlDestroyWorkspaceMutation `json:"destroyWorkspace"`
+	}
+
+	// test cases
+	type testCase struct {
+		responsePayload interface{}
+		input           *types.DestroyWorkspaceInput
+		expectRun       *types.Run
+		name            string
+		expectErrorCode types.ErrorCode
+	}
+
+	testCases := []testCase{
+		{
+			name: "Successfully destroy workspace by path",
+			input: &types.DestroyWorkspaceInput{
+				WorkspacePath: &workspaceFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlDestroyWorkspacePayload{
+					DestroyWorkspace: graphqlDestroyWorkspaceMutation{
+						Run: graphQLRun{
+							ID: graphql.String(runID),
+							Metadata: internal.GraphQLMetadata{
+								CreatedAt: &now,
+								UpdatedAt: &now,
+							},
+							IsDestroy:     true,
+							ModuleSource:  graphql.NewString("testmodule"),
+							ModuleVersion: graphql.NewString("1.0.0"),
+							Plan: graphQLPlan{
+								ID: "plan1",
+								CurrentJob: graphQLJob{
+									ID: "job1",
+								},
+							},
+							Apply: &graphQLApply{
+								ID: "apply1",
+							},
+						},
+					},
+				},
+			},
+			expectRun: &types.Run{
+				Metadata: types.ResourceMetadata{
+					ID:                   runID,
+					CreationTimestamp:    &now,
+					LastUpdatedTimestamp: &now,
+				},
+				IsDestroy:     true,
+				ModuleSource:  ptr.String("testmodule"),
+				ModuleVersion: ptr.String("1.0.0"),
+				Plan: &types.Plan{
+					Metadata: types.ResourceMetadata{
+						ID: "plan1",
+					},
+					CurrentJobID: ptr.String("job1"),
+				},
+				Apply: &types.Apply{
+					Metadata: types.ResourceMetadata{
+						ID: "apply1",
+					},
+				},
+			},
+		},
+		{
+			name: "verify that correct error is returned",
+			input: &types.DestroyWorkspaceInput{
+				WorkspacePath: &workspaceFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlDestroyWorkspacePayload{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "an error occurred",
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "INTERNAL_SERVER_ERROR",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrInternal,
+		},
+		{
+			name: "returns nil run if the workspace doesn't exist",
+			input: &types.DestroyWorkspaceInput{
+				WorkspacePath: &workspaceFullPath,
+			},
+			responsePayload: fakeGraphqlResponsePayload{
+				Data: graphqlDestroyWorkspacePayload{},
+				Errors: []fakeGraphqlResponseError{
+					{
+						Message: "workspace not found",
+						Extensions: fakeGraphqlResponseErrorExtension{
+							Code: "NOT_FOUND",
+						},
+					},
+				},
+			},
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payload, err := json.Marshal(&test.responsePayload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Prepare to replace the http.transport that is used by the http client that is passed to the GraphQL client.
+			client := &Client{
+				graphqlClient: newGraphQLClientForTest(testClientInput{
+					statusToReturn:  http.StatusOK,
+					payloadToReturn: string(payload),
+				}),
+			}
+			client.Workspaces = NewWorkspaces(client)
+
+			// Call the method being tested.
+			actualRun, actualError := client.Workspaces.DestroyWorkspace(ctx, test.input)
+
+			checkError(t, test.expectErrorCode, actualError)
+			if test.expectRun != nil {
+				require.NotNil(t, actualRun)
+				assert.Equal(t, test.expectRun, actualRun)
+			} else {
+				assert.Nil(t, actualRun)
+			}
+		})
+	}
+}
+
 // Utility functions:
 
 func checkWorkspace(t *testing.T, expectWorkspace, actualWorkspace *types.Workspace) {

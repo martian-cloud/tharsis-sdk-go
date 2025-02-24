@@ -18,6 +18,7 @@ type Workspaces interface {
 	CreateWorkspace(ctx context.Context, workspace *types.CreateWorkspaceInput) (*types.Workspace, error)
 	UpdateWorkspace(ctx context.Context, workspace *types.UpdateWorkspaceInput) (*types.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspace *types.DeleteWorkspaceInput) error
+	DestroyWorkspace(ctx context.Context, workspace *types.DestroyWorkspaceInput) (*types.Run, error)
 	GetAssignedManagedIdentities(ctx context.Context, input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error)
 }
 
@@ -213,6 +214,31 @@ func (ws *workspaces) DeleteWorkspace(ctx context.Context,
 	}
 
 	return errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteWorkspace.Problems)
+}
+
+func (ws *workspaces) DestroyWorkspace(ctx context.Context, input *types.DestroyWorkspaceInput) (*types.Run, error) {
+	var wrappedDestroy struct {
+		DestroyWorkspace struct {
+			Problems []internal.GraphQLProblem
+			Run      graphQLRun
+		} `graphql:"destroyWorkspace(input: $input)"`
+	}
+
+	variables := map[string]interface{}{
+		"input": *input,
+	}
+
+	err := ws.client.graphqlClient.Mutate(ctx, true, &wrappedDestroy, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = errors.ErrorFromGraphqlProblems(wrappedDestroy.DestroyWorkspace.Problems); err != nil {
+		return nil, err
+	}
+
+	run := runFromGraphQL(wrappedDestroy.DestroyWorkspace.Run)
+	return &run, nil
 }
 
 func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,

@@ -98,3 +98,8 @@ type DeleteWorkspaceInput struct {
 	WorkspacePath *string `json:"workspacePath"`
 	ID            *string `json:"id"`
 }
+
+// DestroyWorkspaceInput is the input for destroying a workspace.
+type DestroyWorkspaceInput struct {
+	WorkspacePath *string `json:"workspacePath"`
+}
