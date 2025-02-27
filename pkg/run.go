@@ -16,7 +16,7 @@ import (
 type Run interface {
 	GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run, error)
 	GetRuns(ctx context.Context, input *types.GetRunsInput) (*types.GetRunsOutput, error)
-	GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]types.RunVariable, error)
+	GetRunVariables(ctx context.Context, input *types.GetRunVariablesInput) ([]types.RunVariable, error)
 	SetVariablesIncludedInTFConfig(ctx context.Context, input *types.SetVariablesIncludedInTFConfigInput) error
 	GetRunPaginator(ctx context.Context, input *types.GetRunsInput) (*RunPaginator, error)
 	CreateRun(ctx context.Context, input *types.CreateRunInput) (*types.Run, error)
@@ -86,15 +86,55 @@ func (r *run) GetRuns(ctx context.Context,
 }
 
 // GetRunVariables returns a list of run variables.
-func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]types.RunVariable, error) {
+func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunVariablesInput) ([]types.RunVariable, error) {
+	variables := map[string]interface{}{
+		"id": graphql.String(input.RunID),
+	}
+
+	if input.IncludeSensitiveValues {
+		var target struct {
+			Run struct {
+				Variables               []graphQLRunVariable
+				SensitiveVariableValues []graphQLRunVariableSensitiveValue
+			} `graphql:"run(id: $id)"`
+		}
+
+		// Query for variables.
+		err := r.client.graphqlClient.Query(ctx, true, &target, variables)
+		if err != nil {
+			return nil, err
+		}
+		if len(target.Run.Variables) == 0 {
+			return nil, nil
+		}
+
+		// Build map of sensitive variable values
+		sensitiveValues := make(map[string]string)
+		for _, v := range target.Run.SensitiveVariableValues {
+			sensitiveValues[string(v.VersionID)] = string(v.Value)
+		}
+
+		// Convert and repackage the type-specific results.
+		variablesResult := make([]types.RunVariable, len(target.Run.Variables))
+		for ix, varCustom := range target.Run.Variables {
+			runVariable := runVariableFromGraphQL(varCustom)
+			if runVariable.Sensitive {
+				if value, ok := sensitiveValues[*runVariable.VersionID]; ok {
+					runVariable.Value = &value
+				} else {
+					return nil, errors.NewError(types.ErrNotFound, "sensitive value for variable %s not found", runVariable.Key)
+				}
+			}
+			variablesResult[ix] = runVariable
+		}
+
+		return variablesResult, nil
+	}
+
 	var target struct {
 		Run struct {
 			Variables []graphQLRunVariable
 		} `graphql:"run(id: $id)"`
-	}
-
-	variables := map[string]interface{}{
-		"id": graphql.String(input.ID),
 	}
 
 	// Query for variables.
@@ -111,6 +151,7 @@ func (r *run) GetRunVariables(ctx context.Context, input *types.GetRunInput) ([]
 	for ix, varCustom := range target.Run.Variables {
 		variablesResult[ix] = runVariableFromGraphQL(varCustom)
 	}
+
 	return variablesResult, nil
 }
 
@@ -436,11 +477,19 @@ type graphQLRun struct {
 }
 
 type graphQLRunVariable struct {
-	Value              *string
-	NamespacePath      *string
-	Key                string
-	Category           string
+	Value              *graphql.String
+	NamespacePath      *graphql.String
+	Key                graphql.String
+	Category           graphql.String
+	Hcl                graphql.Boolean
+	Sensitive          graphql.Boolean
+	VersionID          *graphql.String
 	IncludedInTFConfig *bool
+}
+
+type graphQLRunVariableSensitiveValue struct {
+	VersionID graphql.String
+	Value     graphql.String
 }
 
 // runFromGraphQL converts a GraphQL Run to an external Run.
@@ -491,10 +540,12 @@ func runFromGraphQL(g graphQLRun) types.Run {
 // runVariableFromGraphQL
 func runVariableFromGraphQL(v graphQLRunVariable) types.RunVariable {
 	result := types.RunVariable{
-		Key:                v.Key,
-		Value:              v.Value,
+		Key:                string(v.Key),
+		Value:              (*string)(v.Value),
 		Category:           types.VariableCategory(v.Category),
-		NamespacePath:      v.NamespacePath,
+		NamespacePath:      (*string)(v.NamespacePath),
+		Sensitive:          bool(v.Sensitive),
+		VersionID:          (*string)(v.VersionID),
 		IncludedInTFConfig: v.IncludedInTFConfig,
 	}
 	return result

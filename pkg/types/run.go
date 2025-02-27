@@ -94,6 +94,9 @@ type RunVariable struct {
 	NamespacePath      *string          `json:"namespacePath"`
 	Key                string           `json:"key"`
 	Category           VariableCategory `json:"category"`
+	HCL                bool             `json:"hcl"`
+	Sensitive          bool             `json:"sensitive"`
+	VersionID          *string          `json:"versionId"`
 	IncludedInTFConfig *bool            `json:"includedInTfConfig"`
 }
 
@@ -107,6 +110,12 @@ type SetVariablesIncludedInTFConfigInput struct {
 // GetRunInput is the input to specify a single run to fetch.
 type GetRunInput struct {
 	ID string
+}
+
+// GetRunVariablesInput is the input for getting run variables
+type GetRunVariablesInput struct {
+	RunID                  string
+	IncludeSensitiveValues bool
 }
 
 // RunSubscriptionInput is the input for subscribing to run events.
