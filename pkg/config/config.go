@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -17,6 +18,7 @@ type Config struct {
 	Logger        *log.Logger
 	TokenProvider auth.TokenProvider
 	Endpoint      string
+	HTTPClient   *http.Client
 }
 
 // Validate validates a config.

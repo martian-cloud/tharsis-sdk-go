@@ -55,6 +55,7 @@ type Client struct {
 	Team                            Team
 	NamespaceMembership             NamespaceMembership
 	User                            User
+	FederatedRegistry               FederatedRegistry
 }
 
 // NewClient returns a TharsisClient.
@@ -66,18 +67,21 @@ func NewClient(cfg *config.Config) (*Client, error) {
 
 	graphQLEndpoint.Path = path.Join(graphQLEndpoint.Path, graphQLSuffix)
 
-	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
-	retryClient.RequestLogHook = func(_ retryablehttp.Logger, r *http.Request, i int) {
-		if i > 0 {
-			cfg.Logger.Printf("%s %s failed. Retry attempt %d", r.Method, r.URL, i)
+	httpClient := cfg.HTTPClient
+	if httpClient == nil {
+		retryClient := retryablehttp.NewClient()
+		retryClient.RetryMax = 3
+		retryClient.RequestLogHook = func(_ retryablehttp.Logger, r *http.Request, i int) {
+			if i > 0 {
+				cfg.Logger.Printf("%s %s failed. Retry attempt %d", r.Method, r.URL, i)
+			}
 		}
-	}
-	retryClient.Logger = nil
-	retryClient.RetryWaitMin = 10 * time.Second
-	retryClient.RetryWaitMax = 60 * time.Second
+		retryClient.Logger = nil
+		retryClient.RetryWaitMin = 10 * time.Second
+		retryClient.RetryWaitMax = 60 * time.Second
 
-	httpClient := retryClient.StandardClient()
+		httpClient = retryClient.StandardClient()
+	}
 
 	wrappedGraphqlClient := newGraphqlClientWrapper(graphQLEndpoint.String(), httpClient, cfg.TokenProvider, cfg.Logger)
 
@@ -129,6 +133,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.Team = NewTeam(client)
 	client.NamespaceMembership = NewNamespaceMembership(client)
 	client.User = NewUser(client)
+	client.FederatedRegistry = NewFederatedRegistry(client)
 
 	return client, nil
 }

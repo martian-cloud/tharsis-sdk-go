@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"net/http"
 
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/auth"
 )
@@ -11,6 +12,7 @@ type LoadOptions struct {
 	Logger        *log.Logger
 	TokenProvider auth.TokenProvider
 	Endpoint      string
+	HTTPClient    *http.Client
 }
 
 // LoadOptionsFunc is a type alias for the type of function that adds a load option.
@@ -36,6 +38,14 @@ func WithTokenProvider(v auth.TokenProvider) LoadOptionsFunc {
 func WithEndpoint(endpoint string) LoadOptionsFunc {
 	return func(o *LoadOptions) error {
 		o.Endpoint = endpoint
+		return nil
+	}
+}
+
+// WithHTTPClient overrides the default HTTP client used by the SDK
+func WithHTTPClient(client *http.Client) LoadOptionsFunc {
+	return func(o *LoadOptions) error {
+		o.HTTPClient = client
 		return nil
 	}
 }
