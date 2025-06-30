@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -183,7 +184,7 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// Check for GraphQL errors in the response (even if the status code is 'ok').
 	if len(gotRespBody.Errors) > 0 {
-		return fmt.Errorf("errors in response body: %#v", gotRespBody.Errors)
+		return formatGraphQLErrors(gotRespBody.Errors)
 	}
 
 	// Must check for GraphQL problems in the response.
@@ -226,4 +227,77 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 	p.token.mutex.Unlock()
 
 	return nil
+}
+
+// formatGraphQLErrors formats GraphQL errors in a user-friendly way
+func formatGraphQLErrors(errors []struct {
+	Message    string `json:"message"`
+	Extensions struct {
+		Code string `json:"code"`
+	} `json:"extensions"`
+	Path []string `json:"path"`
+}) error {
+	if len(errors) == 0 {
+		return fmt.Errorf("unknown GraphQL error")
+	}
+
+	// For service account errors, provide user-friendly messages
+	firstError := errors[0]
+	message := firstError.Message
+	code := firstError.Extensions.Code
+
+	// Create a user-friendly error message
+	var userMessage string
+	if code == "UNAUTHENTICATED" {
+		if containsServiceAccountError(message) {
+			userMessage = formatServiceAccountError(message)
+		} else {
+			userMessage = "Authentication failed. Please check your credentials."
+		}
+	} else {
+		userMessage = message
+	}
+
+	// If there are multiple errors, mention that
+	if len(errors) > 1 {
+		return fmt.Errorf("%s (and %d other error(s))", userMessage, len(errors)-1)
+	}
+
+	return fmt.Errorf("%s", userMessage)
+}
+
+// containsServiceAccountError checks if the error message is related to service account issues
+func containsServiceAccountError(message string) bool {
+	serviceAccountKeywords := []string{
+		"service account",
+		"JWT token",
+		"issuer for the token",
+		"Failed to create service account token",
+	}
+	
+	for _, keyword := range serviceAccountKeywords {
+		if strings.Contains(message, keyword) {
+			return true
+		}
+	}
+	return false
+}
+
+// formatServiceAccountError provides user-friendly formatting for service account errors
+func formatServiceAccountError(message string) string {
+	if strings.Contains(message, "service account does not exist") {
+		return "Service account not found. Please verify the service account path is correct."
+	}
+	if strings.Contains(message, "JWT token used as input is invalid") {
+		return "Invalid JWT token provided. Please check your OIDC token is valid and properly formatted."
+	}
+	if strings.Contains(message, "issuer for the token is not a valid issuer") {
+		return "JWT token issuer not recognized. Please ensure your identity provider is properly configured in the service account's trust policy."
+	}
+	if strings.Contains(message, "Failed to create service account token") {
+		return "Unable to create service account token. Please verify: 1) the service account exists, 2) your JWT token is valid, and 3) the token issuer is trusted."
+	}
+	
+	// Fallback to original message if no specific pattern matches
+	return message
 }

@@ -108,7 +108,7 @@ func (g *graphqlClientWrapper) getClient(withAuth bool) (*graphql.Client, error)
 			func(req *http.Request) {
 				authToken, gtErr := g.tokenProvider.GetToken()
 				if gtErr != nil {
-					g.logger.Printf("failed to get authentication token %v", gtErr)
+					g.logger.Printf("failed to get authentication token: %s", gtErr.Error())
 					return
 				}
 				req.Header.Set("Authorization", "Bearer "+authToken)
