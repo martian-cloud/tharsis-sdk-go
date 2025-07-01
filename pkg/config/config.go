@@ -18,7 +18,7 @@ type Config struct {
 	Logger        *log.Logger
 	TokenProvider auth.TokenProvider
 	Endpoint      string
-	HTTPClient   *http.Client
+	HTTPClient    *http.Client
 }
 
 // Validate validates a config.

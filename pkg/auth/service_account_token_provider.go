@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -183,7 +184,11 @@ func (p *serviceAccountTokenProvider) renewToken() error {
 
 	// Check for GraphQL errors in the response (even if the status code is 'ok').
 	if len(gotRespBody.Errors) > 0 {
-		return fmt.Errorf("errors in response body: %#v", gotRespBody.Errors)
+		var errMsgs []string
+		for _, err := range gotRespBody.Errors {
+			errMsgs = append(errMsgs, err.Message)
+		}
+		return fmt.Errorf("errors in response body: %s", strings.Join(errMsgs, "; "))
 	}
 
 	// Must check for GraphQL problems in the response.
