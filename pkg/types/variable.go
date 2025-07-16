@@ -13,10 +13,10 @@ const (
 type NamespaceVariable struct {
 	Value         *string
 	Metadata      ResourceMetadata
-	ID            string
 	NamespacePath string
 	Category      VariableCategory
 	Key           string
+	Sensitive     bool
 }
 
 // CreateNamespaceVariableInput is the input for creating a namespace variable.
@@ -25,12 +25,14 @@ type CreateNamespaceVariableInput struct {
 	Category      VariableCategory `json:"category"`
 	Key           string           `json:"key"`
 	Value         string           `json:"value"` // The value is required, not optional.
+	Sensitive     bool             `json:"sensitive"`
 }
 
 // SetNamespaceVariablesVariable is the input for setting ALL variables in a namespace.
 type SetNamespaceVariablesVariable struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key       string `json:"key"`
+	Value     string `json:"value"`
+	Sensitive bool   `json:"sensitive"`
 }
 
 // UpdateNamespaceVariableInput is the input for updating a namespace variable.
