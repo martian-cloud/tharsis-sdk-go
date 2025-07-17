@@ -195,6 +195,7 @@ type graphQLNamespaceVariable struct {
 	NamespacePath graphql.String
 	Key           graphql.String
 	Category      graphql.String
+	Sensitive     graphql.Boolean
 }
 
 // variableFromGraphQLNamespace finds the specified variable in the namespace object
@@ -221,5 +222,6 @@ func variableFromGraphQL(v graphQLNamespaceVariable) types.NamespaceVariable {
 		Value:         (*string)(v.Value),
 		Category:      types.VariableCategory(v.Category),
 		NamespacePath: string(v.NamespacePath),
+		Sensitive:     bool(v.Sensitive),
 	}
 }
