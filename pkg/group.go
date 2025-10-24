@@ -33,26 +33,32 @@ func NewGroup(client *Client) Group {
 // GetGroup returns everything about the group _EXCEPT_ the subgroups/descendentGroups and workspaces.
 // There are separate calls to get each of those.
 func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*types.Group, error) {
+	// Validate and resolve identifiers
+	resolvedPath, resolvedID, err := types.ValidateInputIdentifiers(input.ID, input.Path, input.TRN, "group")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
 	switch {
-	case input.Path != nil:
-		// Group query by path.
+	case resolvedPath != nil:
+		// Group query by path (including TRN-resolved path).
 
 		var target struct {
 			Group *graphQLGroup `graphql:"group(fullPath: $fullPath)"`
 		}
-		variables := map[string]interface{}{"fullPath": graphql.String(*input.Path)}
+		variables := map[string]interface{}{"fullPath": graphql.String(*resolvedPath)}
 
 		err := g.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
 		if target.Group == nil {
-			return nil, errors.NewError(types.ErrNotFound, "group with path %s not found", *input.Path)
+			return nil, errors.NewError(types.ErrNotFound, "group with path %s not found", *resolvedPath)
 		}
 
 		result := groupFromGraphQL(*target.Group)
 		return &result, nil
-	case input.ID != nil:
+	case resolvedID != nil:
 		// Node query by ID.
 
 		var target struct {
@@ -60,20 +66,20 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 				Group graphQLGroup `graphql:"...on Group"`
 			} `graphql:"node(id: $id)"`
 		}
-		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+		variables := map[string]interface{}{"id": graphql.String(*resolvedID)}
 
 		err := g.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
 			return nil, err
 		}
 		if target.Node == nil {
-			return nil, errors.NewError(types.ErrNotFound, "group with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "group with id %s not found", *resolvedID)
 		}
 
 		result := groupFromGraphQL(target.Node.Group)
 		return &result, nil
 	default:
-		return nil, errors.NewError(types.ErrBadRequest, "must specify path or ID when calling GetGroup")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify path, ID, or TRN when calling GetGroup")
 	}
 }
 

@@ -109,7 +109,8 @@ type SetVariablesIncludedInTFConfigInput struct {
 
 // GetRunInput is the input to specify a single run to fetch.
 type GetRunInput struct {
-	ID string
+	ID  string  `json:"id"`
+	TRN *string `json:"trn"`
 }
 
 // GetRunVariablesInput is the input for getting run variables

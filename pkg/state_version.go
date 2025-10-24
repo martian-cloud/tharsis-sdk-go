@@ -32,15 +32,21 @@ func NewStateVersion(client *Client) StateVersion {
 
 // GetStateVersion returns a state version.
 func (s *stateVersion) GetStateVersion(ctx context.Context, input *types.GetStateVersionInput) (*types.StateVersion, error) {
+	// Validate and resolve ID or TRN
+	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "state_version")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
 	var target struct {
 		Node *struct {
 			StateVersion GraphQLStateVersion `graphql:"...on StateVersion"`
 		} `graphql:"node(id: $id)"`
 	}
 
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
 
-	err := s.client.graphqlClient.Query(ctx, true, &target, variables)
+	err = s.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}

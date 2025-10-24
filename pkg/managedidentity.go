@@ -89,8 +89,14 @@ func (m *managedIdentity) CreateManagedIdentity(ctx context.Context,
 func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 	input *types.GetManagedIdentityInput) (*types.ManagedIdentity, error) {
 
+	// Validate and resolve identifiers
+	resolvedPath, resolvedID, err := types.ValidateInputIdentifiers(input.ID, input.Path, input.TRN, "managed_identity")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
 	switch {
-	case input.ID != nil:
+	case resolvedID != nil:
 
 		var targetID struct {
 			Node *struct {
@@ -98,7 +104,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 			} `graphql:"node(id: $id)"`
 		}
 
-		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
+		variables := map[string]interface{}{"id": graphql.String(*resolvedID)}
 
 		err := m.client.graphqlClient.Query(ctx, true, &targetID, variables)
 		if err != nil {
@@ -106,31 +112,31 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 		}
 
 		if targetID.Node == nil {
-			return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", *input.ID)
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with id %s not found", *resolvedID)
 		}
 
 		identity := identityFromGraphQL(targetID.Node.ManagedIdentity)
 
 		return &identity, nil
-	case input.Path != nil:
+	case resolvedPath != nil:
 
 		var targetPath struct {
 			ManagedIdentity *GraphQLManagedIdentity `graphql:"managedIdentity(path: $path)"`
 		}
-		variables := map[string]interface{}{"path": graphql.String(*input.Path)}
+		variables := map[string]interface{}{"path": graphql.String(*resolvedPath)}
 		err := m.client.graphqlClient.Query(ctx, true, &targetPath, variables)
 		if err != nil {
 			return nil, err
 		}
 
 		if targetPath.ManagedIdentity == nil {
-			return nil, errors.NewError(types.ErrNotFound, "managed identity with path %s not found", *input.Path)
+			return nil, errors.NewError(types.ErrNotFound, "managed identity with path %s not found", *resolvedPath)
 		}
 
 		identity := identityFromGraphQL(*targetPath.ManagedIdentity)
 		return &identity, nil
 	default:
-		return nil, errors.NewError(types.ErrNotFound, "GetManagedIdentity requires either ID or path to be set")
+		return nil, errors.NewError(types.ErrBadRequest, "GetManagedIdentity requires either ID, path, or TRN to be set")
 	}
 }
 

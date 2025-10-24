@@ -28,20 +28,26 @@ func NewVCSProvider(client *Client) VCSProvider {
 
 func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProviderInput) (*types.VCSProvider, error) {
 
-	// Node query by ID.
+	// Validate and resolve ID or TRN
+	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "vcs_provider")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
+	// Node query by ID or TRN.
 	var target struct {
 		Node *struct {
 			VCSProvider graphQLVCSProvider `graphql:"...on VCSProvider"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
 
-	err := vp.client.graphqlClient.Query(ctx, true, &target, variables)
+	err = vp.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "VCS provider with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "VCS provider with id %s not found", resolvedID)
 	}
 
 	gotVCSProvider := vcsProviderFromGraphQL(target.Node.VCSProvider)

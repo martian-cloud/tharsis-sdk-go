@@ -25,7 +25,8 @@ type VCSProvider struct {
 
 // GetVCSProviderInput is the input for retrieving a VCS provider.
 type GetVCSProviderInput struct {
-	ID string `json:"id"`
+	ID  string  `json:"id"`
+	TRN *string `json:"trn"`
 }
 
 // CreateVCSProviderInput is the input to create a VCS Provider.

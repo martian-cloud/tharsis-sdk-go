@@ -28,19 +28,25 @@ func NewTerraformProvider(client *Client) TerraformProvider {
 
 // GetTerraformProvider returns a provider
 func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformProviderInput) (*types.TerraformProvider, error) {
+	// Validate and resolve ID or TRN
+	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "terraform_provider")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
 	var target struct {
 		Node *struct {
 			Provider graphQLTerraformProvider `graphql:"...on TerraformProvider"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
 
-	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
+	err = p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "terraform provider with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "terraform provider with id %s not found", resolvedID)
 	}
 
 	result := providerFromGraphQL(target.Node.Provider)

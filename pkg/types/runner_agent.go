@@ -24,7 +24,8 @@ type RunnerAgent struct {
 
 // GetRunnerInput is the input for retrieving a runner agent
 type GetRunnerInput struct {
-	ID string `json:"id"`
+	ID  string  `json:"id"`
+	TRN *string `json:"trn"`
 }
 
 // CreateRunnerInput is the input for creating a runner agent

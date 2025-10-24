@@ -78,19 +78,25 @@ func (m *variable) CreateVariable(ctx context.Context,
 func (m *variable) GetVariable(ctx context.Context,
 	input *types.GetNamespaceVariableInput) (*types.NamespaceVariable, error) {
 
+	// Validate and resolve ID or TRN
+	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "variable")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	}
+
 	var target struct {
 		Node *struct {
 			NamespaceVariable graphQLNamespaceVariable `graphql:"...on NamespaceVariable"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
+	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
 
-	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
+	err = m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "variable with id %s not found", input.ID)
+		return nil, errors.NewError(types.ErrNotFound, "variable with id %s not found", resolvedID)
 	}
 
 	result := variableFromGraphQL(target.Node.NamespaceVariable)

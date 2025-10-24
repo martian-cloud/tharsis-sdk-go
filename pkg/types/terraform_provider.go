@@ -13,7 +13,8 @@ type TerraformProvider struct {
 
 // GetTerraformProviderInput is the input to specify a single provider to fetch.
 type GetTerraformProviderInput struct {
-	ID string `json:"id"`
+	ID  string  `json:"id"`
+	TRN *string `json:"trn"`
 }
 
 // CreateTerraformProviderInput is the input for creating a new provider.

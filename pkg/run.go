@@ -36,22 +36,31 @@ func NewRun(client *Client) Run {
 
 // GetRun returns everything about the run.
 func (r *run) GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run, error) {
-	var target struct {
-		Run *graphQLRun `graphql:"run(id: $id)"`
-	}
-	variables := map[string]interface{}{
-		"id": graphql.String(input.ID),
+	// Validate and resolve ID or TRN
+	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "run")
+	if err != nil {
+		return nil, errors.NewError(types.ErrBadRequest, err.Error())
 	}
 
-	err := r.client.graphqlClient.Query(ctx, true, &target, variables)
+	// Use node query for both ID and TRN (since API supports TRN in node query)
+	var target struct {
+		Node *struct {
+			Run graphQLRun `graphql:"...on Run"`
+		} `graphql:"node(id: $id)"`
+	}
+	variables := map[string]interface{}{
+		"id": graphql.String(resolvedID),
+	}
+
+	err = r.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
-	if target.Run == nil {
-		return nil, errors.NewError(types.ErrNotFound, "run with id %s not found", input.ID)
+	if target.Node == nil {
+		return nil, errors.NewError(types.ErrNotFound, "run with id %s not found", resolvedID)
 	}
 
-	result := runFromGraphQL(*target.Run)
+	result := runFromGraphQL(target.Node.Run)
 	return &result, nil
 }
 

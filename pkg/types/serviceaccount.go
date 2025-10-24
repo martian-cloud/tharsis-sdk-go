@@ -29,7 +29,8 @@ type CreateServiceAccountInput struct {
 // GetServiceAccountInput is the input for retrieving
 // a service account.
 type GetServiceAccountInput struct {
-	ID string `json:"id"`
+	ID  string  `json:"id"`
+	TRN *string `json:"trn"`
 }
 
 // UpdateServiceAccountInput is the input for updating a service account.
