@@ -86,11 +86,9 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 		return nil, errors.NewError(types.ErrBadRequest, err.Error())
 	}
 
-	// Use node query for both ID and TRN (since API supports TRN in node query)
+	// Use serviceAccount query (supports both ID and TRN)
 	var target struct {
-		Node *struct {
-			ServiceAccount graphQLServiceAccount `graphql:"...on ServiceAccount"`
-		} `graphql:"node(id: $id)"`
+		ServiceAccount *graphQLServiceAccount `graphql:"serviceAccount(id: $id)"`
 	}
 
 	variables := map[string]interface{}{
@@ -102,11 +100,11 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if target.Node == nil {
+	if target.ServiceAccount == nil {
 		return nil, errors.NewError(types.ErrNotFound, "service account with id %s not found", resolvedID)
 	}
 
-	serviceAccount := serviceAccountFromGraphQL(target.Node.ServiceAccount)
+	serviceAccount := serviceAccountFromGraphQL(*target.ServiceAccount)
 	return &serviceAccount, nil
 }
 

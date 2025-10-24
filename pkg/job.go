@@ -56,9 +56,7 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 	}
 
 	var target struct {
-		Node *struct {
-			Job graphQLJob `graphql:"...on Job"`
-		} `graphql:"node(id: $id)"`
+		Job *graphQLJob `graphql:"job(id: $id)"`
 	}
 	variables := map[string]interface{}{
 		"id": graphql.String(resolvedID),
@@ -68,11 +66,12 @@ func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job,
 	if err != nil {
 		return nil, err
 	}
-	if target.Node == nil {
+
+	if target.Job == nil {
 		return nil, errors.NewError(types.ErrNotFound, "job with id %s not found", resolvedID)
 	}
 
-	result := jobFromGraphQL(target.Node.Job)
+	result := jobFromGraphQL(*target.Job)
 	return &result, nil
 }
 
