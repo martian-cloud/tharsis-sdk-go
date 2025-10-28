@@ -32,10 +32,8 @@ func NewStateVersion(client *Client) StateVersion {
 
 // GetStateVersion returns a state version.
 func (s *stateVersion) GetStateVersion(ctx context.Context, input *types.GetStateVersionInput) (*types.StateVersion, error) {
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "state_version")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetStateVersion")
 	}
 
 	var target struct {
@@ -44,9 +42,9 @@ func (s *stateVersion) GetStateVersion(ctx context.Context, input *types.GetStat
 		} `graphql:"node(id: $id)"`
 	}
 
-	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err = s.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := s.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +76,7 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
 		return nil, err
 	}
 

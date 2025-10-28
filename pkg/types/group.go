@@ -55,7 +55,6 @@ type Group struct {
 type GetGroupInput struct {
 	Path *string
 	ID   *string
-	TRN  *string
 }
 
 // CreateGroupInput is the input for creating a new group.

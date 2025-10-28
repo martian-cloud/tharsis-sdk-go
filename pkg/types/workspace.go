@@ -61,7 +61,6 @@ type Workspace struct {
 type GetWorkspaceInput struct {
 	Path *string
 	ID   *string
-	TRN  *string
 }
 
 // GetAssignedManagedIdentitiesInput is the input for retrieving
@@ -69,7 +68,6 @@ type GetWorkspaceInput struct {
 type GetAssignedManagedIdentitiesInput struct {
 	Path *string
 	ID   *string
-	TRN  *string
 }
 
 // CreateWorkspaceInput is the input for creating a new workspace.
@@ -83,7 +81,7 @@ type CreateWorkspaceInput struct {
 }
 
 // UpdateWorkspaceInput is the input for updating a workspace.
-// One (and only one) of ID, WorkspacePath, or TRN finds the workspace to update.
+// One (and only one) of ID or WorkspacePath finds the workspace to update.
 // The other fields are modified.
 type UpdateWorkspaceInput struct {
 	MaxJobDuration     *int32  `json:"maxJobDuration"`
@@ -91,7 +89,6 @@ type UpdateWorkspaceInput struct {
 	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
 	WorkspacePath      *string `json:"workspacePath"`
 	ID                 *string `json:"id"`
-	TRN                *string `json:"trn"`
 	Description        string  `json:"description"`
 }
 
@@ -100,7 +97,6 @@ type DeleteWorkspaceInput struct {
 	Force         *bool   `json:"force"`
 	WorkspacePath *string `json:"workspacePath"`
 	ID            *string `json:"id"`
-	TRN           *string `json:"trn"`
 }
 
 // DestroyWorkspaceInput is the input for destroying a workspace.

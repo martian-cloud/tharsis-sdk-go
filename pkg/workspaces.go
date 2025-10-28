@@ -32,21 +32,14 @@ func NewWorkspaces(client *Client) Workspaces {
 }
 
 func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspaceInput) (*types.Workspace, error) {
-	// Validate and resolve identifiers
-	resolvedPath, resolvedID, err := types.ValidateInputIdentifiers(input.ID, input.Path, input.TRN, "workspace")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
-	}
-
 	switch {
-	case resolvedPath != nil:
-		// Workspace query by path (including TRN-resolved path).
-
+	case input.Path != nil:
+		// Workspace query by path.
 		var target struct {
 			Workspace *graphQLWorkspace `graphql:"workspace(fullPath: $fullPath)"`
 		}
 		variables := map[string]interface{}{
-			"fullPath": graphql.String(*resolvedPath),
+			"fullPath": graphql.String(*input.Path),
 		}
 
 		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
@@ -54,20 +47,19 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 			return nil, err
 		}
 		if target.Workspace == nil {
-			return nil, errors.NewError(types.ErrNotFound, "workspace with path %s not found", *resolvedPath)
+			return nil, errors.NewError(types.ErrNotFound, "workspace with path %s not found", *input.Path)
 		}
 
 		return workspaceFromGraphQL(*target.Workspace)
-	case resolvedID != nil:
-		// Node query by ID.
-
+	case input.ID != nil:
+		// Node query by ID (supports both UUIDs and TRNs).
 		var target struct {
 			Node *struct {
 				Workspace graphQLWorkspace `graphql:"...on Workspace"`
 			} `graphql:"node(id: $id)"`
 		}
 
-		variables := map[string]interface{}{"id": graphql.String(*resolvedID)}
+		variables := map[string]interface{}{"id": graphql.String(*input.ID)}
 
 		err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
 		if err != nil {
@@ -75,12 +67,12 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 		}
 
 		if target.Node == nil {
-			return nil, errors.NewError(types.ErrNotFound, "workspace with id %s not found", *resolvedID)
+			return nil, errors.NewError(types.ErrNotFound, "workspace with id %s not found", *input.ID)
 		}
 
 		return workspaceFromGraphQL(target.Node.Workspace)
 	default:
-		return nil, errors.NewError(types.ErrBadRequest, "must specify path, ID, or TRN when calling GetWorkspace")
+		return nil, errors.NewError(types.ErrBadRequest, "must specify path or ID when calling GetWorkspace")
 	}
 }
 

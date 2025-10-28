@@ -45,7 +45,6 @@ type UpdateNamespaceVariableInput struct {
 // GetNamespaceVariableInput is the input for retrieving a namespace variable.
 type GetNamespaceVariableInput struct {
 	ID  string  `json:"id"`
-	TRN *string `json:"trn"`
 }
 
 // DeleteNamespaceVariableInput is the input for deleting a namespace variable.

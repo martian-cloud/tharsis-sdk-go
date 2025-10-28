@@ -36,26 +36,24 @@ func NewRun(client *Client) Run {
 
 // GetRun returns everything about the run.
 func (r *run) GetRun(ctx context.Context, input *types.GetRunInput) (*types.Run, error) {
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "run")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetRun")
 	}
 
 	var target struct {
 		Run *graphQLRun `graphql:"run(id: $id)"`
 	}
 	variables := map[string]interface{}{
-		"id": graphql.String(resolvedID),
+		"id": graphql.String(input.ID),
 	}
 
-	err = r.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := r.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 
 	if target.Run == nil {
-		return nil, errors.NewError(types.ErrNotFound, "run with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "run with id %s not found", input.ID)
 	}
 
 	result := runFromGraphQL(*target.Run)

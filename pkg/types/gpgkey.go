@@ -15,7 +15,6 @@ type GPGKey struct {
 // GetGPGKeyInput is the input to specify a single GPG key to fetch.
 type GetGPGKeyInput struct {
 	ID  string  `json:"id"`
-	TRN *string `json:"trn"`
 }
 
 // CreateGPGKeyInput is the input for creating a new GPG key.

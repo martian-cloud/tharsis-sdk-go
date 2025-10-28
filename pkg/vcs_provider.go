@@ -28,10 +28,8 @@ func NewVCSProvider(client *Client) VCSProvider {
 
 func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProviderInput) (*types.VCSProvider, error) {
 
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "vcs_provider")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetVCSProvider")
 	}
 
 	// Node query by ID or TRN.
@@ -40,14 +38,14 @@ func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProvi
 			VCSProvider graphQLVCSProvider `graphql:"...on VCSProvider"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err = vp.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := vp.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "VCS provider with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "VCS provider with id %s not found", input.ID)
 	}
 
 	gotVCSProvider := vcsProviderFromGraphQL(target.Node.VCSProvider)
@@ -76,7 +74,7 @@ func (vp *vcsProvider) CreateProvider(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +103,7 @@ func (vp *vcsProvider) UpdateProvider(ctx context.Context, input *types.UpdateVC
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -131,7 +129,7 @@ func (vp *vcsProvider) DeleteProvider(ctx context.Context, input *types.DeleteVC
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 

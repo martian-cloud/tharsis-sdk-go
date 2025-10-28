@@ -28,26 +28,24 @@ func NewGPGKey(client *Client) GPGKey {
 // GetGPGKey returns everything about the GPG key.
 func (gk *gpgKey) GetGPGKey(ctx context.Context, input *types.GetGPGKeyInput) (*types.GPGKey, error) {
 
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "gpg_key")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetGPGKey")
 	}
 
-	// Node query by ID or TRN.
+	// Node query by ID (supports both UUIDs and TRNs).
 	var target struct {
 		Node *struct {
 			GPGKey graphQLGPGKey `graphql:"...on GPGKey"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err = gk.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := gk.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "GPG key with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "GPG key with id %s not found", input.ID)
 	}
 
 	gotKey := gpgKeyFromGraphQL(target.Node.GPGKey)

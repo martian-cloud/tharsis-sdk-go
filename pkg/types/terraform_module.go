@@ -55,7 +55,6 @@ type TerraformModule struct {
 type GetTerraformModuleInput struct {
 	ID   *string
 	Path *string
-	TRN  *string
 }
 
 // DeleteTerraformModuleInput is the input for deleting a terraform module

@@ -24,7 +24,6 @@ const (
 type GetManagedIdentityInput struct {
 	ID   *string `json:"id"`
 	Path *string `json:"path"`
-	TRN  *string `json:"trn"`
 }
 
 // ManagedIdentityAccessRuleModuleAttestationPolicy is used in access rules to verify that a

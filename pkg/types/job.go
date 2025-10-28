@@ -12,7 +12,6 @@ const (
 // GetJobInput is the input to specify a single job to fetch.
 type GetJobInput struct {
 	ID  string  `json:"id"`
-	TRN *string `json:"trn"`
 }
 
 // JobLogsSubscriptionInput is the input for subscribing to job logs.

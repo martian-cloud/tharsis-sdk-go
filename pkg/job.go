@@ -49,26 +49,24 @@ func NewJob(client *Client) Job {
 
 // GetJob returns everything about the job.
 func (j *job) GetJob(ctx context.Context, input *types.GetJobInput) (*types.Job, error) {
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "job")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetJob")
 	}
 
 	var target struct {
 		Job *graphQLJob `graphql:"job(id: $id)"`
 	}
 	variables := map[string]interface{}{
-		"id": graphql.String(resolvedID),
+		"id": graphql.String(input.ID),
 	}
 
-	err = j.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := j.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 
 	if target.Job == nil {
-		return nil, errors.NewError(types.ErrNotFound, "job with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "job with id %s not found", input.ID)
 	}
 
 	result := jobFromGraphQL(*target.Job)

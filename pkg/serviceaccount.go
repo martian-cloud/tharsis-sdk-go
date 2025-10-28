@@ -68,7 +68,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -80,10 +80,8 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 	input *types.GetServiceAccountInput) (*types.ServiceAccount, error) {
 
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "service_account")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetServiceAccount")
 	}
 
 	// Use serviceAccount query (supports both ID and TRN)
@@ -92,16 +90,16 @@ func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 	}
 
 	variables := map[string]interface{}{
-		"id": graphql.String(resolvedID),
+		"id": graphql.String(input.ID),
 	}
 
-	err = m.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 
 	if target.ServiceAccount == nil {
-		return nil, errors.NewError(types.ErrNotFound, "service account with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "service account with id %s not found", input.ID)
 	}
 
 	serviceAccount := serviceAccountFromGraphQL(*target.ServiceAccount)
@@ -138,7 +136,7 @@ func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -191,7 +189,7 @@ func (m *serviceAccount) CreateToken(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
 		return nil, err
 	}
 

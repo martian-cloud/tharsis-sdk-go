@@ -29,10 +29,8 @@ func NewRunnerAgent(client *Client) RunnerAgent {
 }
 
 func (r *runnerAgent) GetRunnerAgent(ctx context.Context, input *types.GetRunnerInput) (*types.RunnerAgent, error) {
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "runner")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetRunner")
 	}
 
 	var target struct {
@@ -41,14 +39,14 @@ func (r *runnerAgent) GetRunnerAgent(ctx context.Context, input *types.GetRunner
 		} `graphql:"node(id: $id)"`
 	}
 
-	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
 	if err := r.client.graphqlClient.Query(ctx, true, &target, variables); err != nil {
 		return nil, err
 	}
 
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "runner id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "runner id %s not found", input.ID)
 	}
 
 	return runnerAgentFromGraphQL(target.Node.Runner), nil

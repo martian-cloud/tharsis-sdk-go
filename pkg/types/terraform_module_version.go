@@ -53,7 +53,6 @@ type GetTerraformModuleVersionInput struct {
 	ID         *string
 	ModulePath *string
 	Version    *string
-	TRN        *string
 }
 
 // DeleteTerraformModuleVersionInput is the input to delete a terraform module version

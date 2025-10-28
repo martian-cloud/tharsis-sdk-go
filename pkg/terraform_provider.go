@@ -28,10 +28,8 @@ func NewTerraformProvider(client *Client) TerraformProvider {
 
 // GetTerraformProvider returns a provider
 func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformProviderInput) (*types.TerraformProvider, error) {
-	// Validate and resolve ID or TRN
-	resolvedID, err := types.ValidateIDOrTRN(input.ID, input.TRN, "terraform_provider")
-	if err != nil {
-		return nil, errors.NewError(types.ErrBadRequest, err.Error())
+	if input.ID == "" {
+		return nil, errors.NewError(types.ErrBadRequest, "must specify ID when calling GetTerraformProvider")
 	}
 
 	var target struct {
@@ -39,14 +37,14 @@ func (p *provider) GetProvider(ctx context.Context, input *types.GetTerraformPro
 			Provider graphQLTerraformProvider `graphql:"...on TerraformProvider"`
 		} `graphql:"node(id: $id)"`
 	}
-	variables := map[string]interface{}{"id": graphql.String(resolvedID)}
+	variables := map[string]interface{}{"id": graphql.String(input.ID)}
 
-	err = p.client.graphqlClient.Query(ctx, true, &target, variables)
+	err := p.client.graphqlClient.Query(ctx, true, &target, variables)
 	if err != nil {
 		return nil, err
 	}
 	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "terraform provider with id %s not found", resolvedID)
+		return nil, errors.NewError(types.ErrNotFound, "terraform provider with id %s not found", input.ID)
 	}
 
 	result := providerFromGraphQL(target.Node.Provider)
@@ -73,7 +71,7 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +97,7 @@ func (p *provider) UpdateProvider(ctx context.Context, input *types.UpdateTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -125,7 +123,7 @@ func (p *provider) DeleteProvider(ctx context.Context, input *types.DeleteTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
