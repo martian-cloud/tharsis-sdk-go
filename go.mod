@@ -1,6 +1,6 @@
 module gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go
 
-go 1.20
+go 1.24
 
 require (
 	github.com/aws/smithy-go v1.13.5

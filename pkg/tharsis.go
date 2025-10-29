@@ -15,8 +15,23 @@ import (
 )
 
 const (
-	graphQLSuffix = "graphql"
+	graphQLSuffix   = "graphql"
+	userAgentHeader = "User-Agent"
 )
+
+// userAgentTransport wraps an http.RoundTripper to add User-Agent header
+type userAgentTransport struct {
+	userAgent string
+	transport http.RoundTripper
+}
+
+// RoundTrip implements http.RoundTripper interface by adding User-Agent header to requests
+func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.userAgent != "" {
+		req.Header.Set(userAgentHeader, t.userAgent)
+	}
+	return t.transport.RoundTrip(req)
+}
 
 // Client provides access for the client/user to access the SDK functions.
 // Note: When adding a new field here, make sure to assign the field near the end of the NewClient function.
@@ -81,6 +96,18 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		retryClient.RetryWaitMax = 60 * time.Second
 
 		httpClient = retryClient.StandardClient()
+	}
+
+	// Add User-Agent header if specified
+	if cfg.UserAgent != "" {
+		originalTransport := httpClient.Transport
+		if originalTransport == nil {
+			originalTransport = http.DefaultTransport
+		}
+		httpClient.Transport = &userAgentTransport{
+			userAgent: cfg.UserAgent,
+			transport: originalTransport,
+		}
 	}
 
 	wrappedGraphqlClient := newGraphqlClientWrapper(graphQLEndpoint.String(), httpClient, cfg.TokenProvider, cfg.Logger)
