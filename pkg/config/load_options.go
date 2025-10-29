@@ -13,6 +13,7 @@ type LoadOptions struct {
 	TokenProvider auth.TokenProvider
 	Endpoint      string
 	HTTPClient    *http.Client
+	UserAgent     string
 }
 
 // LoadOptionsFunc is a type alias for the type of function that adds a load option.
@@ -46,6 +47,14 @@ func WithEndpoint(endpoint string) LoadOptionsFunc {
 func WithHTTPClient(client *http.Client) LoadOptionsFunc {
 	return func(o *LoadOptions) error {
 		o.HTTPClient = client
+		return nil
+	}
+}
+
+// WithUserAgent sets a custom user agent for HTTP requests
+func WithUserAgent(userAgent string) LoadOptionsFunc {
+	return func(o *LoadOptions) error {
+		o.UserAgent = userAgent
 		return nil
 	}
 }
