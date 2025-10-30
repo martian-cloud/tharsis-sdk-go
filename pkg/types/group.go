@@ -65,12 +65,11 @@ type CreateGroupInput struct {
 }
 
 // UpdateGroupInput is the input for updating a group.
-// One (and only one) of ID, GroupPath, or TRN finds the group to update.
+// One (and only one) of ID or GroupPath finds the group to update.
 // Description is modified.
 type UpdateGroupInput struct {
 	GroupPath   *string `json:"groupPath"`
 	ID          *string `json:"id"`
-	TRN         *string `json:"trn"`
 	Description string  `json:"description"`
 }
 
@@ -79,7 +78,6 @@ type DeleteGroupInput struct {
 	Force     *bool   `json:"force"`
 	GroupPath *string `json:"groupPath"`
 	ID        *string `json:"id"`
-	TRN       *string `json:"trn"`
 }
 
 // MigrateGroupInput is the input for migrating a group.
