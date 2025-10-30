@@ -19,6 +19,7 @@ type Config struct {
 	TokenProvider auth.TokenProvider
 	Endpoint      string
 	HTTPClient    *http.Client
+	UserAgent     string
 }
 
 // Validate validates a config.
