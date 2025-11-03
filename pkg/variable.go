@@ -61,7 +61,7 @@ func (m *variable) CreateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateNamespaceVariable.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateNamespaceVariable.Problems); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func (m *variable) UpdateVariable(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateNamespaceVariable.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateNamespaceVariable.Problems); err != nil {
 		return nil, err
 	}
 

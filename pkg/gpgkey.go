@@ -28,7 +28,7 @@ func NewGPGKey(client *Client) GPGKey {
 // GetGPGKey returns everything about the GPG key.
 func (gk *gpgKey) GetGPGKey(ctx context.Context, input *types.GetGPGKeyInput) (*types.GPGKey, error) {
 
-	// Node query by ID.
+	// Node query by ID (supports both UUIDs and TRNs).
 	var target struct {
 		Node *struct {
 			GPGKey graphQLGPGKey `graphql:"...on GPGKey"`

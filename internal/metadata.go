@@ -15,6 +15,7 @@ type GraphQLMetadata struct {
 	CreatedAt *time.Time     `json:"createdAt"`
 	UpdatedAt *time.Time     `json:"updatedAt"`
 	Version   graphql.String `json:"version"`
+	TRN       graphql.String `json:"trn"`
 }
 
 // MetadataFromGraphQL converts GraphQL Metadata to an external metadata.
@@ -24,6 +25,7 @@ func MetadataFromGraphQL(g GraphQLMetadata, ID graphql.String) types.ResourceMet
 		Version:              string(g.Version),
 		CreationTimestamp:    g.CreatedAt,
 		LastUpdatedTimestamp: g.UpdatedAt,
+		TRN:                  string(g.TRN),
 	}
 }
 
@@ -33,5 +35,6 @@ func MetadataToGraphQL(m types.ResourceMetadata) (GraphQLMetadata, graphql.Strin
 		Version:   graphql.String(m.Version),
 		CreatedAt: m.CreationTimestamp,
 		UpdatedAt: m.LastUpdatedTimestamp,
+		TRN:       graphql.String(m.TRN),
 	}, graphql.String(m.ID)
 }

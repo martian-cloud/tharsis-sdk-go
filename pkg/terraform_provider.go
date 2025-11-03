@@ -67,7 +67,7 @@ func (p *provider) CreateProvider(ctx context.Context, input *types.CreateTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func (p *provider) UpdateProvider(ctx context.Context, input *types.UpdateTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +119,7 @@ func (p *provider) DeleteProvider(ctx context.Context, input *types.DeleteTerraf
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteTerraformProvider.Problems); err != nil {
 		return nil, err
 	}
 

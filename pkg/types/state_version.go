@@ -4,7 +4,7 @@ import "github.com/zclconf/go-cty/cty"
 
 // GetStateVersionInput is the input for retrieving a State Version.
 type GetStateVersionInput struct {
-	ID string
+	ID string `json:"id"`
 }
 
 // CreateStateVersionInput is the input for creating a state version.

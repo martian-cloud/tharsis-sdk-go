@@ -13,4 +13,5 @@ type ResourceMetadata struct {
 	LastUpdatedTimestamp *time.Time `json:"updatedAt,omitempty" `
 	ID                   string     `json:"id"`
 	Version              string     `json:"version"`
+	TRN                  string     `json:"trn"`
 }

@@ -68,7 +68,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -80,6 +80,7 @@ func (m *serviceAccount) CreateServiceAccount(ctx context.Context,
 func (m *serviceAccount) GetServiceAccount(ctx context.Context,
 	input *types.GetServiceAccountInput) (*types.ServiceAccount, error) {
 
+	// Use serviceAccount query (supports both ID and TRN)
 	var target struct {
 		ServiceAccount *graphQLServiceAccount `graphql:"serviceAccount(id: $id)"`
 	}
@@ -131,7 +132,7 @@ func (m *serviceAccount) UpdateServiceAccount(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateServiceAccount.Problems); err != nil {
 		return nil, err
 	}
 
@@ -184,7 +185,7 @@ func (m *serviceAccount) CreateToken(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreateToken.ServiceAccountCreateToken.Problems); err != nil {
 		return nil, err
 	}
 

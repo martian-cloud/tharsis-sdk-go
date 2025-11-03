@@ -91,7 +91,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 
 	switch {
 	case input.ID != nil:
-
+		// Node query by ID (supports both UUIDs and TRNs).
 		var targetID struct {
 			Node *struct {
 				ManagedIdentity GraphQLManagedIdentity `graphql:"...on ManagedIdentity"`
@@ -113,7 +113,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 
 		return &identity, nil
 	case input.Path != nil:
-
+		// Query by path.
 		var targetPath struct {
 			ManagedIdentity *GraphQLManagedIdentity `graphql:"managedIdentity(path: $path)"`
 		}
@@ -130,7 +130,7 @@ func (m *managedIdentity) GetManagedIdentity(ctx context.Context,
 		identity := identityFromGraphQL(*targetPath.ManagedIdentity)
 		return &identity, nil
 	default:
-		return nil, errors.NewError(types.ErrNotFound, "GetManagedIdentity requires either ID or path to be set")
+		return nil, errors.NewError(types.ErrBadRequest, "GetManagedIdentity requires either ID or path to be set")
 	}
 }
 

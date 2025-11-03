@@ -28,7 +28,7 @@ func NewVCSProvider(client *Client) VCSProvider {
 
 func (vp *vcsProvider) GetProvider(ctx context.Context, input *types.GetVCSProviderInput) (*types.VCSProvider, error) {
 
-	// Node query by ID.
+	// Node query by ID or TRN.
 	var target struct {
 		Node *struct {
 			VCSProvider graphQLVCSProvider `graphql:"...on VCSProvider"`
@@ -70,7 +70,7 @@ func (vp *vcsProvider) CreateProvider(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (vp *vcsProvider) UpdateProvider(ctx context.Context, input *types.UpdateVC
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedUpdate.UpdateVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 
@@ -125,7 +125,7 @@ func (vp *vcsProvider) DeleteProvider(ctx context.Context, input *types.DeleteVC
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedDelete.DeleteVCSProvider.Problems); err != nil {
 		return nil, err
 	}
 

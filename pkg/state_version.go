@@ -72,7 +72,7 @@ func (s *stateVersion) CreateStateVersion(ctx context.Context,
 		return nil, err
 	}
 
-	if err = errors.ErrorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
+	if err := errors.ErrorFromGraphqlProblems(wrappedCreate.CreateStateVersion.Problems); err != nil {
 		return nil, err
 	}
 

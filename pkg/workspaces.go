@@ -53,7 +53,7 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 
 		return workspaceFromGraphQL(*target.Workspace)
 	case input.ID != nil:
-		// Node query by ID.
+		// Node query by ID (supports both UUIDs and TRNs).
 
 		var target struct {
 			Node *struct {
