@@ -53,7 +53,7 @@ func (g *group) GetGroup(ctx context.Context, input *types.GetGroupInput) (*type
 		result := groupFromGraphQL(*target.Group)
 		return &result, nil
 	case input.ID != nil:
-		// Node query by ID.
+		// Node query by ID (supports both UUIDs and TRNs).
 
 		var target struct {
 			Node *struct {
