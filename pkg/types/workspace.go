@@ -16,6 +16,13 @@ const (
 // WorkspaceFilter contains the supported field(s) for filtering Workspace resources
 type WorkspaceFilter struct {
 	GroupPath *string
+	Labels    []WorkspaceLabelFilter
+}
+
+// WorkspaceLabelFilter contains the supported field(s) for filtering by Workspace labels
+type WorkspaceLabelFilter struct {
+	Key   string
+	Value string
 }
 
 // GetWorkspacesInput is the input for listing workspaces
@@ -55,6 +62,7 @@ type Workspace struct {
 	TerraformVersion    string
 	MaxJobDuration      int32
 	PreventDestroyPlan  bool
+	Labels              map[string]string
 }
 
 // GetWorkspaceInput is the input to specify a single workspace to fetch.
@@ -70,26 +78,35 @@ type GetAssignedManagedIdentitiesInput struct {
 	ID   *string
 }
 
+// WorkspaceLabelInput represents the insides of the query variable structure,
+// everything in the workspace label object.
+type WorkspaceLabelInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 // CreateWorkspaceInput is the input for creating a new workspace.
 type CreateWorkspaceInput struct {
-	MaxJobDuration     *int32  `json:"maxJobDuration"`
-	TerraformVersion   *string `json:"terraformVersion"`
-	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
-	Name               string  `json:"name"`
-	Description        string  `json:"description"`
-	GroupPath          string  `json:"groupPath"`
+	MaxJobDuration     *int32                `json:"maxJobDuration"`
+	TerraformVersion   *string               `json:"terraformVersion"`
+	PreventDestroyPlan *bool                 `json:"preventDestroyPlan"`
+	Name               string                `json:"name"`
+	Description        string                `json:"description"`
+	GroupPath          string                `json:"groupPath"`
+	Labels             []WorkspaceLabelInput `json:"labels,omitempty"`
 }
 
 // UpdateWorkspaceInput is the input for updating a workspace.
 // One (and only one) of ID or WorkspacePath finds the workspace to update.
 // The other fields are modified.
 type UpdateWorkspaceInput struct {
-	MaxJobDuration     *int32  `json:"maxJobDuration"`
-	TerraformVersion   *string `json:"terraformVersion"`
-	PreventDestroyPlan *bool   `json:"preventDestroyPlan"`
-	WorkspacePath      *string `json:"workspacePath"`
-	ID                 *string `json:"id"`
-	Description        string  `json:"description"`
+	MaxJobDuration     *int32                `json:"maxJobDuration"`
+	TerraformVersion   *string               `json:"terraformVersion"`
+	PreventDestroyPlan *bool                 `json:"preventDestroyPlan"`
+	WorkspacePath      *string               `json:"workspacePath"`
+	ID                 *string               `json:"id"`
+	Description        string                `json:"description"`
+	Labels             []WorkspaceLabelInput `json:"labels,omitempty"`
 }
 
 // DeleteWorkspaceInput is the input for deleting a workspace.

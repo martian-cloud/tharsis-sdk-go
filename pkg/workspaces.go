@@ -84,8 +84,8 @@ func (ws *workspaces) GetWorkspace(ctx context.Context, input *types.GetWorkspac
 // it returns the first 'first' items after the 'after' element.  That can be equivalent to the
 // first page from a paged query.
 func (ws *workspaces) GetWorkspaces(ctx context.Context,
-	input *types.GetWorkspacesInput) (*types.GetWorkspacesOutput, error) {
-
+	input *types.GetWorkspacesInput,
+) (*types.GetWorkspacesOutput, error) {
 	// Pass nil for after so the user's cursor value will be used.
 	queryStruct, err := getWorkspaces(ctx, ws.client.graphqlClient, input, nil)
 	if err != nil {
@@ -113,15 +113,15 @@ func (ws *workspaces) GetWorkspaces(ctx context.Context,
 }
 
 func (ws *workspaces) GetWorkspacePaginator(_ context.Context,
-	input *types.GetWorkspacesInput) (*GetWorkspacesPaginator, error) {
-
+	input *types.GetWorkspacesInput,
+) (*GetWorkspacesPaginator, error) {
 	paginator := newWorkspacePaginator(*ws.client, input)
 	return &paginator, nil
 }
 
 func (ws *workspaces) CreateWorkspace(ctx context.Context,
-	input *types.CreateWorkspaceInput) (*types.Workspace, error) {
-
+	input *types.CreateWorkspaceInput,
+) (*types.Workspace, error) {
 	var wrappedCreate struct {
 		CreateWorkspace struct {
 			Problems  []internal.GraphQLProblem
@@ -153,8 +153,8 @@ func (ws *workspaces) CreateWorkspace(ctx context.Context,
 }
 
 func (ws *workspaces) UpdateWorkspace(ctx context.Context,
-	input *types.UpdateWorkspaceInput) (*types.Workspace, error) {
-
+	input *types.UpdateWorkspaceInput,
+) (*types.Workspace, error) {
 	// Check that exactly one of ID and WorkspacePath are set in order to properly find the workspace to update.
 	if (input.ID == nil) && (input.WorkspacePath == nil) {
 		// Neither supplied.  Must have one.
@@ -194,8 +194,8 @@ func (ws *workspaces) UpdateWorkspace(ctx context.Context,
 }
 
 func (ws *workspaces) DeleteWorkspace(ctx context.Context,
-	input *types.DeleteWorkspaceInput) error {
-
+	input *types.DeleteWorkspaceInput,
+) error {
 	var wrappedDelete struct {
 		DeleteWorkspace struct {
 			// It appears it's not possible to return the deleted object.
@@ -242,7 +242,8 @@ func (ws *workspaces) DestroyWorkspace(ctx context.Context, input *types.Destroy
 }
 
 func (ws *workspaces) GetAssignedManagedIdentities(ctx context.Context,
-	input *types.GetAssignedManagedIdentitiesInput) ([]types.ManagedIdentity, error) {
+	input *types.GetAssignedManagedIdentitiesInput,
+) ([]types.ManagedIdentity, error) {
 	switch {
 	case input.Path != nil:
 		// Workspace query by path.
@@ -329,7 +330,6 @@ func (wp *GetWorkspacesPaginator) HasMore() bool {
 
 // Next returns the next page of results:
 func (wp *GetWorkspacesPaginator) Next(ctx context.Context) (*types.GetWorkspacesOutput, error) {
-
 	// The generic paginator runs the query.
 	untyped, err := wp.generic.Next(ctx)
 	if err != nil {
@@ -344,8 +344,8 @@ func (wp *GetWorkspacesPaginator) Next(ctx context.Context) (*types.GetWorkspace
 
 // getWorkspaces runs the query and returns the results.
 func getWorkspaces(ctx context.Context, client graphqlClient,
-	input *types.GetWorkspacesInput, after *string) (*getWorkspacesQuery, error) {
-
+	input *types.GetWorkspacesInput, after *string,
+) (*getWorkspacesQuery, error) {
 	// Must generate a new query structure for each page to
 	// avoid the reflect slice index out of range panic.
 	queryStructP := &getWorkspacesQuery{}
@@ -372,7 +372,7 @@ func getWorkspaces(ctx context.Context, client graphqlClient,
 
 	// Make sure to pass the expected types for these variables.
 	var groupPath *graphql.String
-	if input.Filter != nil {
+	if input.Filter != nil && input.Filter.GroupPath != nil {
 		groupPathString := graphql.String(*input.Filter.GroupPath)
 		groupPath = &groupPathString
 	} else {
@@ -382,6 +382,21 @@ func getWorkspaces(ctx context.Context, client graphqlClient,
 
 	type WorkspaceSort string
 	variables["sort"] = WorkspaceSort(*input.Sort)
+
+	// Filter for workspaces with a specific set of labels
+	var labelFilters *WorkspaceLabelsFilter
+	if input.Filter != nil && len(input.Filter.Labels) > 0 {
+		labelFilters = &WorkspaceLabelsFilter{
+			Labels: []types.WorkspaceLabelInput{},
+		}
+
+		for _, label := range input.Filter.Labels {
+			labelFilters.Labels = append(labelFilters.Labels, types.WorkspaceLabelInput(label))
+		}
+	} else {
+		labelFilters = nil
+	}
+	variables["labelFilter"] = labelFilters
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)
@@ -406,7 +421,7 @@ type getWorkspacesQuery struct {
 		}
 		Edges      []struct{ Node graphQLWorkspace }
 		TotalCount graphql.Int
-	} `graphql:"workspaces(first: $first, after: $after, groupPath: $groupPath, sort: $sort)"`
+	} `graphql:"workspaces(first: $first, after: $after, groupPath: $groupPath, sort: $sort, labelFilter: $labelFilter)"`
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -426,6 +441,20 @@ type graphQLWorkspace struct {
 	TerraformVersion    graphql.String
 	MaxJobDuration      graphql.Int
 	PreventDestroyPlan  graphql.Boolean
+	Labels              []graphQLWorkspaceLabel
+}
+
+// graphQLWorkspaceLabel represents the insides of the query structure,
+// everything in the workspace label object, and with graphql types.
+type graphQLWorkspaceLabel struct {
+	Key   graphql.String
+	Value graphql.String
+}
+
+// WorkspaceLabelsFilter represents the insides of the query variable structure,
+// everything in the workspace label filter object.
+type WorkspaceLabelsFilter struct {
+	Labels []types.WorkspaceLabelInput `json:"labels,omitempty"`
 }
 
 // workspaceFromGraphQL converts a GraphQL Workspace to an external Workspace.
@@ -433,6 +462,14 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 	currentStateVersion, err := stateVersionFromGraphQL(g.CurrentStateVersion)
 	if err != nil {
 		return nil, err
+	}
+
+	var labels map[string]string
+	for _, label := range g.Labels {
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		labels[string(label.Key)] = string(label.Value)
 	}
 
 	return &types.Workspace{
@@ -445,5 +482,6 @@ func workspaceFromGraphQL(g graphQLWorkspace) (*types.Workspace, error) {
 		MaxJobDuration:      int32(g.MaxJobDuration),
 		TerraformVersion:    string(g.TerraformVersion),
 		PreventDestroyPlan:  bool(g.PreventDestroyPlan),
+		Labels:              labels,
 	}, nil
 }
