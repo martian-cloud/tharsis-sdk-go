@@ -3,11 +3,12 @@ package types
 // ManagedIdentityType represents the supported managed identity types
 type ManagedIdentityType string
 
-// ManagedIdentityType constants
+// ManagedIdentityType Constants
 const (
-	ManagedIdentityAzureFederated   ManagedIdentityType = "azure_federated"
-	ManagedIdentityAWSFederated     ManagedIdentityType = "aws_federated"
-	ManagedIdentityTharsisFederated ManagedIdentityType = "tharsis_federated"
+	ManagedIdentityAzureFederated      ManagedIdentityType = "azure_federated"
+	ManagedIdentityAWSFederated        ManagedIdentityType = "aws_federated"
+	ManagedIdentityTharsisFederated    ManagedIdentityType = "tharsis_federated"
+	ManagedIdentityKubernetesFederated ManagedIdentityType = "kubernetes_federated"
 )
 
 // ManagedIdentityAccessRuleType represents the supported managed identity rule types
