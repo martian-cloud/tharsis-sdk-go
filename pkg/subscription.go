@@ -23,6 +23,7 @@ const (
 
 type subscriptionClient interface {
 	Subscribe(v interface{}, variables map[string]interface{}, handler func(message []byte, err error) error, options ...graphql.Option) (string, error)
+	Unsubscribe(subscriptionID string) error
 	Close() (err error)
 }
 
@@ -37,6 +38,10 @@ type lazySubscriptionClient struct {
 func newLazySubscriptionClient(cfg *config.Config, httpClient *http.Client, graphQLEndpoint string) (*lazySubscriptionClient, error) {
 	client := graphql.NewSubscriptionClient(graphQLEndpoint).
 		WithTimeout(websocketWriteTimeout).
+		// Use sync mode here to ensure messages are processed in order
+		WithSyncMode(true).
+		WithWebSocketKeepAlive(time.Minute).
+		WithExitWhenNoSubscription(false).
 		WithWebSocket(buildWebsocketConn(httpClient, cfg.Logger))
 
 	client.OnError(func(_ *graphql.SubscriptionClient, err error) error {
@@ -54,6 +59,10 @@ func newLazySubscriptionClient(cfg *config.Config, httpClient *http.Client, grap
 		tokenProvider: cfg.TokenProvider,
 		client:        client,
 	}, nil
+}
+
+func (s *lazySubscriptionClient) Unsubscribe(subscriptionID string) error {
+	return s.client.Unsubscribe(subscriptionID)
 }
 
 func (s *lazySubscriptionClient) Subscribe(v interface{}, variables map[string]interface{}, handler func(message []byte, err error) error, options ...graphql.Option) (string, error) {
@@ -106,8 +115,9 @@ func (s *lazySubscriptionClient) lazyRun() {
 
 		if err := s.client.Run(); err != nil {
 			s.logger.Printf("error from attempt to run the subscription client: %s", err)
-			s.setIsRunning(false)
 		}
+
+		s.setIsRunning(false)
 	}()
 }
 
@@ -121,87 +131,55 @@ func (s *lazySubscriptionClient) setIsRunning(value bool) {
 
 type websocketHandler struct {
 	*websocket.Conn
-	ctx                 context.Context
-	cancelKeepAliveFunc func()
-	logger              *log.Logger
-	timeout             time.Duration
+	ctx    context.Context
+	logger *log.Logger
 }
 
 func (wh *websocketHandler) WriteJSON(v interface{}) error {
-	ctx, cancel := context.WithTimeout(wh.ctx, wh.timeout)
-	defer cancel()
-
-	return wsjson.Write(ctx, wh.Conn, v)
+	return wsjson.Write(wh.ctx, wh.Conn, v)
 }
 
 func (wh *websocketHandler) ReadJSON(v interface{}) error {
-	ctx, cancel := context.WithTimeout(wh.ctx, wh.timeout)
-	defer cancel()
-	return wsjson.Read(ctx, wh.Conn, v)
+	return wsjson.Read(wh.ctx, wh.Conn, v)
 }
 
 func (wh *websocketHandler) Close() error {
-	if wh.cancelKeepAliveFunc != nil {
-		wh.cancelKeepAliveFunc()
-		wh.cancelKeepAliveFunc = nil
-	}
-
 	return wh.Conn.Close(websocket.StatusNormalClosure, "close websocket")
 }
 
-func (wh *websocketHandler) startKeepalive() func() {
-	stop := make(chan bool, 1)
-
-	go func() {
-		for {
-			msg := graphql.OperationMessage{
-				Type: graphql.GQL_CONNECTION_KEEP_ALIVE,
-			}
-
-			if err := wh.WriteJSON(msg); err != nil {
-				wh.logger.Printf("Failed to send keep alive %v", err)
-			}
-
-			select {
-			case <-time.After(time.Minute):
-			case <-wh.ctx.Done():
-				return
-			case <-stop:
-				return
-			}
-		}
-	}()
-
-	return func() {
-		stop <- true
+func (wh *websocketHandler) Ping() error {
+	msg := graphql.OperationMessage{
+		Type: graphql.GQL_CONNECTION_KEEP_ALIVE,
 	}
+
+	if err := wh.WriteJSON(msg); err != nil {
+		wh.logger.Printf("Failed to send keep alive %v", err)
+	}
+
+	return wh.Conn.Ping(wh.ctx)
 }
 
-func buildWebsocketConn(httpClient *http.Client, logger *log.Logger) func(sc *graphql.SubscriptionClient) (graphql.WebsocketConn, error) {
-	return func(sc *graphql.SubscriptionClient) (graphql.WebsocketConn, error) {
-		options := &websocket.DialOptions{
+func (wh *websocketHandler) GetCloseStatus(err error) int32 {
+	return int32(websocket.CloseStatus(err))
+}
+
+func buildWebsocketConn(httpClient *http.Client, logger *log.Logger) func(ctx context.Context, endpoint string, options graphql.WebsocketOptions) (graphql.WebsocketConn, error) {
+	return func(ctx context.Context, endpoint string, _ graphql.WebsocketOptions) (graphql.WebsocketConn, error) {
+		dialOptions := &websocket.DialOptions{
 			Subprotocols: []string{"graphql-ws"},
 			HTTPClient:   httpClient,
 		}
 
-		c, _, err := websocket.Dial(sc.GetContext(), sc.GetURL(), options)
+		c, _, err := websocket.Dial(ctx, endpoint, dialOptions)
 		if err != nil {
 			return nil, err
 		}
 
 		handler := &websocketHandler{
-			ctx:     sc.GetContext(),
-			Conn:    c,
-			timeout: sc.GetTimeout(),
-			logger:  logger,
+			ctx:    ctx,
+			Conn:   c,
+			logger: logger,
 		}
-
-		sc.OnConnected(func() {
-			if handler.cancelKeepAliveFunc == nil {
-				// Start websocket keep alive messages
-				handler.cancelKeepAliveFunc = handler.startKeepalive()
-			}
-		})
 
 		return handler, nil
 	}
