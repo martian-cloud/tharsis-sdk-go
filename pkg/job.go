@@ -14,6 +14,8 @@ import (
 const (
 	// defaultLogLimit is the log limit used when nothing is defined.
 	defaultLogLimit int32 = 1024 * 1024
+	// jobLogSubscriptionReconnectTimeout is the time after which the job log subscription will attempt to reconnect.
+	jobLogSubscriptionReconnectTimeout = time.Minute * 5
 )
 
 // JobLogStreamSubscriptionInput is the input for subscribing to job log events.
@@ -22,10 +24,15 @@ type JobLogStreamSubscriptionInput struct {
 	JobID           string `json:"jobId"`
 }
 
+type jobLogStreamEventData struct {
+	Logs string `json:"logs"`
+}
+
 // jobLogStreamEvent represents a job log event.
 type jobLogStreamEvent struct {
-	Completed bool  `json:"completed"`
-	Size      int32 `json:"size"`
+	Completed bool                   `json:"completed"`
+	Size      int32                  `json:"size"`
+	Data      *jobLogStreamEventData `json:"data"`
 }
 
 // Job implements functions related to Tharsis jobs.
@@ -168,88 +175,60 @@ func (j *job) SaveJobLogs(ctx context.Context, input *types.SaveJobLogsInput) er
 func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscriptionInput) (<-chan *types.JobLogsEvent, error) {
 	logChan := make(chan *types.JobLogsEvent)
 
-	// Subscribe to run events so we know when to stop outputting logs.
-	runEvents, err := j.client.Run.SubscribeToWorkspaceRunEvents(ctx, &types.RunSubscriptionInput{
-		RunID:         &input.RunID,
-		WorkspacePath: input.WorkspacePath,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Subscribe to the job log events so we can fetch logs only when new ones are available.
-	logEvents, err := j.subscribeToJobLogStreamEvents(ctx, &JobLogStreamSubscriptionInput{
-		JobID:           input.JobID,
-		LastSeenLogSize: input.LastSeenLogSize,
-	})
-	if err != nil {
-		return nil, err
+	var lastSeenLogSize int32
+	if input.LastSeenLogSize != nil {
+		lastSeenLogSize = *input.LastSeenLogSize
 	}
 
 	logFetcher := func() {
 		defer close(logChan)
 
-		var (
-			currentOffset int32
-			runCompleted  bool
-		)
-
 		for {
-			run, err := j.client.Run.GetRun(ctx, &types.GetRunInput{ID: input.RunID})
-			if err != nil {
-				logChan <- toJobLogsEvent("", err)
-				return
-			}
 
-			// Make sure the run hasn't already finished.
-			// In which case the for loop will fetch all the pending logs and
-			// close the channel once finished.
-			switch run.Status {
-			case types.RunApplied,
-				types.RunCanceled,
-				types.RunPlanned,
-				types.RunPlannedAndFinished,
-				types.RunErrored:
-				runCompleted = true
-			}
-
-			// Retrieve the plan logs.
-			output, err := j.GetJobLogs(ctx, &types.GetJobLogsInput{
-				JobID: input.JobID,
-				Start: currentOffset,
-				Limit: input.Limit,
+			// Subscribe to the job log events so we can fetch logs only when new ones are available.
+			logEvents, unsubscribe, err := j.subscribeToJobLogStreamEvents(ctx, &JobLogStreamSubscriptionInput{
+				JobID:           input.JobID,
+				LastSeenLogSize: &lastSeenLogSize,
 			})
 			if err != nil {
 				logChan <- toJobLogsEvent("", err)
 				return
 			}
 
-			// Update the offset to the new log size.
-			currentOffset += int32(len(output.Logs))
+			reconnect := false
 
-			if len(output.Logs) > 0 {
-				// Send the logs on the channel.
-				logChan <- toJobLogsEvent(output.Logs, nil)
-			}
+			for !reconnect {
+				select {
+				case <-ctx.Done():
+					if err = unsubscribe(); err != nil {
+						logChan <- toJobLogsEvent(err.Error(), nil)
+					}
 
-			if runCompleted {
-				if currentOffset < output.Size {
-					// Since all the logs haven't been sent, keep looping.
-					continue
+					logChan <- toJobLogsEvent("", ctx.Err())
+
+					return
+				case logEvent := <-logEvents:
+					lastSeenLogSize = logEvent.Size
+
+					if logEvent.Data != nil && len(logEvent.Data.Logs) > 0 {
+						// Send the logs on the channel.
+						logChan <- toJobLogsEvent(logEvent.Data.Logs, nil)
+					}
+
+					if logEvent.Completed {
+						// Unsubscribe call not needed here as the server will close the subscription
+						return
+					}
+
+					// This is a failsafe in case the subscription connection is closed due to a network issue
+				case <-time.After(jobLogSubscriptionReconnectTimeout):
+					logChan <- toJobLogsEvent("reconnecting...", nil)
+
+					reconnect = true
+					if err = unsubscribe(); err != nil {
+						logChan <- toJobLogsEvent(err.Error(), nil)
+					}
 				}
-
-				// Run has finished and all pending logs are sent.
-				return
-			}
-
-			select {
-			case <-ctx.Done():
-				logChan <- toJobLogsEvent("", ctx.Err())
-				return
-			case <-logEvents:
-			// This is a failsafe in case the subscription connection is closed due to a network issue
-			case <-time.After(time.Second * 30):
-			case <-runEvents:
 			}
 		}
 	}
@@ -261,7 +240,7 @@ func (j *job) SubscribeToJobLogs(ctx context.Context, input *types.JobLogsSubscr
 }
 
 func (j *job) subscribeToJobLogStreamEvents(_ context.Context,
-	input *JobLogStreamSubscriptionInput) (<-chan *jobLogStreamEvent, error) {
+	input *JobLogStreamSubscriptionInput) (<-chan *jobLogStreamEvent, func() error, error) {
 	eventChannel := make(chan *jobLogStreamEvent)
 
 	var target struct {
@@ -297,12 +276,16 @@ func (j *job) subscribeToJobLogStreamEvents(_ context.Context,
 	}
 
 	// Create the subscription.
-	_, err := j.client.graphqlSubscriptionClient.Subscribe(&target, variables, jobLogStreamEventCallback)
+	subID, err := j.client.graphqlSubscriptionClient.Subscribe(&target, variables, jobLogStreamEventCallback)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return eventChannel, nil
+	unsubscribeFunc := func() error {
+		return j.client.graphqlSubscriptionClient.Unsubscribe(subID)
+	}
+
+	return eventChannel, unsubscribeFunc, nil
 }
 
 func (j *job) GetJobLogs(ctx context.Context, input *types.GetJobLogsInput) (*types.JobLogs, error) {
