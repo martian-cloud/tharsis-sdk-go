@@ -221,7 +221,11 @@ func (p *moduleVersion) getTerraformModuleVersions(ctx context.Context, client g
 	}
 
 	type TerraformModuleVersionSort string
-	variables["sort"] = TerraformModuleVersionSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = TerraformModuleVersionSort(*input.Sort)
+	} else {
+		variables["sort"] = (*TerraformModuleVersionSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)

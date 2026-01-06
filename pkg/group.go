@@ -317,7 +317,11 @@ func getGroups(ctx context.Context, client graphqlClient,
 	variables["parentPath"] = parentPath
 
 	type GroupSort string
-	variables["sort"] = GroupSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = GroupSort(*input.Sort)
+	} else {
+		variables["sort"] = (*GroupSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)

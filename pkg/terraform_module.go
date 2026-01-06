@@ -210,7 +210,11 @@ func (p *module) getTerraformModules(ctx context.Context, client graphqlClient,
 	variables["search"] = search
 
 	type TerraformModuleSort string
-	variables["sort"] = TerraformModuleSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = TerraformModuleSort(*input.Sort)
+	} else {
+		variables["sort"] = (*TerraformModuleSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)
