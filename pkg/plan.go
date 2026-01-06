@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/smithy-go/ptr"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -187,6 +188,7 @@ type graphQLPlan struct {
 	ResourceChanges      graphql.Int
 	ResourceDestructions graphql.Int
 	HasChanges           graphql.Boolean
+	ErrorMessage         *graphql.String
 }
 
 // planFromGraphQL converts a GraphQL Plan to an external Plan.
@@ -201,5 +203,10 @@ func planFromGraphQL(p graphQLPlan) *types.Plan {
 		ResourceDestructions: int(p.ResourceDestructions),
 		CurrentJobID:         &jobID,
 	}
+
+	if p.ErrorMessage != nil {
+		result.ErrorMessage = ptr.String(string(*p.ErrorMessage))
+	}
+
 	return result
 }

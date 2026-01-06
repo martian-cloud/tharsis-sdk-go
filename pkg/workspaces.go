@@ -381,7 +381,11 @@ func getWorkspaces(ctx context.Context, client graphqlClient,
 	variables["groupPath"] = groupPath
 
 	type WorkspaceSort string
-	variables["sort"] = WorkspaceSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = WorkspaceSort(*input.Sort)
+	} else {
+		variables["sort"] = (*WorkspaceSort)(nil)
+	}
 
 	// Filter for workspaces with a specific set of labels
 	var labelFilters *WorkspaceLabelsFilter

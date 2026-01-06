@@ -152,7 +152,11 @@ func (ma *moduleAttestation) getTerraformModuleAttestationsForModule(ctx context
 	variables["digest"] = digest
 
 	type TerraformModuleAttestationSort string
-	variables["sort"] = TerraformModuleAttestationSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = TerraformModuleAttestationSort(*input.Sort)
+	} else {
+		variables["sort"] = (*TerraformModuleAttestationSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)
@@ -209,7 +213,11 @@ func (ma *moduleAttestation) getTerraformModuleAttestationsForModuleVersion(ctx 
 	}
 
 	type TerraformModuleAttestationSort string
-	variables["sort"] = TerraformModuleAttestationSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = TerraformModuleAttestationSort(*input.Sort)
+	} else {
+		variables["sort"] = (*TerraformModuleAttestationSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)

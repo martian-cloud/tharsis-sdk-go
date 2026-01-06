@@ -280,7 +280,11 @@ func getTerraformProviderVersionMirrors(
 	variables["fullPath"] = input.GroupPath
 
 	type TerraformProviderVersionMirrorSort string
-	variables["sort"] = TerraformProviderVersionMirrorSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = TerraformProviderVersionMirrorSort(*input.Sort)
+	} else {
+		variables["sort"] = (*TerraformProviderVersionMirrorSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)

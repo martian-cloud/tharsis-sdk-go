@@ -415,7 +415,11 @@ func getRuns(ctx context.Context, client graphqlClient,
 	}
 
 	type RunSort string
-	variables["sort"] = RunSort(*input.Sort)
+	if input.Sort != nil {
+		variables["sort"] = RunSort(*input.Sort)
+	} else {
+		variables["sort"] = (*RunSort)(nil)
+	}
 
 	// Now, do the query.
 	err := client.Query(ctx, true, queryStructP, variables)

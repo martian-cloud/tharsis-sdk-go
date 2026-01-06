@@ -3,6 +3,7 @@ package tharsis
 import (
 	"context"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal/errors"
@@ -51,23 +52,27 @@ func (a *apply) UpdateApply(ctx context.Context, input *types.UpdateApplyInput) 
 
 // graphQLApply holds information about Tharsis Apply with GraphQL types.
 type graphQLApply struct {
-	Metadata   internal.GraphQLMetadata
-	CurrentJob *graphQLJob
-	ID         graphql.String
-	Status     graphql.String
+	Metadata     internal.GraphQLMetadata
+	CurrentJob   *graphQLJob
+	ID           graphql.String
+	Status       graphql.String
+	ErrorMessage *graphql.String
 }
 
 // applyFromGraphQL converts a GraphQL Apply to an external Apply.
 func applyFromGraphQL(a *graphQLApply) *types.Apply {
-	var applyID *string
-	if a.CurrentJob != nil {
-		s := string(a.CurrentJob.ID) // need to convert to *string
-		applyID = &s
-	}
 	result := &types.Apply{
-		Metadata:     internal.MetadataFromGraphQL(a.Metadata, a.ID),
-		Status:       types.ApplyStatus(a.Status),
-		CurrentJobID: applyID,
+		Metadata: internal.MetadataFromGraphQL(a.Metadata, a.ID),
+		Status:   types.ApplyStatus(a.Status),
 	}
+
+	if a.CurrentJob != nil {
+		result.CurrentJobID = ptr.String(string(a.CurrentJob.ID))
+	}
+
+	if a.ErrorMessage != nil {
+		result.ErrorMessage = ptr.String(string(*a.ErrorMessage))
+	}
+
 	return result
 }

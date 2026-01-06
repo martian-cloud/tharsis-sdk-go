@@ -70,6 +70,7 @@ type Client struct {
 	Team                            Team
 	NamespaceMembership             NamespaceMembership
 	User                            User
+	Me                              Me
 	FederatedRegistry               FederatedRegistry
 }
 
@@ -160,6 +161,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.Team = NewTeam(client)
 	client.NamespaceMembership = NewNamespaceMembership(client)
 	client.User = NewUser(client)
+	client.Me = NewMe(client)
 	client.FederatedRegistry = NewFederatedRegistry(client)
 
 	return client, nil
