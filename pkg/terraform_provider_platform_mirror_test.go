@@ -398,3 +398,73 @@ func TestUploadProviderPlatformPackageToMirror(t *testing.T) {
 		})
 	}
 }
+
+func TestGetProviderPlatformPackageDownloadURL(t *testing.T) {
+	type testCase struct {
+		name            string
+		responsePayload *types.ProviderPlatformPackageInfo
+		statusToReturn  int
+		expectResult    *types.ProviderPlatformPackageInfo
+		expectErrorCode types.ErrorCode
+	}
+
+	testCases := []testCase{
+		{
+			name: "Successfully get download URL",
+			responsePayload: &types.ProviderPlatformPackageInfo{
+				URL:    "https://example.com/download/provider.zip",
+				Hashes: []string{"h1:abc123", "h1:def456"},
+			},
+			statusToReturn: http.StatusOK,
+			expectResult: &types.ProviderPlatformPackageInfo{
+				URL:    "https://example.com/download/provider.zip",
+				Hashes: []string{"h1:abc123", "h1:def456"},
+			},
+		},
+		{
+			name:            "Returns error on not found",
+			statusToReturn:  http.StatusNotFound,
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payloadBuf, err := json.Marshal(test.responsePayload)
+			require.Nil(t, err)
+
+			httpClient := newTestClient(func(_ *http.Request) *http.Response {
+				return &http.Response{
+					StatusCode: test.statusToReturn,
+					Body:       io.NopCloser(bytes.NewReader(payloadBuf)),
+					Header:     make(http.Header),
+				}
+			})
+
+			client := &Client{
+				httpClient: httpClient,
+				cfg:        &config.Config{Endpoint: "http://test", TokenProvider: &fakeTokenProvider{token: "secret"}},
+			}
+			client.TerraformProviderPlatformMirror = NewTerraformProviderPlatformMirror(client)
+
+			result, err := client.TerraformProviderPlatformMirror.GetProviderPlatformPackageDownloadURL(ctx,
+				&types.GetProviderPlatformPackageDownloadURLInput{
+					GroupPath:         "test-group",
+					RegistryHostname:  "registry.terraform.io",
+					RegistryNamespace: "hashicorp",
+					Type:              "aws",
+					Version:           "5.0.0",
+					OS:                "linux",
+					Arch:              "amd64",
+				})
+
+			checkError(t, test.expectErrorCode, err)
+			if test.expectResult != nil {
+				require.NotNil(t, result)
+				assert.Equal(t, test.expectResult, result)
+			}
+		})
+	}
+}

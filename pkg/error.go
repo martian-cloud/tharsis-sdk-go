@@ -15,3 +15,13 @@ func IsNotFoundError(err error) bool {
 	var tErr *types.Error
 	return errors.As(err, &tErr) && tErr.Code == types.ErrNotFound
 }
+
+// IsConflictError returns true if the error is a tharsis Error and contains the ErrConflict code.
+func IsConflictError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var tErr *types.Error
+	return errors.As(err, &tErr) && tErr.Code == types.ErrConflict
+}

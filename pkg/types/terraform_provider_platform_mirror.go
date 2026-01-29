@@ -33,3 +33,20 @@ type UploadProviderPlatformPackageToMirrorInput struct {
 	OS              string
 	Arch            string
 }
+
+// GetProviderPlatformPackageDownloadURLInput is the input for getting a download URL.
+type GetProviderPlatformPackageDownloadURLInput struct {
+	GroupPath         string
+	RegistryHostname  string
+	RegistryNamespace string
+	Type              string
+	Version           string
+	OS                string
+	Arch              string
+}
+
+// ProviderPlatformPackageInfo contains the download URL and hashes for a provider package.
+type ProviderPlatformPackageInfo struct {
+	URL    string   `json:"url"`
+	Hashes []string `json:"hashes"`
+}

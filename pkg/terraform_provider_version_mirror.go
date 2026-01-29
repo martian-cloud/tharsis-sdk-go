@@ -2,6 +2,9 @@ package tharsis
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/url"
 
 	"github.com/hasura/go-graphql-client"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
@@ -27,6 +30,10 @@ type TerraformProviderVersionMirror interface {
 	GetProviderVersionMirrorPaginator(ctx context.Context,
 		input *types.GetTerraformProviderVersionMirrorsInput,
 	) (*GetTerraformProviderVersionMirrorsPaginator, error)
+	GetAvailableProviderVersions(
+		ctx context.Context,
+		input *types.GetAvailableProviderVersionsInput,
+	) (map[string]struct{}, error)
 	CreateProviderVersionMirror(
 		ctx context.Context,
 		input *types.CreateTerraformProviderVersionMirrorInput,
@@ -138,6 +145,55 @@ func (p *providerVersionMirror) GetProviderVersionMirrorPaginator(_ context.Cont
 
 	paginator := newProviderVersionMirrorPaginator(*p.client, input)
 	return &paginator, nil
+}
+
+// GetAvailableProviderVersions returns all cached versions for a provider via REST API.
+func (p *providerVersionMirror) GetAvailableProviderVersions(
+	ctx context.Context,
+	input *types.GetAvailableProviderVersionsInput,
+) (map[string]struct{}, error) {
+	endpoint, err := url.JoinPath(
+		p.client.cfg.Endpoint,
+		"v1/provider-mirror/providers",
+		input.GroupPath,
+		input.RegistryHostname,
+		input.RegistryNamespace,
+		input.Type,
+		"index.json",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	authToken, err := p.client.cfg.TokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	resp, err := p.client.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.ErrorFromHTTPResponse(resp)
+	}
+
+	var result struct {
+		Versions map[string]struct{} `json:"versions"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return result.Versions, nil
 }
 
 // CreateProviderVersionMirror creates a provider version mirror.
@@ -277,6 +333,12 @@ func getTerraformProviderVersionMirrors(
 		variables["includeInherited"] = (*graphql.Boolean)(nil)
 	}
 
+	if input.HasPackages != nil {
+		variables["hasPackages"] = *input.HasPackages
+	} else {
+		variables["hasPackages"] = (*graphql.Boolean)(nil)
+	}
+
 	variables["fullPath"] = input.GroupPath
 
 	type TerraformProviderVersionMirrorSort string
@@ -311,7 +373,7 @@ type getTerraformProviderVersionMirrorsQuery struct {
 				Node graphQLTerraformProviderVersionMirror
 			}
 			TotalCount graphql.Int
-		} `graphql:"terraformProviderMirrors(first: $first, after: $after, sort: $sort, includeInherited: $includeInherited)"`
+		} `graphql:"terraformProviderMirrors(first: $first, after: $after, sort: $sort, includeInherited: $includeInherited, hasPackages: $hasPackages)"`
 	} `graphql:"group(fullPath: $fullPath)"`
 }
 
@@ -326,6 +388,7 @@ type graphQLTerraformProviderVersionMirror struct {
 	RegistryNamespace string
 	RegistryHostname  string
 	Type              string
+	HasPackages       bool
 }
 
 // providerVersionMirrorFromGraphQL converts a GraphQL TerraformProviderVersionMirror to an external TerraformProviderVersionMirror.
@@ -336,5 +399,6 @@ func providerVersionMirrorFromGraphQL(p graphQLTerraformProviderVersionMirror) t
 		RegistryHostname:  p.RegistryHostname,
 		RegistryNamespace: p.RegistryNamespace,
 		Type:              p.Type,
+		HasPackages:       p.HasPackages,
 	}
 }

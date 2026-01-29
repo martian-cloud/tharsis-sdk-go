@@ -2,6 +2,7 @@ package tharsis
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -29,6 +30,10 @@ type TerraformProviderPlatformMirror interface {
 		ctx context.Context,
 		input *types.UploadProviderPlatformPackageToMirrorInput,
 	) error
+	GetProviderPlatformPackageDownloadURL(
+		ctx context.Context,
+		input *types.GetProviderPlatformPackageDownloadURLInput,
+	) (*types.ProviderPlatformPackageInfo, error)
 }
 
 type providerPlatformMirror struct {
@@ -157,6 +162,56 @@ func (p *providerPlatformMirror) UploadProviderPlatformPackageToMirror(
 	}
 
 	return nil
+}
+
+// GetProviderPlatformPackageDownloadURL returns the download URL and hashes for a provider platform package.
+func (p *providerPlatformMirror) GetProviderPlatformPackageDownloadURL(
+	ctx context.Context,
+	input *types.GetProviderPlatformPackageDownloadURLInput,
+) (*types.ProviderPlatformPackageInfo, error) {
+	endpoint, err := url.JoinPath(
+		p.client.cfg.Endpoint,
+		"v1/provider-mirror/providers",
+		url.PathEscape(input.GroupPath),
+		input.RegistryHostname,
+		input.RegistryNamespace,
+		input.Type,
+		input.Version,
+		input.OS,
+		input.Arch,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	authToken, err := p.client.cfg.TokenProvider.GetToken()
+	if err != nil {
+		return nil, err
+	}
+
+	r.Header.Set("Authorization", "Bearer "+authToken)
+
+	resp, err := p.client.httpClient.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.ErrorFromHTTPResponse(resp)
+	}
+
+	var result types.ProviderPlatformPackageInfo
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////
