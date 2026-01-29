@@ -1,8 +1,10 @@
 package tharsis
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/internal"
+	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/config"
 	"gitlab.com/infor-cloud/martian-cloud/tharsis/tharsis-sdk-go/pkg/types"
 )
 
@@ -382,6 +385,75 @@ func TestDeleteProviderVersionMirror(t *testing.T) {
 			actualError := client.TerraformProviderVersionMirror.DeleteProviderVersionMirror(ctx, &types.DeleteTerraformProviderVersionMirrorInput{})
 
 			checkError(t, test.expectErrorCode, actualError)
+		})
+	}
+}
+
+func TestGetAvailableProviderVersions(t *testing.T) {
+	type testCase struct {
+		name            string
+		responsePayload interface{}
+		statusToReturn  int
+		expectResult    map[string]struct{}
+		expectErrorCode types.ErrorCode
+	}
+
+	testCases := []testCase{
+		{
+			name: "Successfully get available versions",
+			responsePayload: map[string]interface{}{
+				"versions": map[string]interface{}{
+					"5.0.0": struct{}{},
+					"5.1.0": struct{}{},
+				},
+			},
+			statusToReturn: http.StatusOK,
+			expectResult: map[string]struct{}{
+				"5.0.0": {},
+				"5.1.0": {},
+			},
+		},
+		{
+			name:            "Returns error on not found",
+			statusToReturn:  http.StatusNotFound,
+			expectErrorCode: types.ErrNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			payloadBuf, err := json.Marshal(test.responsePayload)
+			require.Nil(t, err)
+
+			httpClient := newTestClient(func(_ *http.Request) *http.Response {
+				return &http.Response{
+					StatusCode: test.statusToReturn,
+					Body:       io.NopCloser(bytes.NewReader(payloadBuf)),
+					Header:     make(http.Header),
+				}
+			})
+
+			client := &Client{
+				httpClient: httpClient,
+				cfg:        &config.Config{Endpoint: "http://test", TokenProvider: &fakeTokenProvider{token: "secret"}},
+			}
+			client.TerraformProviderVersionMirror = NewTerraformProviderVersionMirror(client)
+
+			result, err := client.TerraformProviderVersionMirror.GetAvailableProviderVersions(ctx,
+				&types.GetAvailableProviderVersionsInput{
+					GroupPath:         "test-group",
+					RegistryHostname:  "registry.terraform.io",
+					RegistryNamespace: "hashicorp",
+					Type:              "aws",
+				})
+
+			checkError(t, test.expectErrorCode, err)
+			if test.expectResult != nil {
+				require.NotNil(t, result)
+				assert.Equal(t, test.expectResult, result)
+			}
 		})
 	}
 }
