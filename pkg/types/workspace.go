@@ -120,8 +120,3 @@ type DeleteWorkspaceInput struct {
 type DestroyWorkspaceInput struct {
 	WorkspacePath *string `json:"workspacePath"`
 }
-
-// GetWorkspaceProviderMirrorEnabledInput is the input for getting the provider mirror enabled setting.
-type GetWorkspaceProviderMirrorEnabledInput struct {
-	ID string
-}

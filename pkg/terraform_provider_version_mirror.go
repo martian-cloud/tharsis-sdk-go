@@ -333,12 +333,6 @@ func getTerraformProviderVersionMirrors(
 		variables["includeInherited"] = (*graphql.Boolean)(nil)
 	}
 
-	if input.HasPackages != nil {
-		variables["hasPackages"] = *input.HasPackages
-	} else {
-		variables["hasPackages"] = (*graphql.Boolean)(nil)
-	}
-
 	variables["fullPath"] = input.GroupPath
 
 	type TerraformProviderVersionMirrorSort string
@@ -373,7 +367,7 @@ type getTerraformProviderVersionMirrorsQuery struct {
 				Node graphQLTerraformProviderVersionMirror
 			}
 			TotalCount graphql.Int
-		} `graphql:"terraformProviderMirrors(first: $first, after: $after, sort: $sort, includeInherited: $includeInherited, hasPackages: $hasPackages)"`
+		} `graphql:"terraformProviderMirrors(first: $first, after: $after, sort: $sort, includeInherited: $includeInherited)"`
 	} `graphql:"group(fullPath: $fullPath)"`
 }
 
@@ -388,7 +382,6 @@ type graphQLTerraformProviderVersionMirror struct {
 	RegistryNamespace string
 	RegistryHostname  string
 	Type              string
-	HasPackages       bool
 }
 
 // providerVersionMirrorFromGraphQL converts a GraphQL TerraformProviderVersionMirror to an external TerraformProviderVersionMirror.
@@ -399,6 +392,5 @@ func providerVersionMirrorFromGraphQL(p graphQLTerraformProviderVersionMirror) t
 		RegistryHostname:  p.RegistryHostname,
 		RegistryNamespace: p.RegistryNamespace,
 		Type:              p.Type,
-		HasPackages:       p.HasPackages,
 	}
 }

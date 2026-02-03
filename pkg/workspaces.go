@@ -15,7 +15,6 @@ type Workspaces interface {
 	GetWorkspace(ctx context.Context, input *types.GetWorkspaceInput) (*types.Workspace, error)
 	GetWorkspaces(ctx context.Context, input *types.GetWorkspacesInput) (*types.GetWorkspacesOutput, error)
 	GetWorkspacePaginator(ctx context.Context, input *types.GetWorkspacesInput) (*GetWorkspacesPaginator, error)
-	GetProviderMirrorEnabled(ctx context.Context, input *types.GetWorkspaceProviderMirrorEnabledInput) (*types.NamespaceProviderMirrorEnabled, error)
 	CreateWorkspace(ctx context.Context, workspace *types.CreateWorkspaceInput) (*types.Workspace, error)
 	UpdateWorkspace(ctx context.Context, workspace *types.UpdateWorkspaceInput) (*types.Workspace, error)
 	DeleteWorkspace(ctx context.Context, workspace *types.DeleteWorkspaceInput) error
@@ -118,39 +117,6 @@ func (ws *workspaces) GetWorkspacePaginator(_ context.Context,
 ) (*GetWorkspacesPaginator, error) {
 	paginator := newWorkspacePaginator(*ws.client, input)
 	return &paginator, nil
-}
-
-// GetProviderMirrorEnabled retrieves the provider mirror enabled setting for a workspace.
-func (ws *workspaces) GetProviderMirrorEnabled(ctx context.Context,
-	input *types.GetWorkspaceProviderMirrorEnabledInput,
-) (*types.NamespaceProviderMirrorEnabled, error) {
-	var target struct {
-		Node *struct {
-			Workspace struct {
-				ProviderMirrorEnabled struct {
-					Inherited     bool
-					NamespacePath string
-					Value         bool
-				}
-			} `graphql:"...on Workspace"`
-		} `graphql:"node(id: $id)"`
-	}
-	variables := map[string]interface{}{"id": graphql.String(input.ID)}
-
-	err := ws.client.graphqlClient.Query(ctx, true, &target, variables)
-	if err != nil {
-		return nil, err
-	}
-
-	if target.Node == nil {
-		return nil, errors.NewError(types.ErrNotFound, "workspace with id %s not found", input.ID)
-	}
-
-	return &types.NamespaceProviderMirrorEnabled{
-		Inherited:     target.Node.Workspace.ProviderMirrorEnabled.Inherited,
-		NamespacePath: target.Node.Workspace.ProviderMirrorEnabled.NamespacePath,
-		Value:         target.Node.Workspace.ProviderMirrorEnabled.Value,
-	}, nil
 }
 
 func (ws *workspaces) CreateWorkspace(ctx context.Context,

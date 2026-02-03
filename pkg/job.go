@@ -354,6 +354,10 @@ type graphQLJob struct {
 	LogSize         graphql.Int
 	MaxJobDuration  graphql.Int
 	Tags            []graphql.String
+	Properties      []struct {
+		Key   graphql.String
+		Value graphql.String
+	}
 }
 
 type graphQLCancellationEvent struct {
@@ -376,6 +380,13 @@ func jobFromGraphQL(r graphQLJob) types.Job {
 
 	for _, tag := range r.Tags {
 		result.Tags = append(result.Tags, string(tag))
+	}
+
+	if len(r.Properties) > 0 {
+		result.Properties = make(map[string]string)
+		for _, prop := range r.Properties {
+			result.Properties[string(prop.Key)] = string(prop.Value)
+		}
 	}
 
 	return result
