@@ -20,8 +20,6 @@ type GetTerraformProviderVersionMirrorsInput struct {
 	PaginationOptions *PaginationOptions
 	// GroupPath is the path of the group that contains the version mirror.
 	GroupPath string
-	// HasPackages filters version mirrors by whether they have packages uploaded
-	HasPackages *bool
 }
 
 // GetTerraformProviderVersionMirrorsOutput is the output when listing TerraformProviderVersionMirrors.
@@ -42,7 +40,6 @@ type TerraformProviderVersionMirror struct {
 	RegistryHostname  string
 	RegistryNamespace string
 	Type              string
-	HasPackages       bool
 }
 
 // GetTerraformProviderVersionMirrorInput is the input to specify a single provider version mirror to fetch.
@@ -66,16 +63,16 @@ type GetAvailableProviderVersionsInput struct {
 	RegistryHostname  string
 	RegistryNamespace string
 	Type              string
-	HasPackages       *bool
 }
 
 // CreateTerraformProviderVersionMirrorInput is the input for creating a new provider version mirror.
 type CreateTerraformProviderVersionMirrorInput struct {
-	GroupPath         string `json:"groupPath"`
-	Type              string `json:"type"`
-	RegistryNamespace string `json:"registryNamespace"`
-	RegistryHostname  string `json:"registryHostname"`
-	SemanticVersion   string `json:"semanticVersion"`
+	RegistryToken     *string `json:"registryToken,omitempty"`
+	GroupPath         string  `json:"groupPath"`
+	Type              string  `json:"type"`
+	RegistryNamespace string  `json:"registryNamespace"`
+	RegistryHostname  string  `json:"registryHostname"`
+	SemanticVersion   string  `json:"semanticVersion"`
 }
 
 // DeleteTerraformProviderVersionMirrorInput is the input for deleting a provider version mirror.
