@@ -156,6 +156,7 @@ func (p *providerPlatformMirror) UploadProviderPlatformPackageToMirror(
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return errors.ErrorFromHTTPResponse(resp)
