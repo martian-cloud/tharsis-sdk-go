@@ -16,6 +16,10 @@ type Variable interface {
 		input *types.CreateNamespaceVariableInput) (*types.NamespaceVariable, error)
 	GetVariable(ctx context.Context,
 		input *types.GetNamespaceVariableInput) (*types.NamespaceVariable, error)
+	GetVariables(ctx context.Context,
+		input *types.GetNamespaceVariablesInput) ([]types.NamespaceVariable, error)
+	GetVariableVersion(ctx context.Context,
+		input *types.GetVariableVersionInput) (*types.VariableVersion, error)
 	UpdateVariable(ctx context.Context,
 		input *types.UpdateNamespaceVariableInput) (*types.NamespaceVariable, error)
 	DeleteVariable(ctx context.Context,
@@ -40,8 +44,8 @@ func NewVariable(client *Client) Variable {
 
 // CreateVariable creates a variable.
 func (m *variable) CreateVariable(ctx context.Context,
-	input *types.CreateNamespaceVariableInput) (*types.NamespaceVariable, error) {
-
+	input *types.CreateNamespaceVariableInput,
+) (*types.NamespaceVariable, error) {
 	// The createNamespaceVariable mutation returns the whole namespace object.
 	// After retrieving the namespace object, we will need to find the variable in question.
 	var wrappedCreate struct {
@@ -76,8 +80,8 @@ func (m *variable) CreateVariable(ctx context.Context,
 
 // GetVariable reads a variable.
 func (m *variable) GetVariable(ctx context.Context,
-	input *types.GetNamespaceVariableInput) (*types.NamespaceVariable, error) {
-
+	input *types.GetNamespaceVariableInput,
+) (*types.NamespaceVariable, error) {
 	var target struct {
 		Node *struct {
 			NamespaceVariable graphQLNamespaceVariable `graphql:"...on NamespaceVariable"`
@@ -97,10 +101,41 @@ func (m *variable) GetVariable(ctx context.Context,
 	return &result, nil
 }
 
+// GetVariables retrieves all variables for a namespace and its parent hierarchy.
+func (m *variable) GetVariables(ctx context.Context,
+	input *types.GetNamespaceVariablesInput,
+) ([]types.NamespaceVariable, error) {
+	// Query the namespace to get its variables.
+	// The API returns variables from the namespace and all parent namespaces,
+	// sorted by namespace path (descending) then key (ascending).
+	var target struct {
+		Namespace *struct {
+			Variables []graphQLNamespaceVariable
+		} `graphql:"namespace(fullPath: $fullPath)"`
+	}
+	variables := map[string]interface{}{"fullPath": graphql.String(input.NamespacePath)}
+
+	err := m.client.graphqlClient.Query(ctx, true, &target, variables)
+	if err != nil {
+		return nil, err
+	}
+	if target.Namespace == nil {
+		return nil, errors.NewError(types.ErrNotFound, "namespace with path %s not found", input.NamespacePath)
+	}
+
+	// Convert GraphQL variables to SDK types.
+	result := make([]types.NamespaceVariable, len(target.Namespace.Variables))
+	for i, v := range target.Namespace.Variables {
+		result[i] = variableFromGraphQL(v)
+	}
+
+	return result, nil
+}
+
 // UpdateVariable updates a variable.
 func (m *variable) UpdateVariable(ctx context.Context,
-	input *types.UpdateNamespaceVariableInput) (*types.NamespaceVariable, error) {
-
+	input *types.UpdateNamespaceVariableInput,
+) (*types.NamespaceVariable, error) {
 	// The updateNamespaceVariable mutation returns the whole namespace object.
 	// After retrieving the namespace object, we will need to find the variable in question.
 	var wrappedUpdate struct {
@@ -135,8 +170,8 @@ func (m *variable) UpdateVariable(ctx context.Context,
 
 // DeleteVariable deletes a variable.
 func (m *variable) DeleteVariable(ctx context.Context,
-	input *types.DeleteNamespaceVariableInput) error {
-
+	input *types.DeleteNamespaceVariableInput,
+) error {
 	var wrappedDelete struct {
 		DeleteNamespaceVariable struct {
 			Problems []internal.GraphQLProblem
@@ -177,6 +212,27 @@ func (m *variable) SetVariables(ctx context.Context, input *types.SetNamespaceVa
 	return errors.ErrorFromGraphqlProblems(wrappedSet.SetNamespaceVariables.Problems)
 }
 
+// GetVariableVersion retrieves a variable version, optionally including the sensitive value.
+func (m *variable) GetVariableVersion(ctx context.Context, input *types.GetVariableVersionInput) (*types.VariableVersion, error) {
+	var versionTarget struct {
+		NamespaceVariableVersion *graphQLNamespaceVariableVersion `graphql:"namespaceVariableVersion(id: $versionId, includeSensitiveValue: $includeSensitiveValue)"`
+	}
+	versionVariables := map[string]interface{}{
+		"versionId":             graphql.String(input.VersionID),
+		"includeSensitiveValue": graphql.Boolean(input.IncludeSensitiveValue),
+	}
+
+	err := m.client.graphqlClient.Query(ctx, true, &versionTarget, versionVariables)
+	if err != nil {
+		return nil, err
+	}
+	if versionTarget.NamespaceVariableVersion == nil {
+		return nil, errors.NewError(types.ErrNotFound, "variable version with id %s not found", input.VersionID)
+	}
+
+	return variableVersionFromGraphQL(*versionTarget.NamespaceVariableVersion), nil
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 // Related types and conversion functions:
@@ -189,13 +245,21 @@ type graphQLNamespace struct {
 
 // graphQLNamespaceVariable represents a variable with GraphQL types.
 type graphQLNamespaceVariable struct {
-	ID            graphql.String
-	Metadata      internal.GraphQLMetadata
-	Value         *graphql.String
-	NamespacePath graphql.String
-	Key           graphql.String
-	Category      graphql.String
-	Sensitive     graphql.Boolean
+	ID              graphql.String
+	Metadata        internal.GraphQLMetadata
+	Value           *graphql.String
+	NamespacePath   graphql.String
+	Key             graphql.String
+	Category        graphql.String
+	Sensitive       graphql.Boolean
+	LatestVersionID graphql.String
+}
+
+// graphQLNamespaceVariableVersion represents a variable version with GraphQL types.
+type graphQLNamespaceVariableVersion struct {
+	ID    graphql.String
+	Key   graphql.String
+	Value *graphql.String
 }
 
 // variableFromGraphQLNamespace finds the specified variable in the namespace object
@@ -217,11 +281,21 @@ func variableFromGraphQLNamespace(v graphQLNamespace, key string) *types.Namespa
 // variableFromGraphQL converts a GraphQL variable to a plain variable.
 func variableFromGraphQL(v graphQLNamespaceVariable) types.NamespaceVariable {
 	return types.NamespaceVariable{
-		Metadata:      internal.MetadataFromGraphQL(v.Metadata, v.ID),
-		Key:           string(v.Key),
-		Value:         (*string)(v.Value),
-		Category:      types.VariableCategory(v.Category),
-		NamespacePath: string(v.NamespacePath),
-		Sensitive:     bool(v.Sensitive),
+		Metadata:        internal.MetadataFromGraphQL(v.Metadata, v.ID),
+		Key:             string(v.Key),
+		Value:           (*string)(v.Value),
+		Category:        types.VariableCategory(v.Category),
+		NamespacePath:   string(v.NamespacePath),
+		LatestVersionID: string(v.LatestVersionID),
+		Sensitive:       bool(v.Sensitive),
+	}
+}
+
+// variableVersionFromGraphQL converts a GraphQL variable version to a plain variable version.
+func variableVersionFromGraphQL(v graphQLNamespaceVariableVersion) *types.VariableVersion {
+	return &types.VariableVersion{
+		Metadata: internal.MetadataFromGraphQL(internal.GraphQLMetadata{}, v.ID),
+		Key:      string(v.Key),
+		Value:    (*string)(v.Value),
 	}
 }
