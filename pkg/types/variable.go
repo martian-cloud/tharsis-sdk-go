@@ -11,12 +11,13 @@ const (
 
 // NamespaceVariable models a namespace variable.
 type NamespaceVariable struct {
-	Value         *string
-	Metadata      ResourceMetadata
-	NamespacePath string
-	Category      VariableCategory
-	Key           string
-	Sensitive     bool
+	Value           *string
+	Metadata        ResourceMetadata
+	NamespacePath   string
+	Category        VariableCategory
+	Key             string
+	LatestVersionID string
+	Sensitive       bool
 }
 
 // CreateNamespaceVariableInput is the input for creating a namespace variable.
@@ -44,7 +45,8 @@ type UpdateNamespaceVariableInput struct {
 
 // GetNamespaceVariableInput is the input for retrieving a namespace variable.
 type GetNamespaceVariableInput struct {
-	ID string `json:"id"`
+	ID                    string `json:"id"`
+	IncludeSensitiveValue bool   `json:"includeSensitiveValue"`
 }
 
 // DeleteNamespaceVariableInput is the input for deleting a namespace variable.
@@ -57,4 +59,23 @@ type SetNamespaceVariablesInput struct {
 	NamespacePath string                          `json:"namespacePath"`
 	Category      VariableCategory                `json:"category"`
 	Variables     []SetNamespaceVariablesVariable `json:"variables"`
+}
+
+// GetNamespaceVariablesInput is the input for getting all variables in a namespace.
+type GetNamespaceVariablesInput struct {
+	NamespacePath         string `json:"namespacePath"`
+	IncludeSensitiveValue bool   `json:"includeSensitiveValue"`
+}
+
+// GetVariableVersionInput is the input for getting a variable version with optional sensitive value.
+type GetVariableVersionInput struct {
+	VersionID             string `json:"versionId"`
+	IncludeSensitiveValue bool   `json:"includeSensitiveValue"`
+}
+
+// VariableVersion represents a variable version.
+type VariableVersion struct {
+	Metadata ResourceMetadata
+	Key      string
+	Value    *string
 }
