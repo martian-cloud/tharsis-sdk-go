@@ -137,6 +137,11 @@ type CreateRunInput struct {
 	IsDestroy              bool          `json:"isDestroy"`
 	Refresh                bool          `json:"refresh"`
 	RefreshOnly            bool          `json:"refreshOnly"`
+	// IncludeModulePrereleases, when true and ModuleVersion is unset or a
+	// constraint range, allows prerelease module versions to be selected as
+	// "latest". Has no effect when ModuleVersion is an exact match. Requires
+	// ModuleSource to be set.
+	IncludeModulePrereleases bool `json:"includeModulePrereleases"`
 }
 
 // ApplyRunInput is the input for applying a run.
