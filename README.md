@@ -1,3 +1,10 @@
+# Archived
+
+⚠️ **This project is now deprecated. The GraphQL SDK has been replaced by the GRPC client. 
+
+---
+
+
 # Tharsis SDK Go
 
 Tharsis SDK provides a client library for accessing different functionalities of Tharsis API. It contains a lot of code used by projects like the Tharsis CLI, and Tharsis API's job executor. Uses a combination of GraphQL and API's V1 endpoint for querying and manipulating resources.
